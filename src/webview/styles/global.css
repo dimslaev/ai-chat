@@ -1,0 +1,121 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.no-hover:hover {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+pre {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: var(--radius-3);
+  margin: 8px 0;
+  overflow-x: hidden;
+  background: var(--gray-2) !important;
+  border: 1px solid var(--gray-6);
+}
+
+pre code {
+  display: block;
+  padding: 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0.6;
+  width: 32px;
+  height: 32px;
+  padding: 8px;
+  background: var(--gray-1);
+  color: var(--gray-11);
+  border: 1px solid var(--gray-6);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-button:hover {
+  opacity: 1;
+  background: var(--gray-3);
+  border-color: var(--gray-8);
+}
+
+.copy-button:active {
+  opacity: 0.8;
+  transform: scale(0.95);
+}
+
+pre:hover .copy-button {
+  opacity: 0.8;
+}
+
+code:not(pre code) {
+  font-family: var(--font-mono);
+  background-color: var(--gray-3);
+  color: var(--accent-11);
+  padding: 2px 4px;
+  border-radius: var(--radius-1);
+  font-size: 0.9em;
+}
+
+.chat-message p {
+  margin: 8px 0;
+}
+
+.chat-message *:first-child {
+  margin-top: 0;
+}
+
+.chat-message *:last-child {
+  margin-bottom: 0;
+}
+
+.chat-message h1 {
+  font-size: var(--font-size-5);
+}
+
+.chat-message h2 {
+  font-size: var(--font-size-4);
+}
+
+.chat-message h3 {
+  font-size: var(--font-size-3);
+}
+
+.chat-message h4 {
+  font-size: var(--font-size-2);
+}
+
+.chat-message h5 {
+  font-size: var(--font-size-2);
+}
+
+.chat-message h6 {
+  font-size: var(--font-size-2);
+}
+
+.rt-ScrollAreaViewport > * {
+  width: unset;
+}
+
+.rt-TextAreaRoot:where(:focus-within),
+.rt-TextAreaInput:focus {
+  outline: none;
+}
+
+.rt-TextAreaInput {
+  font-size: 0.945rem;
+}

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": ["es2020", "dom"],
+    "outDir": "out",
+    "sourceMap": true,
+    "strict": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "rootDir": "src"
+  },
+  "exclude": [
+    "node_modules",
+    "jest.setup.ts",
+    "**/tests/**",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}
