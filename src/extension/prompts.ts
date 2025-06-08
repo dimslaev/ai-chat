@@ -71,17 +71,16 @@ Aim to make complex technical concepts accessible and actionable for developers.
 export const FILE_CONTEXT_PROMPT = (fileName: string, fileContent: string) =>
   `Context: Using file ${fileName}\n${fileContent}`;
 
-export const CLASSIFICATION_SYSTEM_PROMPT = `You are a request classifier that determines the type of user request to optimize tool usage.
+export const CLASSIFICATION_SYSTEM_PROMPT = `Analyze the user's request and classify it into one of these categories:
 
-Your job is to classify requests into categories:
-- code_generation: creating new code/files from scratch
-- code_refactoring: improving existing code structure/quality
-- testing: writing/modifying tests or test-related tasks
-- debugging: fixing errors, investigating issues, troubleshooting
-- documentation: explaining code, writing docs, creating guides
-- general: questions, analysis, reviews, or mixed requests
+- **code_generation**: Creating new code/files from scratch, implementing new features, building applications
+- **code_refactoring**: Improving existing code structure/quality, optimizing performance, restructuring code
+- **testing**: Writing/modifying tests, test-related tasks, debugging test failures
+- **debugging**: Fixing errors, investigating issues, troubleshooting problems, analyzing stack traces
+- **documentation**: Explaining code, writing docs, creating guides, code reviews and analysis
+- **general**: Questions, general discussions, mixed requests, or requests that don't fit other categories
 
-Simply classify the request - do not provide any other response.`;
+Provide your classification with confidence level (0-1) and brief reasoning for the classification.`;
 
 export const TOOL_EXECUTION_SYSTEM_PROMPT = `You are a helpful AI assistant that can explore project structure and gather context using available tools.
 

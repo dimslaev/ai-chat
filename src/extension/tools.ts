@@ -1,38 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import {
-  ToolDefinition,
-  FileInfo,
-  ToolExecutionResult,
-  MessageCategory,
-} from "../types";
-
-export const CLASSIFICATION_TOOL: ToolDefinition = {
-  type: "function",
-  function: {
-    name: "classify_request",
-    description:
-      "Classify the user's request to determine the most appropriate response approach and tool usage strategy",
-    parameters: {
-      type: "object",
-      properties: {
-        category: {
-          type: "string",
-          enum: [
-            "code_generation",
-            "code_refactoring",
-            "testing",
-            "debugging",
-            "documentation",
-            "general",
-          ],
-          description: "The classified category of the user's request",
-        },
-      },
-      required: ["category"],
-    },
-  },
-};
+import { z } from "zod";
+import { ToolDefinition, FileInfo, ToolExecutionResult } from "../types";
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
@@ -130,9 +99,6 @@ export class ToolExecutor {
       let result: string;
 
       switch (functionName) {
-        case "classify_request":
-          result = await this.classifyRequest(args);
-          break;
         case "read_file":
           result = await this.readFile(args.file_path);
           break;
@@ -163,9 +129,7 @@ export class ToolExecutor {
     }
   }
 
-  private async classifyRequest(args: any): Promise<MessageCategory> {
-    return args.category;
-  }
+  // classifyRequest method removed - now using structured output with Zod
 
   private async readFile(filePath: string): Promise<string> {
     const fullPath = path.resolve(this.workspaceRoot, filePath);
@@ -265,3 +229,16 @@ export class ToolExecutor {
     }
   }
 }
+
+export const Classification = z.object({
+  category: z.enum([
+    "code_generation",
+    "code_refactoring",
+    "testing",
+    "debugging",
+    "documentation",
+    "general",
+  ]),
+  confidence: z.number().min(0).max(1).optional(),
+  reasoning: z.string().optional(),
+});

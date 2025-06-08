@@ -2,6 +2,7 @@
 
 import * as vscode from "vscode";
 import OpenAI from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
 import {
   Message,
   OpenAIMessage,
@@ -23,7 +24,7 @@ import {
   TOOL_EXECUTION_SYSTEM_PROMPT,
   TOOL_RESULT_PROMPT,
 } from "./prompts";
-import { TOOL_DEFINITIONS, CLASSIFICATION_TOOL, ToolExecutor } from "./tools";
+import { TOOL_DEFINITIONS, ToolExecutor, Classification } from "./tools";
 import { ChatCompletionToolChoiceOption } from "openai/resources/chat";
 
 const extConfig = vscode.workspace.getConfiguration("aiChat");
@@ -215,6 +216,7 @@ export const Extension = {
 
       // Get tool context if tools are enabled
       const toolContext = await tools.prepareContext(payload);
+      console.log("Prepared tool context", toolContext);
       createCompletion(toolContext);
     },
 
@@ -254,7 +256,6 @@ export const Extension = {
   tools: {
     getIcon(toolName: string): string {
       const icons = {
-        classify_request: "🎯",
         search_files: "🔍",
         read_file: "📖",
         write_file: "✏️",
@@ -340,34 +341,42 @@ export const Extension = {
 
     // Analyze user message and prepare tool context
     async prepareContext(userMessage: Message): Promise<OpenAIMessage[]> {
-      const { config, toolsClient } = Extension;
+      const { config, toolsClient, files } = Extension;
 
       if (!config.USE_TOOLS) {
         return [];
       }
 
       try {
-        console.log("Classification...");
-
         // Phase 1: Classification
+        console.log("Classification...");
+        const messages: OpenAIMessage[] = [
+          { role: "system", content: CLASSIFICATION_SYSTEM_PROMPT },
+          { role: "user", content: userMessage.content },
+        ];
+        if (files.length) {
+          console.log(`Adding ${files.length} attached files as context`);
+          await Promise.all(
+            files.map(async (file) => {
+              const fileData = await vscode.workspace.fs.readFile(file.fileUri);
+              const fileContent = Buffer.from(fileData).toString("utf8");
 
-        const classifyCalls = await this.getToolCalls(
-          [{ role: "system", content: CLASSIFICATION_SYSTEM_PROMPT }],
-          [CLASSIFICATION_TOOL]
-        );
-
-        let category: MessageCategory = "general";
-
-        if (classifyCalls.length) {
-          try {
-            category = JSON.parse(classifyCalls[0].function.arguments).category;
-            console.log(`Request classified as: ${category}`);
-          } catch (error) {
-            console.error("Failed to parse classification:", error);
-          }
+              messages.push({
+                role: "user",
+                content: FILE_CONTEXT_PROMPT(file.name, fileContent),
+              });
+            })
+          );
         }
-
-        Extension.category = category;
+        const classification = await toolsClient.beta.chat.completions.parse({
+          model: config.TOOLS_MODEL,
+          messages,
+          response_format: zodResponseFormat(Classification, "classification"),
+          temperature: config.TOOLS_TEMPERATURE,
+        });
+        const parsed = classification.choices[0]?.message?.parsed;
+        Extension.category = parsed?.category || "general";
+        console.log("Classification result", parsed);
 
         // Phase 2: Tool execution
         const toolCalls = await this.getToolCalls(
