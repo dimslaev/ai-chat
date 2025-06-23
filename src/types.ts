@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import Groq from "groq-sdk";
 import { Stream } from "openai/streaming";
 import * as vscode from "vscode";
 
@@ -7,9 +8,22 @@ export type vscodeApi = {
   postMessage(message: unknown): void;
 };
 
+/* AI Providers */
+export type Provider = "openai" | "groq";
+
+export type AIClient = OpenAI | Groq;
+
 /* Open AI */
 export type OpenAIMessage = OpenAI.ChatCompletionMessageParam;
 export type OpenAIStream = Stream<OpenAI.ChatCompletionChunk>;
+
+/* Groq */
+export type GroqMessage = Groq.Chat.ChatCompletionMessageParam;
+export type GroqStream = Stream<Groq.Chat.ChatCompletionChunk>;
+
+/* Unified types - both providers use same API format */
+export type AIMessage = OpenAIMessage | GroqMessage;
+export type AIStream = any; // Both providers return compatible stream objects
 
 /* Tool Calling */
 export type FunctionCall = {

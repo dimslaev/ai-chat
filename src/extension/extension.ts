@@ -2,15 +2,17 @@
 
 import * as vscode from "vscode";
 import OpenAI from "openai";
+import Groq from "groq-sdk";
 import {
   Message,
-  OpenAIMessage,
+  AIMessage,
   AttachedFile,
   PostMessage,
-  OpenAIStream,
   ToolCall,
+  Provider,
+  AIClient,
 } from "../types";
-import { postMessage, toOpenAIMessage } from "../utils/message";
+import { postMessage, toOpenAIMessage, toGroqMessage } from "../utils/message";
 import {
   DEFAULT_SYSTEM_PROMPT,
   TOOL_ENHANCED_SYSTEM_PROMPT,
@@ -24,21 +26,20 @@ export const Extension = {
   context: undefined! as vscode.ExtensionContext,
   webview: undefined! as vscode.Webview,
 
-  // Single OpenAI client for both chat and tools
-  client: new OpenAI({
-    apiKey: extConfig.get<string>("apiKey") || "no-key",
-    baseURL: extConfig.get<string>("baseURL") || "https://api.openai.com/v1",
-  }),
+  // AI client (OpenAI or Groq)
+  client: undefined! as AIClient,
+  provider: (extConfig.get<string>("provider") || "openai") as Provider,
 
   // Abort stream
   abort: new AbortController(),
 
-  // Simplified configuration
+  // Configuration
   config: {
     TEMPERATURE: 0.1,
     HISTORY_LIMIT: 10,
     MODEL: extConfig.get<string>("model") || "gpt-4",
     USE_TOOLS: extConfig.get<boolean>("toolsEnabled") || false,
+    PROVIDER: (extConfig.get<string>("provider") || "openai") as Provider,
   },
 
   // Chat state
@@ -47,6 +48,26 @@ export const Extension = {
 
   // Tool executor
   executor: new ToolExecutor(),
+
+  // Initialize the AI client based on provider
+  initializeClient(): void {
+    const apiKey = extConfig.get<string>("apiKey") || "no-key";
+    const baseURL = extConfig.get<string>("baseURL");
+
+    if (this.config.PROVIDER === "groq") {
+      this.client = new Groq({
+        apiKey,
+        ...(baseURL && { baseURL }),
+      });
+    } else {
+      this.client = new OpenAI({
+        apiKey,
+        baseURL: baseURL || "https://api.openai.com/v1",
+      });
+    }
+
+    this.provider = this.config.PROVIDER;
+  },
 
   // Set the tools enabled state and persist it
   setToolsEnabled(enabled: boolean): void {
@@ -59,6 +80,9 @@ export const Extension = {
   init(context: vscode.ExtensionContext) {
     this.context = context;
     this.abort = new AbortController();
+
+    // Initialize the AI client
+    this.initializeClient();
 
     // Set up tool executor with workspace root
     const workspaceRoot =
@@ -79,6 +103,24 @@ export const Extension = {
             name: editor.document.uri.path.split(/[\\/]/).pop() || "",
             fileUri: editor.document.uri,
           });
+        }
+      })
+    );
+
+    // Listen for configuration changes
+    this.context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("aiChat")) {
+          // Update configuration
+          const newConfig = vscode.workspace.getConfiguration("aiChat");
+          const newProvider = newConfig.get<string>("provider") || "openai";
+
+          // Reinitialize client if provider changed
+          if (newProvider !== this.config.PROVIDER) {
+            this.config.PROVIDER = newProvider as Provider;
+            this.config.MODEL = newConfig.get<string>("model") || "gpt-4";
+            this.initializeClient();
+          }
         }
       })
     );
@@ -291,12 +333,21 @@ export const Extension = {
   },
 
   chat: {
+    // Convert messages based on provider
+    convertMessage(message: Message): AIMessage {
+      if (Extension.provider === "groq") {
+        return toGroqMessage(message);
+      } else {
+        return toOpenAIMessage(message);
+      }
+    },
+
     // Build message context
-    async prepareMessages() {
+    async prepareMessages(): Promise<AIMessage[]> {
       const { config, history, files } = Extension;
-      const messages: OpenAIMessage[] = history
+      const messages: AIMessage[] = history
         .slice(-config.HISTORY_LIMIT)
-        .map(toOpenAIMessage);
+        .map(this.convertMessage);
 
       console.log(
         `Preparing chat messages (history: ${messages.length}, files: ${files.length})`
@@ -311,10 +362,13 @@ export const Extension = {
             const fileData = await vscode.workspace.fs.readFile(file.fileUri);
             const fileContent = Buffer.from(fileData).toString("utf8");
 
-            messages.unshift({
+            const contextMessage: Message = {
+              id: Date.now().toString(),
               role: "user",
               content: FILE_CONTEXT_PROMPT(file.name, fileContent),
-            });
+            };
+
+            messages.unshift(this.convertMessage(contextMessage));
           })
         );
       }
@@ -324,10 +378,13 @@ export const Extension = {
         ? TOOL_ENHANCED_SYSTEM_PROMPT
         : DEFAULT_SYSTEM_PROMPT;
 
-      messages.unshift({
+      const systemMessage: Message = {
+        id: Date.now().toString(),
         role: "system",
         content: systemPrompt,
-      });
+      };
+
+      messages.unshift(this.convertMessage(systemMessage));
 
       return messages;
     },
@@ -343,9 +400,9 @@ export const Extension = {
         if (config.USE_TOOLS) {
           console.log("Tools enabled, checking for tool calls");
 
-          const toolResponse = await client.chat.completions.create({
+          const toolResponse = await (client as any).chat.completions.create({
             model: config.MODEL,
-            messages,
+            messages: messages as any,
             tools: getOpenAIToolDefinitions(),
             tool_choice: "auto",
             temperature: config.TEMPERATURE,
@@ -360,7 +417,7 @@ export const Extension = {
             const toolResults = await Extension.tools.execute(toolCalls);
 
             // Add tool calls and results to conversation
-            const updatedMessages = [...messages];
+            const updatedMessages = [...messages] as any[];
             updatedMessages.push({
               role: "assistant",
               content: toolResponse.choices[0]?.message?.content || null,
@@ -376,7 +433,7 @@ export const Extension = {
             }
 
             // Continue with streaming response after tool execution
-            const stream = await client.chat.completions.create({
+            const stream = await (client as any).chat.completions.create({
               model: config.MODEL,
               messages: updatedMessages,
               stream: true,
@@ -389,9 +446,9 @@ export const Extension = {
         }
 
         // No tools called, proceed with normal streaming
-        const stream = await client.chat.completions.create({
+        const stream = await (client as any).chat.completions.create({
           model: config.MODEL,
-          messages,
+          messages: messages as any,
           stream: true,
           temperature: config.TEMPERATURE,
         });
@@ -402,7 +459,7 @@ export const Extension = {
       }
     },
 
-    async handleStream(stream: OpenAIStream) {
+    async handleStream(stream: any) {
       const { webview, history, abort } = Extension;
 
       try {
