@@ -12,19 +12,6 @@ export type OpenAIMessage = OpenAI.ChatCompletionMessageParam;
 export type OpenAIStream = Stream<OpenAI.ChatCompletionChunk>;
 
 /* Tool Calling */
-export type ToolDefinition = {
-  type: "function";
-  function: {
-    name: string;
-    description: string;
-    parameters: {
-      type: "object";
-      properties: Record<string, any>;
-      required: string[];
-    };
-  };
-};
-
 export type FunctionCall = {
   name: string;
   arguments: string;
@@ -36,36 +23,7 @@ export type ToolCall = {
   function: FunctionCall;
 };
 
-export type ToolExecutionResult = {
-  tool_call_id: string;
-  content: string;
-};
-
-export type ToolResultCache = {
-  [key: string]: {
-    result: string;
-    timestamp: number;
-    toolName: string;
-  };
-};
-
-export type MessageCategory =
-  | "code_generation"
-  | "code_refactoring"
-  | "testing"
-  | "debugging"
-  | "documentation"
-  | "general";
-
-export type FileInfo = {
-  name: string;
-  path: string;
-  type: "file" | "directory";
-  size?: number;
-};
-
 /* Messages */
-
 export type Message = {
   id: string;
   role: "user" | "assistant" | "system";

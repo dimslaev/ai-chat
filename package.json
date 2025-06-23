@@ -58,33 +58,12 @@
           "scope": "application",
           "order": 3
         },
-        "aiChat.toolsApiKey": {
-          "type": "string",
-          "default": "api-key",
-          "description": "API key for the tools service",
-          "scope": "application",
-          "order": 4
-        },
-        "aiChat.toolsBaseURL": {
-          "type": "string",
-          "default": "http://127.0.0.1:11434/v1",
-          "description": "Base URL for the tools service",
-          "scope": "application",
-          "order": 5
-        },
-        "aiChat.toolsModel": {
-          "type": "string",
-          "default": "qwen3:1.7b",
-          "description": "AI model for the tools service",
-          "scope": "application",
-          "order": 6
-        },
         "aiChat.toolsEnabled": {
           "type": "boolean",
           "default": false,
           "description": "Enable tools/agent mode by default",
           "scope": "application",
-          "order": 7
+          "order": 4
         }
       }
     }

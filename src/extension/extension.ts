@@ -2,7 +2,6 @@
 
 import * as vscode from "vscode";
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import {
   Message,
   OpenAIMessage,
@@ -10,22 +9,14 @@ import {
   PostMessage,
   OpenAIStream,
   ToolCall,
-  ToolExecutionResult,
-  MessageCategory,
-  ToolDefinition,
 } from "../types";
 import { postMessage, toOpenAIMessage } from "../utils/message";
-import { getContinuationContent } from "../utils/markdown";
 import {
   DEFAULT_SYSTEM_PROMPT,
-  CATEGORY_SYSTEM_PROMPTS,
+  TOOL_ENHANCED_SYSTEM_PROMPT,
   FILE_CONTEXT_PROMPT,
-  CLASSIFICATION_SYSTEM_PROMPT,
-  TOOL_EXECUTION_SYSTEM_PROMPT,
-  TOOL_RESULT_PROMPT,
 } from "./prompts";
-import { TOOL_DEFINITIONS, ToolExecutor, Classification } from "./tools";
-import { ChatCompletionToolChoiceOption } from "openai/resources/chat";
+import { getOpenAIToolDefinitions, ToolExecutor } from "./tool";
 
 const extConfig = vscode.workspace.getConfiguration("aiChat");
 
@@ -33,44 +24,29 @@ export const Extension = {
   context: undefined! as vscode.ExtensionContext,
   webview: undefined! as vscode.Webview,
 
-  // OpenAI clients - separate for chat and tools
+  // Single OpenAI client for both chat and tools
   client: new OpenAI({
     apiKey: extConfig.get<string>("apiKey") || "no-key",
-    baseURL:
-      extConfig.get<string>("baseURL") ||
-      "https://internal.infomaniak.com/api/internal-ai/ide",
-  }),
-  toolsClient: new OpenAI({
-    apiKey:
-      extConfig.get<string>("toolsApiKey") ||
-      extConfig.get<string>("apiKey") ||
-      "no-key",
-    baseURL:
-      extConfig.get<string>("toolsBaseURL") || "https://api.openai.com/v1",
+    baseURL: extConfig.get<string>("baseURL") || "https://api.openai.com/v1",
   }),
 
   // Abort stream
   abort: new AbortController(),
 
-  // Configuration settings
+  // Simplified configuration
   config: {
-    MAX_TOKENS: 512,
     TEMPERATURE: 0.1,
     HISTORY_LIMIT: 10,
-    MODEL: extConfig.get<string>("model") || "llama3",
-    TOOLS_MODEL: extConfig.get<string>("toolsModel") || "gpt-4o-mini",
-    TOOLS_TEMPERATURE: 0.0,
+    MODEL: extConfig.get<string>("model") || "gpt-4",
     USE_TOOLS: extConfig.get<boolean>("toolsEnabled") || false,
   },
 
   // Chat state
   history: [] as Message[],
   files: [] as AttachedFile[],
-  partialMessage: "", // For handling long responses that get cut off
 
-  // Tools calling
+  // Tool executor
   executor: new ToolExecutor(),
-  category: null as MessageCategory | null, // Current conversation category
 
   // Set the tools enabled state and persist it
   setToolsEnabled(enabled: boolean): void {
@@ -83,6 +59,11 @@ export const Extension = {
   init(context: vscode.ExtensionContext) {
     this.context = context;
     this.abort = new AbortController();
+
+    // Set up tool executor with workspace root
+    const workspaceRoot =
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "";
+    this.executor.setWorkspaceRoot(workspaceRoot);
 
     // Register webview provider
     const provider = { resolveWebviewView: this.ui.setup };
@@ -206,18 +187,12 @@ export const Extension = {
 
     // Process user message and start AI response
     async handleUserMessage(payload: Message) {
-      const {
-        history,
-        chat: { createCompletion },
-        tools,
-      } = Extension;
+      const { history } = Extension;
       Extension.history = [...history, payload];
       Extension.abort = new AbortController();
 
-      // Get tool context if tools are enabled
-      const toolContext = await tools.prepareContext(payload);
-      console.log("Prepared tool context", toolContext);
-      createCompletion(toolContext);
+      // Start AI response (tools are handled within createCompletion)
+      Extension.chat.createCompletion();
     },
 
     stopStream() {
@@ -227,19 +202,16 @@ export const Extension = {
     },
 
     attachFile(payload: AttachedFile) {
-      const { fileUri } = payload;
-      Extension.files.push({
-        name: fileUri.path.split(/[\\/]/).pop() || "",
-        fileUri,
-      });
+      const { files } = Extension;
+      if (!files.find((f) => f.fileUri.path === payload.fileUri.path)) {
+        Extension.files = [...files, payload];
+      }
     },
 
     removeFile(payload: AttachedFile) {
-      const { files } = Extension;
-      const index = files.findIndex(
-        (file) => file.fileUri.path === payload.fileUri.path
+      Extension.files = Extension.files.filter(
+        (f) => f.fileUri.path !== payload.fileUri.path
       );
-      files.splice(index, 1);
     },
 
     toggleTools(enabled: boolean) {
@@ -247,20 +219,17 @@ export const Extension = {
     },
 
     cleanup() {
-      Extension.history = [];
       Extension.files = [];
-      Extension.category = null;
+      Extension.history = [];
     },
   },
 
   tools: {
     getIcon(toolName: string): string {
       const icons = {
-        search_files: "🔍",
         read_file: "📖",
         write_file: "✏️",
-        list_directory: "📁",
-        get_file_info: "ℹ️",
+        grep: "🔍",
       };
       return icons[toolName as keyof typeof icons] || "🔧";
     },
@@ -275,9 +244,11 @@ export const Extension = {
       };
     },
 
-    async execute(tools: ToolCall[]): Promise<ToolExecutionResult[]> {
-      const { executor, history, webview } = Extension;
-      const results: ToolExecutionResult[] = [];
+    async execute(
+      tools: ToolCall[]
+    ): Promise<Array<{ tool_call_id: string; content: string }>> {
+      const { executor, history, webview, abort } = Extension;
+      const results: Array<{ tool_call_id: string; content: string }> = [];
 
       for (const tool of tools) {
         try {
@@ -285,11 +256,7 @@ export const Extension = {
           const toolName = tool.function.name;
 
           const target =
-            args.file_path ||
-            args.directory_path ||
-            args.pattern ||
-            args.category ||
-            "unknown";
+            args.filePath || args.pattern || args.path || "unknown";
 
           console.log(`Executing tool: ${toolName} with target: ${target}`);
 
@@ -304,7 +271,8 @@ export const Extension = {
           const result = await executor.executeToolCall(
             tool.id,
             toolName,
-            args
+            args,
+            abort.signal
           );
 
           results.push(result);
@@ -320,112 +288,18 @@ export const Extension = {
 
       return results;
     },
-
-    async getToolCalls(
-      messages: OpenAIMessage[],
-      tools: ToolDefinition[],
-      toolChoice: ChatCompletionToolChoiceOption = "auto"
-    ): Promise<ToolCall[]> {
-      const { config, toolsClient } = Extension;
-
-      const response = await toolsClient.chat.completions.create({
-        model: config.TOOLS_MODEL,
-        messages: messages,
-        tools: tools,
-        tool_choice: toolChoice,
-        temperature: config.TOOLS_TEMPERATURE,
-      });
-
-      return response.choices[0]?.message?.tool_calls || [];
-    },
-
-    // Analyze user message and prepare tool context
-    async prepareContext(userMessage: Message): Promise<OpenAIMessage[]> {
-      const { config, toolsClient, files } = Extension;
-
-      if (!config.USE_TOOLS) {
-        return [];
-      }
-
-      try {
-        // Phase 1: Classification
-        console.log("Classification...");
-        const messages: OpenAIMessage[] = [
-          { role: "system", content: CLASSIFICATION_SYSTEM_PROMPT },
-          { role: "user", content: userMessage.content },
-        ];
-        if (files.length) {
-          console.log(`Adding ${files.length} attached files as context`);
-          await Promise.all(
-            files.map(async (file) => {
-              const fileData = await vscode.workspace.fs.readFile(file.fileUri);
-              const fileContent = Buffer.from(fileData).toString("utf8");
-
-              messages.push({
-                role: "user",
-                content: FILE_CONTEXT_PROMPT(file.name, fileContent),
-              });
-            })
-          );
-        }
-        const classification = await toolsClient.beta.chat.completions.parse({
-          model: config.TOOLS_MODEL,
-          messages,
-          response_format: zodResponseFormat(Classification, "classification"),
-          temperature: config.TOOLS_TEMPERATURE,
-        });
-        const parsed = classification.choices[0]?.message?.parsed;
-        Extension.category = parsed?.category || "general";
-        console.log("Classification result", parsed);
-
-        // Phase 2: Tool execution
-        const toolCalls = await this.getToolCalls(
-          [
-            { role: "system", content: TOOL_EXECUTION_SYSTEM_PROMPT },
-            { role: "user", content: userMessage.content },
-          ],
-          TOOL_DEFINITIONS
-        );
-
-        if (!toolCalls.length) {
-          return [];
-        }
-
-        const toolResults = await this.execute(toolCalls);
-
-        const contextMessages: OpenAIMessage[] = [];
-        for (const result of toolResults) {
-          const toolCall = toolCalls.find(
-            (tc) => tc.id === result.tool_call_id
-          );
-
-          contextMessages.push({
-            role: "user",
-            content: TOOL_RESULT_PROMPT(
-              toolCall?.function.name || "unknown",
-              result.content
-            ),
-          });
-        }
-
-        return contextMessages;
-      } catch (error) {
-        console.error("Tool execution error:", error);
-        return [];
-      }
-    },
   },
 
   chat: {
-    // Build message context selectively
-    async prepareMessages(toolContext: OpenAIMessage[] = []) {
-      const { config, history, partialMessage, files, category } = Extension;
+    // Build message context
+    async prepareMessages() {
+      const { config, history, files } = Extension;
       const messages: OpenAIMessage[] = history
         .slice(-config.HISTORY_LIMIT)
         .map(toOpenAIMessage);
 
       console.log(
-        `Preparing chat messages (history: ${messages.length}, files: ${files.length}, tools context: ${toolContext.length})`
+        `Preparing chat messages (history: ${messages.length}, files: ${files.length})`
       );
 
       // Add attached file contents as context
@@ -445,158 +319,133 @@ export const Extension = {
         );
       }
 
-      // Add tool results if any
-      if (toolContext.length > 0) {
-        console.log(
-          `Adding ${toolContext.length} tool results as context`,
-          toolContext
-        );
-        messages.unshift(...toolContext);
-      }
-
-      // Use category-specific system prompt
-      const systemPrompt = category
-        ? CATEGORY_SYSTEM_PROMPTS[category]
+      // Add system prompt (use tool-enhanced prompt if tools are enabled)
+      const systemPrompt = Extension.config.USE_TOOLS
+        ? TOOL_ENHANCED_SYSTEM_PROMPT
         : DEFAULT_SYSTEM_PROMPT;
 
-      console.log(`Using system prompt for category: ${category}`);
-
-      messages.unshift({ role: "system", content: systemPrompt });
-
-      // Continue partial message if response was cut off
-      if (partialMessage) {
-        console.log(
-          `Continuing partial message (${partialMessage.length} chars)`
-        );
-        messages.push({
-          role: "assistant",
-          content: partialMessage,
-        });
-      }
+      messages.unshift({
+        role: "system",
+        content: systemPrompt,
+      });
 
       return messages;
     },
 
-    // Create streaming completion from OpenAI
-    async createCompletion(toolContext: OpenAIMessage[] = []) {
-      const {
-        client,
-        config,
-        abort,
-        chat: { prepareMessages, handleStream },
-        util: { handleError },
-      } = Extension;
-
-      console.log(`Starting main model completion (model: ${config.MODEL})`);
-
-      const messages = await prepareMessages(toolContext);
-
-      console.log(`Sending ${messages.length} messages to main model`);
-
+    async createCompletion() {
       try {
-        const response = await client.chat.completions.create(
-          {
-            messages,
-            model: config.MODEL,
-            temperature: config.TEMPERATURE,
-            max_completion_tokens: config.MAX_TOKENS,
-            stream: true,
-          },
-          { signal: abort.signal }
-        );
+        const { client, config } = Extension;
+        const messages = await this.prepareMessages();
 
-        console.log(`Received streaming response from main model`);
-        await handleStream(response, toolContext);
-      } catch (err) {
-        console.error(`Main model request failed:`, err);
-        handleError(err);
+        console.log("Creating completion with messages:", messages.length);
+
+        // Check for tool calls first if tools are enabled
+        if (config.USE_TOOLS) {
+          console.log("Tools enabled, checking for tool calls");
+
+          const toolResponse = await client.chat.completions.create({
+            model: config.MODEL,
+            messages,
+            tools: getOpenAIToolDefinitions(),
+            tool_choice: "auto",
+            temperature: config.TEMPERATURE,
+          });
+
+          const toolCalls = toolResponse.choices[0]?.message?.tool_calls;
+
+          if (toolCalls && toolCalls.length > 0) {
+            console.log(`Model requested ${toolCalls.length} tool calls`);
+
+            // Execute tools
+            const toolResults = await Extension.tools.execute(toolCalls);
+
+            // Add tool calls and results to conversation
+            const updatedMessages = [...messages];
+            updatedMessages.push({
+              role: "assistant",
+              content: toolResponse.choices[0]?.message?.content || null,
+              tool_calls: toolCalls,
+            });
+
+            for (const result of toolResults) {
+              updatedMessages.push({
+                role: "tool",
+                tool_call_id: result.tool_call_id,
+                content: result.content,
+              });
+            }
+
+            // Continue with streaming response after tool execution
+            const stream = await client.chat.completions.create({
+              model: config.MODEL,
+              messages: updatedMessages,
+              stream: true,
+              temperature: config.TEMPERATURE,
+            });
+
+            this.handleStream(stream);
+            return;
+          }
+        }
+
+        // No tools called, proceed with normal streaming
+        const stream = await client.chat.completions.create({
+          model: config.MODEL,
+          messages,
+          stream: true,
+          temperature: config.TEMPERATURE,
+        });
+
+        this.handleStream(stream);
+      } catch (error) {
+        this.handleError(error);
       }
     },
 
-    // Process streaming response and handle continuation
-    async handleStream(
-      stream: OpenAIStream,
-      toolContext: OpenAIMessage[] = []
-    ) {
-      const {
-        webview,
-        chat: { createCompletion },
-        history,
-        abort,
-        partialMessage,
-        util: { handleError },
-      } = Extension;
-
-      let reply = partialMessage || "";
-      let isFirstChunkOfContinuation = !!partialMessage;
-
-      if (!partialMessage) {
-        postMessage(webview, "startAssistantMessage");
-      }
+    async handleStream(stream: OpenAIStream) {
+      const { webview, history, abort } = Extension;
 
       try {
+        postMessage(webview, "startAssistantMessage");
+
+        let content = "";
+        const assistantMessage: Message = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: "",
+        };
+
         for await (const chunk of stream) {
           if (abort.signal.aborted) {
-            throw new Error("Request aborted");
+            break;
           }
 
-          const text = chunk.choices[0]?.delta?.content || "";
-
-          // Fix continuation issues for the first chunk of a continued stream
-          let processedText = text;
-          if (isFirstChunkOfContinuation && partialMessage) {
-            processedText = getContinuationContent(partialMessage, text);
-            isFirstChunkOfContinuation = false;
-          }
-
-          reply += processedText;
-          postMessage(webview, "appendChunk", processedText);
-
-          const finishReason = chunk.choices[0]?.finish_reason;
-          if (finishReason === "length") {
-            // Response was cut off, continue in next request
-            Extension.partialMessage = reply;
-          }
-          if (finishReason === "stop") {
-            Extension.partialMessage = "";
+          const delta = chunk.choices[0]?.delta?.content || "";
+          if (delta) {
+            content += delta;
+            assistantMessage.content = content;
+            postMessage(webview, "appendChunk", delta);
           }
         }
 
-        if (!Extension.partialMessage) {
-          // Response complete, add to history
-          postMessage(webview, "endAssistantMessage");
-          history.push({
-            id: Date.now().toString(),
-            role: "assistant",
-            content: reply,
-          });
-        } else {
-          // Resend the messages including last partial message for continuation
-          createCompletion(toolContext);
+        // Add complete message to history
+        if (assistantMessage.content.trim()) {
+          Extension.history = [...history, assistantMessage];
         }
-      } catch (error) {
-        Extension.partialMessage = "";
+
         postMessage(webview, "endAssistantMessage");
-        if (!abort.signal.aborted) {
-          handleError(error);
-        }
+      } catch (error) {
+        this.handleError(error);
       }
     },
-  },
 
-  util: {
-    // Send error info to webview for user display
     handleError(err: any) {
       const { webview } = Extension;
-      const message =
-        typeof err === "string"
-          ? err
-          : typeof err === "object" && "message" in err
-          ? err.message
-          : "";
-      const code = typeof err === "object" && "code" in err ? err.code : "";
-      const payload = message || code ? { message, code } : null;
-      postMessage(webview, "apiError", payload);
+      console.error("Chat error:", err);
+      postMessage(webview, "apiError", {
+        message: err?.message || "An error occurred",
+      });
+      postMessage(webview, "endAssistantMessage");
     },
   },
 };
