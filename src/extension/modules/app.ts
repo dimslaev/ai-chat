@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import OpenAI from "openai";
 import Groq from "groq-sdk";
-import { Context } from "../util/context";
-import { Log } from "../util/log";
-import { Config } from "../config/config";
-import { ToolExecutor } from "../tool";
+import { Context } from "./context";
+import { Log } from "./log";
+import { Config } from "./config";
+import { ToolExecutor } from "./tool-executor";
 import { Message, AttachedFile, AIClient } from "../../types";
 
 export namespace App {

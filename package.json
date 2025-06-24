@@ -34,6 +34,18 @@
         }
       ]
     },
+    "commands": [
+      {
+        "command": "ai-chat.gatherContext",
+        "title": "Gather Context",
+        "category": "AI Chat"
+      },
+      {
+        "command": "ai-chat.generateProjectMd",
+        "title": "Generate project.md",
+        "category": "AI Chat"
+      }
+    ],
     "configuration": {
       "title": "AI Chat",
       "properties": {

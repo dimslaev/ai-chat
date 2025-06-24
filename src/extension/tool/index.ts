@@ -3,14 +3,19 @@ import { Tool } from "./tool";
 import { ReadTool } from "./read";
 import { WriteTool } from "./write";
 import { GrepTool } from "./grep";
+import { ListDirTool } from "./list-dir";
+import { FindRelatedTool } from "./find-related";
 
-// Export all tools
-export { Tool, ReadTool, WriteTool, GrepTool };
+export { Tool, ReadTool, WriteTool, GrepTool, ListDirTool, FindRelatedTool };
 
-// Tool registry
-const ALL_TOOLS = [ReadTool, WriteTool, GrepTool] as const;
+export const ALL_TOOLS = [
+  ReadTool,
+  WriteTool,
+  GrepTool,
+  ListDirTool,
+  FindRelatedTool,
+] as const;
 
-// OpenAI tool definition conversion
 export function getOpenAIToolDefinitions() {
   return ALL_TOOLS.map((tool) => ({
     type: "function" as const,
@@ -23,7 +28,6 @@ export function getOpenAIToolDefinitions() {
 }
 
 function zodToJsonSchema(schema: z.ZodSchema): any {
-  // Handle ZodObject specifically
   if (schema instanceof z.ZodObject) {
     const shape = schema.shape;
     const properties: Record<string, any> = {};
@@ -83,59 +87,4 @@ function zodTypeToJsonSchema(zodType: z.ZodType): any {
     schema.description = zodType.description;
   }
   return schema;
-}
-
-// Tool executor class
-export class ToolExecutor {
-  private workspaceRoot: string;
-  private toolMap: Map<string, Tool.Info>;
-
-  constructor() {
-    this.workspaceRoot = "";
-    this.toolMap = new Map();
-
-    // Register all tools
-    for (const tool of ALL_TOOLS) {
-      this.toolMap.set(tool.id, tool);
-    }
-  }
-
-  setWorkspaceRoot(root: string) {
-    this.workspaceRoot = root;
-  }
-
-  async executeToolCall(
-    toolCallId: string,
-    functionName: string,
-    args: any,
-    abortSignal: AbortSignal
-  ): Promise<{ tool_call_id: string; content: string }> {
-    const tool = this.toolMap.get(functionName);
-    if (!tool) {
-      return {
-        tool_call_id: toolCallId,
-        content: `Unknown tool: ${functionName}`,
-      };
-    }
-
-    try {
-      const context: Tool.Context = {
-        abort: abortSignal,
-        workspaceRoot: this.workspaceRoot,
-      };
-
-      const result = await tool.execute(args, context);
-      return {
-        tool_call_id: toolCallId,
-        content: result.output,
-      };
-    } catch (error) {
-      return {
-        tool_call_id: toolCallId,
-        content: `Error: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      };
-    }
-  }
 }

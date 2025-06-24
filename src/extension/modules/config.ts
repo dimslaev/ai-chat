@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Log } from "../util/log";
+import { Log } from "./log";
 import { Provider } from "../../types";
 
 export namespace Config {

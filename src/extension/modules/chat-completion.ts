@@ -1,18 +1,15 @@
 import * as vscode from "vscode";
-import { Log } from "../util/log";
-import { App } from "../app/app";
+import { Log } from "./log";
+import { App } from "./app";
+import { ContextGatherer } from "./context-gatherer";
+import * as prompts from "../prompts";
+import { getOpenAIToolDefinitions } from "../tool";
+import { Message, AIMessage, ToolCall } from "../../types";
 import {
   postMessage,
   toOpenAIMessage,
   toGroqMessage,
 } from "../../utils/message";
-import { getOpenAIToolDefinitions } from "../tool";
-import {
-  DEFAULT_SYSTEM_PROMPT,
-  TOOL_ENHANCED_SYSTEM_PROMPT,
-  FILE_CONTEXT_PROMPT,
-} from "../prompts";
-import { Message, AIMessage, ToolCall } from "../../types";
 
 export namespace Chat {
   const log = Log.create({ service: "chat" });
@@ -36,7 +33,47 @@ export namespace Chat {
       files: app.files.length,
     });
 
-    // Add attached file contents as context
+    let enhancedSystemPrompt = prompts.system({
+      toolsEnabled: app.config.USE_TOOLS,
+    });
+
+    if (app.config.USE_TOOLS) {
+      try {
+        log.info("gathering context for enhanced assistance");
+
+        // Gather context with the simplified API
+        const context = await ContextGatherer.gather();
+
+        // Enhance the system prompt with gathered context
+        const baseSystemPrompt = prompts.system({
+          toolsEnabled: true,
+          category: "general",
+        });
+        const contextPrompt = prompts.contextEnhanced(context);
+        enhancedSystemPrompt = baseSystemPrompt + contextPrompt;
+
+        log.info("context gathering completed", {
+          currentFile: !!context.currentFile,
+          relatedFiles: context.relatedFiles.length,
+          intent: context.intent,
+        });
+
+        // Add context summary as a user message for transparency
+        const contextSummary = ContextGatherer.formatSummary(context);
+        const contextMessage: Message = {
+          id: Date.now().toString(),
+          role: "user",
+          content: `📊 Context: ${contextSummary}`,
+        };
+
+        messages.unshift(convertMessage(contextMessage));
+      } catch (error) {
+        log.error("context gathering failed", { error });
+        // Fall back to basic system prompt
+      }
+    }
+
+    // Add attached file contents as context (legacy support)
     if (app.files.length > 0) {
       await Promise.all(
         app.files.map(async (file) => {
@@ -46,7 +83,10 @@ export namespace Chat {
           const contextMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: FILE_CONTEXT_PROMPT(file.name, fileContent),
+            content: prompts.fileContext({
+              fileName: file.name,
+              content: fileContent,
+            }),
           };
 
           messages.unshift(convertMessage(contextMessage));
@@ -54,15 +94,11 @@ export namespace Chat {
       );
     }
 
-    // Add system prompt (use tool-enhanced prompt if tools are enabled)
-    const systemPrompt = app.config.USE_TOOLS
-      ? TOOL_ENHANCED_SYSTEM_PROMPT
-      : DEFAULT_SYSTEM_PROMPT;
-
+    // Add enhanced system prompt
     const systemMessage: Message = {
       id: Date.now().toString(),
       role: "system",
-      content: systemPrompt,
+      content: enhancedSystemPrompt,
     };
 
     messages.unshift(convertMessage(systemMessage));

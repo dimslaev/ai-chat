@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { Log } from "../util/log";
-import { App } from "../app/app";
-import { Chat } from "../chat/completion";
+import { Log } from "./log";
+import { App } from "./app";
+import { Chat } from "./chat-completion";
 import { postMessage } from "../../utils/message";
 import { Message, AttachedFile, PostMessage } from "../../types";
 
