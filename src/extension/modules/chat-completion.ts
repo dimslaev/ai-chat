@@ -109,7 +109,7 @@ export namespace Chat {
   export async function createCompletion() {
     try {
       const app = App.info();
-      const messages = await prepareMessages();
+      let messages = await prepareMessages();
 
       log.info("starting completion", {
         messages: messages.length,
@@ -117,56 +117,81 @@ export namespace Chat {
         tools: app.config.USE_TOOLS,
       });
 
-      // Check for tool calls first if tools are enabled
+      // Iterative tool execution if tools are enabled
       if (app.config.USE_TOOLS) {
-        log.info("tools enabled, checking for tool calls");
+        log.info("tools enabled, starting iterative tool execution");
 
-        const toolResponse = await (app.client as any).chat.completions.create({
-          model: app.config.MODEL,
-          messages: messages as any,
-          tools: getOpenAIToolDefinitions(),
-          tool_choice: "auto",
-          temperature: app.config.TEMPERATURE,
-        });
+        let iterationCount = 0;
+        const maxIterations = 5; // Prevent infinite loops
 
-        const toolCalls = toolResponse.choices[0]?.message?.tool_calls;
+        while (iterationCount < maxIterations) {
+          log.info("tool iteration", {
+            count: iterationCount + 1,
+            maxIterations,
+          });
 
-        if (toolCalls && toolCalls.length > 0) {
-          log.info("executing tool calls", { count: toolCalls.length });
+          const toolResponse = await (
+            app.client as any
+          ).chat.completions.create({
+            model: app.config.MODEL,
+            messages: messages as any,
+            tools: getOpenAIToolDefinitions(),
+            tool_choice: "auto",
+            temperature: app.config.TEMPERATURE,
+          });
+
+          const toolCalls = toolResponse.choices[0]?.message?.tool_calls;
+
+          if (!toolCalls || toolCalls.length === 0) {
+            log.info("no more tool calls, proceeding to final response");
+            break;
+          }
+
+          log.info("executing tool calls", {
+            count: toolCalls.length,
+            iteration: iterationCount + 1,
+            tools: toolCalls.map((t: ToolCall) => t.function.name),
+          });
 
           // Execute tools
           const toolResults = await executeTools(toolCalls);
 
-          // Add tool calls and results to conversation
-          const updatedMessages = [...messages] as any[];
-          updatedMessages.push({
+          // Add assistant message with tool calls to conversation
+          messages.push({
             role: "assistant",
             content: toolResponse.choices[0]?.message?.content || null,
             tool_calls: toolCalls,
           });
 
+          // Add tool results to conversation
           for (const result of toolResults) {
-            updatedMessages.push({
+            messages.push({
               role: "tool",
               tool_call_id: result.tool_call_id,
               content: result.content,
             });
           }
 
-          // Continue with streaming response after tool execution
-          const stream = await (app.client as any).chat.completions.create({
-            model: app.config.MODEL,
-            messages: updatedMessages,
-            stream: true,
-            temperature: app.config.TEMPERATURE,
-          });
+          iterationCount++;
 
-          handleStream(stream);
-          return;
+          // Check if aborted
+          if (app.abort.signal.aborted) {
+            log.info("tool execution aborted");
+            return;
+          }
+        }
+
+        if (iterationCount >= maxIterations) {
+          log.warn("reached maximum tool iterations", { maxIterations });
         }
       }
 
-      // No tools called, proceed with normal streaming
+      // Final streaming response (either no tools were called, or tool execution is complete)
+      log.info("starting final streaming response", {
+        totalMessages: messages.length,
+        toolsUsed: app.config.USE_TOOLS,
+      });
+
       const stream = await (app.client as any).chat.completions.create({
         model: app.config.MODEL,
         messages: messages as any,

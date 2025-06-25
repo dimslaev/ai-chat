@@ -4,16 +4,31 @@ import { ReadTool } from "./read";
 import { WriteTool } from "./write";
 import { GrepTool } from "./grep";
 import { ListDirTool } from "./list-dir";
-import { FindRelatedTool } from "./find-related";
+import { AnalyzeASTTool } from "./ast-analysis";
+import { TaskTool } from "./task";
+import { TodoWriteTool, TodoReadTool } from "./todo";
 
-export { Tool, ReadTool, WriteTool, GrepTool, ListDirTool, FindRelatedTool };
+export {
+  Tool,
+  ReadTool,
+  WriteTool,
+  GrepTool,
+  ListDirTool,
+  AnalyzeASTTool,
+  TaskTool,
+  TodoWriteTool,
+  TodoReadTool,
+};
 
 export const ALL_TOOLS = [
   ReadTool,
   WriteTool,
   GrepTool,
   ListDirTool,
-  FindRelatedTool,
+  AnalyzeASTTool,
+  TaskTool,
+  TodoWriteTool,
+  TodoReadTool,
 ] as const;
 
 export function getOpenAIToolDefinitions() {

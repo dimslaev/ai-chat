@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Tool architecture inspired by opencode
 export namespace Tool {
   export type Context = {
     abort: AbortSignal;

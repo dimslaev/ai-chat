@@ -19,6 +19,15 @@ export namespace App {
     files: AttachedFile[];
     abort: AbortController;
     executor: ToolExecutor;
+    todos: TodoInfo[];
+  }
+
+  export interface TodoInfo {
+    id: string;
+    description: string;
+    status: "pending" | "in_progress" | "completed";
+    created: number;
+    updated: number;
   }
 
   const ctx = Context.create<Info>("app");
@@ -72,7 +81,54 @@ export namespace App {
     const app = ctx.use();
     app.files = [];
     app.history = [];
+    app.todos = [];
     log.info("app cleaned up");
+  }
+
+  export function addTodo(description: string): string {
+    const app = ctx.use();
+    const id = Math.random().toString(36).substr(2, 9);
+    const todo: TodoInfo = {
+      id,
+      description,
+      status: "pending",
+      created: Date.now(),
+      updated: Date.now(),
+    };
+    app.todos = [...app.todos, todo];
+    log.info("todo added", { id, description });
+    return id;
+  }
+
+  export function updateTodoStatus(
+    id: string,
+    status: "pending" | "in_progress" | "completed"
+  ): boolean {
+    const app = ctx.use();
+    const todoIndex = app.todos.findIndex((t) => t.id === id);
+    if (todoIndex === -1) return false;
+
+    app.todos = app.todos.map((todo) =>
+      todo.id === id ? { ...todo, status, updated: Date.now() } : todo
+    );
+    log.info("todo status updated", { id, status });
+    return true;
+  }
+
+  export function getTodos(): TodoInfo[] {
+    const app = ctx.use();
+    return [...app.todos];
+  }
+
+  export function removeTodo(id: string): boolean {
+    const app = ctx.use();
+    const initialLength = app.todos.length;
+    app.todos = app.todos.filter((t) => t.id !== id);
+    const removed = app.todos.length < initialLength;
+    if (removed) {
+      log.info("todo removed", { id });
+    }
+    return removed;
   }
 
   function createClient(config: Config.AppConfig): AIClient {
@@ -117,6 +173,7 @@ export namespace App {
       files: [],
       abort: new AbortController(),
       executor,
+      todos: [],
     };
 
     log.info("app initialized", {
