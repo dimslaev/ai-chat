@@ -3,6 +3,7 @@ import { Log } from "./log";
 import { App } from "./app";
 import * as prompts from "../prompts";
 import { getOpenAIToolDefinitions } from "../tool";
+import { fileExists, readFileContent } from "../tool/utils";
 import { Message, AIMessage, ToolCall } from "../../types";
 import {
   postMessage,
@@ -32,29 +33,43 @@ export namespace Chat {
       files: app.files.length,
     });
 
-    // Enhanced system prompt for tool-based context gathering
-    let enhancedSystemPrompt = prompts.system({
+    // System prompt with tool configuration
+    const systemPrompt = prompts.system({
       toolsEnabled: app.config.USE_TOOLS,
     });
 
-    if (app.config.USE_TOOLS) {
-      // Add context-gathering guidance to the system prompt
-      const contextGuidance = `
+    // Auto-load project.md if it exists
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (workspaceRoot) {
+      try {
+        const projectMdExists = await fileExists("project.md", workspaceRoot);
+        if (projectMdExists) {
+          const projectMdContent = await readFileContent(
+            "project.md",
+            workspaceRoot
+          );
 
-When helping users, you have access to intelligent context-gathering tools:
+          const projectContextMessage: Message = {
+            id: Date.now().toString(),
+            role: "user",
+            content: prompts.fileContext({
+              fileName: "project.md",
+              content: projectMdContent,
+            }),
+          };
 
-• **get_current_context** - Get information about the active file, cursor position, and selected text
-• **discover_related_files** - Find semantically related files (tests, imports, similar files)
-• **analyze_project_context** - Analyze overall project structure, frameworks, and patterns
+          messages.unshift(convertMessage(projectContextMessage));
 
-**Context Gathering Strategy:**
-1. Start with get_current_context to understand what the user is working on
-2. Use discover_related_files if you need to understand related code or find tests
-3. Use analyze_project_context for broader architectural questions or project setup
-
-Always gather relevant context before providing assistance. Be strategic about which tools to use based on the user's question.`;
-
-      enhancedSystemPrompt += contextGuidance;
+          log.info("auto-loaded project.md", {
+            contentLength: projectMdContent.length,
+          });
+        }
+      } catch (error) {
+        // project.md couldn't be read - this is fine
+        log.info("failed to load project.md", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     // Add attached file contents as context (legacy support)
@@ -78,11 +93,11 @@ Always gather relevant context before providing assistance. Be strategic about w
       );
     }
 
-    // Add enhanced system prompt
+    // Add system prompt
     const systemMessage: Message = {
       id: Date.now().toString(),
       role: "system",
-      content: enhancedSystemPrompt,
+      content: systemPrompt,
     };
 
     messages.unshift(convertMessage(systemMessage));
@@ -106,7 +121,7 @@ Always gather relevant context before providing assistance. Be strategic about w
         log.info("tools enabled, starting iterative tool execution");
 
         let iterationCount = 0;
-        const maxIterations = 5; // Prevent infinite loops
+        const maxIterations = 10; // Prevent infinite loops
 
         while (iterationCount < maxIterations) {
           log.info("tool iteration", {
