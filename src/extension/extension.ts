@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
   const provider = {
     resolveWebviewView: (webviewView: vscode.WebviewView) => {
       // Initialize app context and setup webview
-      App.provide(context, webviewView.webview, async (info) => {
+      App.provide(context, webviewView.webview, async () => {
         Webview.setup(webviewView);
 
         // Register event listeners

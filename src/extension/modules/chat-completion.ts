@@ -15,7 +15,7 @@ export namespace Chat {
   const log = Log.create({ service: "chat" });
 
   export function convertMessage(message: Message): AIMessage {
-    const app = App.info();
+    const app = App.state();
     if (app.config.PROVIDER === "groq") {
       return toGroqMessage(message);
     }
@@ -23,7 +23,7 @@ export namespace Chat {
   }
 
   export async function prepareMessages(): Promise<AIMessage[]> {
-    const app = App.info();
+    const app = App.state();
     const messages: AIMessage[] = app.history
       .slice(-app.config.HISTORY_LIMIT)
       .map(convertMessage);
@@ -108,7 +108,7 @@ export namespace Chat {
 
   export async function createCompletion() {
     try {
-      const app = App.info();
+      const app = App.state();
       let messages = await prepareMessages();
 
       log.info("starting completion", {
@@ -208,7 +208,7 @@ export namespace Chat {
   async function executeTools(
     tools: ToolCall[]
   ): Promise<Array<{ tool_call_id: string; content: string }>> {
-    const app = App.info();
+    const app = App.state();
     const results: Array<{ tool_call_id: string; content: string }> = [];
 
     for (const tool of tools) {
@@ -274,7 +274,7 @@ export namespace Chat {
   }
 
   async function handleStream(stream: any) {
-    const app = App.info();
+    const app = App.state();
     const webview = App.webview();
 
     try {

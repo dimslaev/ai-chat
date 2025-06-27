@@ -56,7 +56,7 @@ export const TodoWriteTool = Tool.define({
   }),
   async execute(params, ctx) {
     // Clear existing todos and add new ones
-    App.info().todos = [];
+    App.state().todos = [];
 
     for (const todo of params.todos) {
       const id = App.addTodo(todo.content);

@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import OpenAI from "openai";
 import Groq from "groq-sdk";
-import { Context } from "./context";
 import { Log } from "./log";
 import { Config } from "./config";
 import { ToolExecutor } from "./tool-executor";
@@ -10,7 +9,7 @@ import { Message, AttachedFile, AIClient } from "../../types";
 export namespace App {
   const log = Log.create({ service: "app" });
 
-  export interface Info {
+  export interface State {
     context: vscode.ExtensionContext;
     webview: vscode.Webview;
     client: AIClient;
@@ -30,18 +29,21 @@ export namespace App {
     updated: number;
   }
 
-  const ctx = Context.create<Info>("app");
+  let appState: State | null = null;
 
-  export function info(): Info {
-    return ctx.use();
+  export function state(): State {
+    if (!appState) {
+      throw new Error("App not initialized");
+    }
+    return appState;
   }
 
   export function webview(): vscode.Webview {
-    return ctx.use().webview;
+    return state().webview;
   }
 
   export function addMessage(message: Message): void {
-    const app = ctx.use();
+    const app = state();
     app.history = [...app.history, message];
     log.info("message added", {
       role: message.role,
@@ -50,7 +52,7 @@ export namespace App {
   }
 
   export function addFile(file: AttachedFile): void {
-    const app = ctx.use();
+    const app = state();
     if (!app.files.find((f) => f.fileUri.path === file.fileUri.path)) {
       app.files = [...app.files, file];
       log.info("file attached", { name: file.name, path: file.fileUri.path });
@@ -58,27 +60,27 @@ export namespace App {
   }
 
   export function removeFile(file: AttachedFile): void {
-    const app = ctx.use();
+    const app = state();
     app.files = app.files.filter((f) => f.fileUri.path !== file.fileUri.path);
     log.info("file removed", { name: file.name });
   }
 
   export function setToolsEnabled(enabled: boolean): void {
-    const app = ctx.use();
+    const app = state();
     app.config.USE_TOOLS = enabled;
     Config.setToolsEnabled(app.context, enabled);
     log.info("tools enabled changed", { enabled });
   }
 
   export function abort(): void {
-    const app = ctx.use();
+    const app = state();
     app.abort.abort();
     app.abort = new AbortController();
     log.info("operation aborted");
   }
 
   export function cleanup(): void {
-    const app = ctx.use();
+    const app = state();
     app.files = [];
     app.history = [];
     app.todos = [];
@@ -86,7 +88,7 @@ export namespace App {
   }
 
   export function addTodo(description: string): string {
-    const app = ctx.use();
+    const app = state();
     const id = Math.random().toString(36).substr(2, 9);
     const todo: TodoInfo = {
       id,
@@ -104,7 +106,7 @@ export namespace App {
     id: string,
     status: "pending" | "in_progress" | "completed"
   ): boolean {
-    const app = ctx.use();
+    const app = state();
     const todoIndex = app.todos.findIndex((t) => t.id === id);
     if (todoIndex === -1) return false;
 
@@ -116,12 +118,12 @@ export namespace App {
   }
 
   export function getTodos(): TodoInfo[] {
-    const app = ctx.use();
+    const app = state();
     return [...app.todos];
   }
 
   export function removeTodo(id: string): boolean {
-    const app = ctx.use();
+    const app = state();
     const initialLength = app.todos.length;
     app.todos = app.todos.filter((t) => t.id !== id);
     const removed = app.todos.length < initialLength;
@@ -151,7 +153,7 @@ export namespace App {
   export async function provide<T>(
     context: vscode.ExtensionContext,
     webview: vscode.Webview,
-    cb: (info: Info) => Promise<T>
+    cb: (info: State) => Promise<T>
   ): Promise<T> {
     log.info("initializing app", { extensionPath: context.extensionPath });
 
@@ -164,7 +166,7 @@ export namespace App {
     const executor = new ToolExecutor();
     executor.setWorkspaceRoot(workspaceRoot);
 
-    const app: Info = {
+    const app: State = {
       context,
       webview,
       client,
@@ -182,12 +184,13 @@ export namespace App {
       workspaceRoot,
     });
 
-    return ctx.provideAsync(app, () => cb(app));
+    appState = app;
+    return cb(app);
   }
 
   export function onConfigurationChanged(): vscode.Disposable {
     return Config.onConfigurationChanged((newConfig) => {
-      const app = ctx.use();
+      const app = state();
       const oldProvider = app.config.PROVIDER;
 
       app.config = newConfig;

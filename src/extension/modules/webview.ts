@@ -13,7 +13,7 @@ export namespace Webview {
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [App.info().context.extensionUri],
+      localResourceRoots: [App.state().context.extensionUri],
     };
 
     webviewView.webview.html = getHtml(webviewView.webview);
@@ -27,7 +27,7 @@ export namespace Webview {
   }
 
   function getHtml(webview: vscode.Webview): string {
-    const app = App.info();
+    const app = App.state();
     const webviewUri = vscode.Uri.joinPath(
       app.context.extensionUri,
       "out",
@@ -81,7 +81,7 @@ export namespace Webview {
   }
 
   export function sendState() {
-    const app = App.info();
+    const app = App.state();
     const webview = App.webview();
     const { activeTextEditor } = vscode.window;
 
