@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { Log } from "./log";
 import { App } from "./app";
-import { ContextGatherer } from "./context-gatherer";
 import * as prompts from "../prompts";
 import { getOpenAIToolDefinitions } from "../tool";
 import { Message, AIMessage, ToolCall } from "../../types";
@@ -33,44 +32,29 @@ export namespace Chat {
       files: app.files.length,
     });
 
+    // Enhanced system prompt for tool-based context gathering
     let enhancedSystemPrompt = prompts.system({
       toolsEnabled: app.config.USE_TOOLS,
     });
 
     if (app.config.USE_TOOLS) {
-      try {
-        log.info("gathering context for enhanced assistance");
+      // Add context-gathering guidance to the system prompt
+      const contextGuidance = `
 
-        // Gather context with the simplified API
-        const context = await ContextGatherer.gather();
+When helping users, you have access to intelligent context-gathering tools:
 
-        // Enhance the system prompt with gathered context
-        const baseSystemPrompt = prompts.system({
-          toolsEnabled: true,
-          category: "general",
-        });
-        const contextPrompt = prompts.contextEnhanced(context);
-        enhancedSystemPrompt = baseSystemPrompt + contextPrompt;
+• **get_current_context** - Get information about the active file, cursor position, and selected text
+• **discover_related_files** - Find semantically related files (tests, imports, similar files)
+• **analyze_project_context** - Analyze overall project structure, frameworks, and patterns
 
-        log.info("context gathering completed", {
-          currentFile: !!context.currentFile,
-          relatedFiles: context.relatedFiles.length,
-          intent: context.intent,
-        });
+**Context Gathering Strategy:**
+1. Start with get_current_context to understand what the user is working on
+2. Use discover_related_files if you need to understand related code or find tests
+3. Use analyze_project_context for broader architectural questions or project setup
 
-        // Add context summary as a user message for transparency
-        const contextSummary = ContextGatherer.formatSummary(context);
-        const contextMessage: Message = {
-          id: Date.now().toString(),
-          role: "user",
-          content: `📊 Context: ${contextSummary}`,
-        };
+Always gather relevant context before providing assistance. Be strategic about which tools to use based on the user's question.`;
 
-        messages.unshift(convertMessage(contextMessage));
-      } catch (error) {
-        log.error("context gathering failed", { error });
-        // Fall back to basic system prompt
-      }
+      enhancedSystemPrompt += contextGuidance;
     }
 
     // Add attached file contents as context (legacy support)
