@@ -3,7 +3,7 @@ import * as path from "path";
 import { App } from "./app";
 import { Log } from "./log";
 import { getOpenAIToolDefinitions, ALL_TOOLS } from "../tool";
-import { generateProjectAnalysisPrompt } from "../prompts/project-analysis";
+import { generateProjectAnalysisPrompt } from "../prompts";
 import { ToolExecutor } from "./tool-executor";
 import { writeFileContent } from "../tool/utils";
 

@@ -65,7 +65,6 @@ export namespace Chat {
           });
         }
       } catch (error) {
-        // project.md couldn't be read - this is fine
         log.info("failed to load project.md", {
           error: error instanceof Error ? error.message : String(error),
         });
@@ -215,7 +214,7 @@ export namespace Chat {
         const args = JSON.parse(tool.function.arguments);
         const toolName = tool.function.name;
 
-        const target = args.filePath || args.pattern || args.path || "unknown";
+        const target = getToolTarget(toolName, args);
 
         log.info("executing tool", { name: toolName, target });
 
@@ -253,6 +252,29 @@ export namespace Chat {
     }
 
     return results;
+  }
+
+  function getToolTarget(toolName: string, args: any): string {
+    // File-related tools
+    if (args.filePath) return args.filePath;
+    if (args.pattern) return args.pattern;
+    if (args.path) return args.path;
+
+    // Tool-specific parameters
+    switch (toolName) {
+      case "todo_write":
+        return `${args.todos?.length || 0} todos`;
+      case "todo_read":
+        return "current todos";
+      case "get_current_context":
+        return "active file context";
+      case "task":
+        return args.description || "planning task";
+      case "analyze_user_intent":
+        return "user intent analysis";
+      default:
+        return "unknown";
+    }
   }
 
   function createToolMessage(toolName: string, target: string): Message {
