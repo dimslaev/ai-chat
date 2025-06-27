@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { App } from "./modules/app";
+import { ProjectAnalyzer } from "./modules/project-analyzer";
 import { Webview } from "./modules/webview";
 import { Log } from "./modules/log";
-import { ProjectAnalyzer } from "./modules/project-analyzer";
 
 const log = Log.create({ service: "extension" });
 

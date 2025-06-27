@@ -1,7 +1,6 @@
-import * as vscode from "vscode";
-import * as path from "path";
 import { z } from "zod";
 import { Tool } from "./tool";
+import { writeFileContent, getRelativePath } from "./utils";
 
 const DESCRIPTION = `- Write content to files with automatic directory creation
 - Files are created relative to the workspace root
@@ -22,21 +21,17 @@ export const WriteTool = Tool.define({
     content: z.string().describe("The content to write to the file"),
   }),
   async execute(params, ctx) {
-    let filePath = params.filePath;
-    if (!path.isAbsolute(filePath)) {
-      filePath = path.resolve(ctx.workspaceRoot, filePath);
-    }
-
-    const uri = vscode.Uri.file(filePath);
-
     try {
-      const encoder = new TextEncoder();
-      await vscode.workspace.fs.writeFile(uri, encoder.encode(params.content));
+      await writeFileContent(
+        params.filePath,
+        params.content,
+        ctx.workspaceRoot
+      );
 
       return {
         output: `Successfully wrote ${params.content.length} characters to ${params.filePath}`,
         metadata: {
-          title: path.relative(ctx.workspaceRoot, filePath),
+          title: getRelativePath(params.filePath, ctx.workspaceRoot),
           size: params.content.length,
         },
       };

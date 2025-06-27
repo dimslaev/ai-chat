@@ -1,7 +1,11 @@
-import * as vscode from "vscode";
 import * as path from "path";
 import { z } from "zod";
 import { Tool } from "./tool";
+import {
+  getCurrentEditorContext,
+  getRelativePath,
+  isInWorkspace,
+} from "./utils";
 
 const DESCRIPTION = `Analyze user intent based on current context, recent actions, and conversation history.
 - Infers what the user is trying to accomplish
@@ -27,34 +31,21 @@ export const IntentAnalysisTool = Tool.define({
       const { recentMessages = [], contextClues = [] } = params;
 
       // Get current editor context
-      const activeEditor = vscode.window.activeTextEditor;
+      const { editor, document, selection } = getCurrentEditorContext();
       let currentContext = "";
       let filePath = "";
       let fileType = "";
 
-      if (activeEditor) {
-        const document = activeEditor.document;
-        const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-          document.uri
-        );
-        if (workspaceFolder) {
-          filePath = path.relative(
-            workspaceFolder.uri.fsPath,
-            document.uri.fsPath
-          );
-          fileType = document.languageId;
-          const selection = activeEditor.selection;
-          const selectedText = selection.isEmpty
-            ? null
-            : document.getText(selection);
+      if (editor && document && isInWorkspace(document.uri)) {
+        filePath = getRelativePath(document.uri.fsPath, ctx.workspaceRoot);
+        fileType = document.languageId;
+        const selectedText = selection?.isEmpty
+          ? null
+          : document.getText(selection!);
 
-          currentContext = `Working on: ${filePath} (${fileType})`;
-          if (selectedText) {
-            currentContext += `\nSelected code: ${selectedText.slice(
-              0,
-              200
-            )}...`;
-          }
+        currentContext = `Working on: ${filePath} (${fileType})`;
+        if (selectedText) {
+          currentContext += `\nSelected code: ${selectedText.slice(0, 200)}...`;
         }
       }
 

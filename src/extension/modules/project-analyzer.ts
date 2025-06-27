@@ -5,6 +5,7 @@ import { Log } from "./log";
 import { getOpenAIToolDefinitions, ALL_TOOLS } from "../tool";
 import { generateProjectAnalysisPrompt } from "../prompts/project-analysis";
 import { ToolExecutor } from "./tool-executor";
+import { writeFileContent } from "../tool/utils";
 
 const log = Log.create({ service: "project-analyzer" });
 
@@ -189,12 +190,10 @@ export namespace ProjectAnalyzer {
               message: "Writing project.md...",
             });
 
-            const projectMdPath = vscode.Uri.file(
-              path.join(workspaceRoot, "project.md")
-            );
-            await vscode.workspace.fs.writeFile(
-              projectMdPath,
-              Buffer.from(analysisContent, "utf8")
+            await writeFileContent(
+              "project.md",
+              analysisContent,
+              workspaceRoot
             );
 
             progress.report({ increment: 100, message: "Complete!" });
@@ -207,6 +206,9 @@ export namespace ProjectAnalyzer {
             );
 
             if (selection === "Open File") {
+              const projectMdPath = vscode.Uri.file(
+                path.join(workspaceRoot, "project.md")
+              );
               await vscode.window.showTextDocument(projectMdPath);
             }
           } catch (error) {

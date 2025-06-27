@@ -1,9 +1,15 @@
-import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { z } from "zod";
 import { spawn } from "child_process";
 import { Tool } from "./tool";
+import {
+  readDirectory,
+  readFileContent,
+  getFileStat,
+  resolveWorkspacePath,
+  getRelativePath,
+} from "./utils";
 
 const DESCRIPTION = `- Fast content search tool that works with any codebase size
 - Searches file contents using regular expressions
@@ -45,7 +51,7 @@ export const GrepTool = Tool.define({
     }
 
     const searchPath = params.path
-      ? path.resolve(ctx.workspaceRoot, params.path)
+      ? resolveWorkspacePath(params.path, ctx.workspaceRoot)
       : ctx.workspaceRoot;
 
     // Try to use ripgrep if available, fallback to simple search
@@ -152,28 +158,33 @@ async function searchWithFallback(
 ): Promise<SearchMatch[]> {
   const matches: SearchMatch[] = [];
   const regex = new RegExp(pattern, "gi");
+  const workspaceRoot = path.dirname(searchPath); // Infer workspace root
 
   async function searchInDirectory(dirPath: string) {
-    const uri = vscode.Uri.file(dirPath);
     try {
-      const entries = await vscode.workspace.fs.readDirectory(uri);
+      const relativeDirPath = getRelativePath(dirPath, workspaceRoot);
+      const entries = await readDirectory(relativeDirPath, workspaceRoot);
 
       for (const [name, type] of entries) {
         const fullPath = path.join(dirPath, name);
+        const relativeFilePath = getRelativePath(fullPath, workspaceRoot);
 
-        if (type === vscode.FileType.Directory) {
+        if (type === 2) {
+          // vscode.FileType.Directory = 2
           await searchInDirectory(fullPath);
-        } else if (type === vscode.FileType.File) {
+        } else if (type === 1) {
+          // vscode.FileType.File = 1
           // Apply include filter
           if (include && !matchesGlob(name, include)) {
             continue;
           }
 
           try {
-            const fileUri = vscode.Uri.file(fullPath);
-            const stat = await vscode.workspace.fs.stat(fileUri);
-            const fileData = await vscode.workspace.fs.readFile(fileUri);
-            const content = Buffer.from(fileData).toString("utf8");
+            const stat = await getFileStat(relativeFilePath, workspaceRoot);
+            const content = await readFileContent(
+              relativeFilePath,
+              workspaceRoot
+            );
             const lines = content.split("\n");
 
             lines.forEach((line, index) => {

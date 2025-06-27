@@ -2,6 +2,11 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { z } from "zod";
 import { Tool } from "./tool";
+import {
+  getRelativePath,
+  getCurrentEditorContext,
+  isInWorkspace,
+} from "./utils";
 
 const DESCRIPTION = `Get information about the currently active file, cursor position, selected text, and surrounding code context.
 - Returns details about the active editor state
@@ -22,32 +27,31 @@ export const CurrentContextTool = Tool.define({
       ),
   }),
   async execute(params, ctx) {
-    const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor) {
+    const { editor, document, selection } = getCurrentEditorContext();
+    if (!editor || !document) {
       return {
         output: "No active file is currently open in the editor.",
         metadata: { hasActiveFile: false },
       };
     }
 
-    const document = activeEditor.document;
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-    if (!workspaceFolder) {
+    if (!isInWorkspace(document.uri)) {
       return {
         output: "Active file is not part of the current workspace.",
         metadata: { hasActiveFile: false },
       };
     }
 
-    const relativePath = path.relative(
-      workspaceFolder.uri.fsPath,
-      document.uri.fsPath
+    const relativePath = getRelativePath(
+      document.uri.fsPath,
+      ctx.workspaceRoot
     );
-    const selection = activeEditor.selection;
-    const selectedText = selection.isEmpty ? null : document.getText(selection);
+    const selectedText = selection?.isEmpty
+      ? null
+      : document.getText(selection!);
 
     // Get surrounding context around cursor
-    const cursorLine = selection.active.line;
+    const cursorLine = selection!.active.line;
     const contextLines = params.contextLines;
     const startLine = Math.max(0, cursorLine - contextLines);
     const endLine = Math.min(document.lineCount - 1, cursorLine + contextLines);
@@ -81,7 +85,7 @@ export const CurrentContextTool = Tool.define({
 **File:** ${relativePath}
 **Language:** ${document.languageId}
 **Cursor Position:** Line ${cursorLine + 1}, Column ${
-      selection.active.character + 1
+      selection!.active.character + 1
     }`;
 
     if (selectedText) {
@@ -104,7 +108,7 @@ export const CurrentContextTool = Tool.define({
         language: document.languageId,
         cursorPosition: {
           line: cursorLine,
-          character: selection.active.character,
+          character: selection!.active.character,
         },
         selectedText,
         hasActiveFile: true,

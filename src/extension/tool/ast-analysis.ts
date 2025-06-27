@@ -2,6 +2,13 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { z } from "zod";
 import { Tool } from "./tool";
+import {
+  openDocument,
+  getDocumentSymbols,
+  getRelativePath,
+  parseImportsExports,
+  getReferences,
+} from "./utils";
 
 const DESCRIPTION = `Analyze code structure and extract functions, classes, imports, exports.
 - Code review and understanding unfamiliar codebases
@@ -88,16 +95,9 @@ export const AnalyzeASTTool = Tool.define({
       .describe("Maximum number of references to include per symbol"),
   }),
   async execute(params, ctx) {
-    let filePath = params.filePath;
-    if (!path.isAbsolute(filePath)) {
-      filePath = path.resolve(ctx.workspaceRoot, filePath);
-    }
-
-    const uri = vscode.Uri.file(filePath);
-
     try {
       // Open the document to ensure language services are active
-      const document = await vscode.workspace.openTextDocument(uri);
+      const document = await openDocument(params.filePath, ctx.workspaceRoot);
 
       const result = {
         symbols: [] as SymbolInfo[],
@@ -109,17 +109,17 @@ export const AnalyzeASTTool = Tool.define({
 
       // Get document symbols (functions, classes, variables, etc.)
       if (["structure", "symbols", "full"].includes(params.analysisType)) {
-        result.symbols = await analyzeSymbols(uri, document);
+        result.symbols = await analyzeSymbols(document.uri, document);
       }
 
       // Analyze imports and exports
       if (["structure", "imports", "full"].includes(params.analysisType)) {
-        const importExportData = await analyzeImportsExports(
-          document,
-          ctx.workspaceRoot
-        );
-        result.imports = importExportData.imports;
-        result.exports = importExportData.exports;
+        const { imports, exports } = parseImportsExports(document.getText());
+        result.imports = imports.map((imp) => ({
+          ...imp,
+          resolvedPath: imp.resolvedPath || null,
+        }));
+        result.exports = exports;
       }
 
       // Get cross-references
@@ -129,7 +129,7 @@ export const AnalyzeASTTool = Tool.define({
         params.analysisType === "full"
       ) {
         result.references = await analyzeReferences(
-          uri,
+          document.uri,
           document,
           result.symbols,
           params.maxReferences
@@ -139,12 +139,15 @@ export const AnalyzeASTTool = Tool.define({
       // Generate structured output
       result.structure = formatAnalysisOutput(result, params.analysisType);
 
-      const relativePath = path.relative(ctx.workspaceRoot, filePath);
+      const relativePath = getRelativePath(
+        document.uri.fsPath,
+        ctx.workspaceRoot
+      );
 
       return {
         output: result.structure,
         metadata: {
-          title: `Analysis: ${path.basename(filePath)}`,
+          title: `Analysis: ${path.basename(params.filePath)}`,
           language: document.languageId,
           filePath: relativePath,
           symbolCount: result.symbols.length,
@@ -170,9 +173,7 @@ async function analyzeSymbols(
   document: vscode.TextDocument
 ): Promise<SymbolInfo[]> {
   try {
-    const symbols = await vscode.commands.executeCommand<
-      vscode.DocumentSymbol[]
-    >("vscode.executeDocumentSymbolProvider", uri);
+    const symbols = await getDocumentSymbols(uri);
     if (!symbols) return [];
 
     const flatSymbols: SymbolInfo[] = [];
@@ -240,109 +241,6 @@ async function analyzeSymbols(
   }
 }
 
-async function analyzeImportsExports(
-  document: vscode.TextDocument,
-  workspaceRoot: string
-): Promise<{ imports: ImportInfo[]; exports: ExportInfo[] }> {
-  const imports: ImportInfo[] = [];
-  const exports: ExportInfo[] = [];
-  const content = document.getText();
-  const uri = document.uri;
-
-  // Regex patterns for different import/export styles
-  const importPatterns = [
-    /import\s+(?:{[^}]*}|[\w\s,*]+)\s+from\s+['"]([^'"]+)['"];?/g,
-    /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
-    /(?:const|let|var)\s+[\w\s{},*]+\s*=\s*require\(['"]([^'"]+)['"]\)/g,
-  ];
-
-  const exportPatterns = [
-    /export\s+(?:default\s+)?(?:class|function|const|let|var|interface|type|enum)\s+(\w+)/g,
-    /export\s*{\s*([^}]+)\s*}/g,
-    /export\s+\*\s+from\s+['"]([^'"]+)['"];?/g,
-  ];
-
-  // Analyze imports
-  for (const pattern of importPatterns) {
-    let match;
-    while ((match = pattern.exec(content)) !== null) {
-      const importPath = match[1];
-      const line = content.substring(0, match.index).split("\n").length;
-
-      // Try to resolve the import using VS Code's definition provider
-      let resolvedPath: string | null = null;
-      try {
-        const position = new vscode.Position(line - 1, match.index);
-        const definitions = await vscode.commands.executeCommand<
-          vscode.Location[]
-        >("vscode.executeDefinitionProvider", uri, position);
-        if (definitions && definitions.length > 0) {
-          const def = Array.isArray(definitions) ? definitions[0] : definitions;
-          resolvedPath = path.relative(workspaceRoot, def.uri.fsPath);
-        }
-      } catch (error) {
-        // Fallback to manual resolution
-        if (importPath.startsWith("./") || importPath.startsWith("../")) {
-          resolvedPath = resolveRelativeImport(
-            document.uri.fsPath,
-            importPath,
-            workspaceRoot
-          );
-        }
-      }
-
-      imports.push({
-        source: importPath,
-        resolvedPath,
-        type: importPath.startsWith(".") ? "relative" : "package",
-        line,
-        isAsync: match[0].includes("import("),
-      });
-    }
-  }
-
-  // Analyze exports
-  for (const pattern of exportPatterns) {
-    let match;
-    while ((match = pattern.exec(content)) !== null) {
-      const line = content.substring(0, match.index).split("\n").length;
-
-      if (pattern.source.includes("export\\s*\\{")) {
-        // Named exports
-        const namedExports = match[1]
-          .split(",")
-          .map((e) => e.trim().split(" as ")[0].trim());
-        namedExports.forEach((name) => {
-          if (name) {
-            exports.push({
-              name,
-              type: "named",
-              line,
-            });
-          }
-        });
-      } else if (pattern.source.includes("export\\s+\\*")) {
-        // Re-export
-        exports.push({
-          name: "*",
-          type: "reexport",
-          source: match[1],
-          line,
-        });
-      } else {
-        // Default or named declaration export
-        exports.push({
-          name: match[1],
-          type: match[0].includes("default") ? "default" : "named",
-          line,
-        });
-      }
-    }
-  }
-
-  return { imports, exports };
-}
-
 async function analyzeReferences(
   uri: vscode.Uri,
   document: vscode.TextDocument,
@@ -359,11 +257,7 @@ async function analyzeReferences(
         symbol.selectionRange.start.character
       );
 
-      const refs = await vscode.commands.executeCommand<vscode.Location[]>(
-        "vscode.executeReferenceProvider",
-        uri,
-        position
-      );
+      const refs = await getReferences(uri, position, true);
       if (refs && refs.length > 0) {
         const limitedRefs = refs
           .slice(0, maxReferences)

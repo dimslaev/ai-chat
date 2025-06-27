@@ -1,7 +1,17 @@
-import * as vscode from "vscode";
 import * as path from "path";
 import { z } from "zod";
 import { Tool } from "./tool";
+import {
+  fileExists,
+  readFileContent,
+  readDirectory,
+  getRelativePath,
+  resolveRelativeImport,
+  resolveFileWithExtensions,
+  calculatePathSimilarity,
+  parseImportsExports,
+  isRelativeImport,
+} from "./utils";
 
 const DESCRIPTION = `Find files semantically related to a given file using intelligent analysis.
 - Analyzes imports, exports, and dependencies
@@ -45,16 +55,13 @@ export const SemanticDiscoveryTool = Tool.define({
       confidence: number;
     }> = [];
 
-    const fullPath = path.resolve(ctx.workspaceRoot, filePath);
     const baseName = path.basename(filePath, path.extname(filePath));
     const dirName = path.dirname(filePath);
     const fileExt = path.extname(filePath);
 
     try {
       // Read the source file to analyze imports/exports
-      const sourceUri = vscode.Uri.file(fullPath);
-      const sourceData = await vscode.workspace.fs.readFile(sourceUri);
-      const sourceContent = Buffer.from(sourceData).toString("utf8");
+      const sourceContent = await readFileContent(filePath, ctx.workspaceRoot);
 
       // Find test files
       if (relationshipTypes.includes("tests")) {
@@ -174,7 +181,11 @@ async function findTestFiles(
   dirName: string,
   workspaceRoot: string
 ): Promise<Array<{ path: string; relationship: string; confidence: number }>> {
-  const results = [];
+  const results: Array<{
+    path: string;
+    relationship: string;
+    confidence: number;
+  }> = [];
 
   // Common test patterns
   const testPatterns = [
@@ -229,7 +240,11 @@ async function findImplementationFiles(
   dirName: string,
   workspaceRoot: string
 ): Promise<Array<{ path: string; relationship: string; confidence: number }>> {
-  const results = [];
+  const results: Array<{
+    path: string;
+    relationship: string;
+    confidence: number;
+  }> = [];
 
   // If this is a test file, find the implementation
   const isTestFile =
@@ -285,7 +300,11 @@ async function findTypeFiles(
   dirName: string,
   workspaceRoot: string
 ): Promise<Array<{ path: string; relationship: string; confidence: number }>> {
-  const results = [];
+  const results: Array<{
+    path: string;
+    relationship: string;
+    confidence: number;
+  }> = [];
 
   const typePatterns = [
     `${baseName}.types`,
@@ -318,38 +337,35 @@ async function findImportedFiles(
   filePath: string,
   workspaceRoot: string
 ): Promise<Array<{ path: string; relationship: string; confidence: number }>> {
-  const results = [];
-  const dirName = path.dirname(filePath);
+  const results: Array<{
+    path: string;
+    relationship: string;
+    confidence: number;
+  }> = [];
 
-  // Find import statements
-  const importRegex = /import.*?from\s+['"`]([^'"`]+)['"`]/g;
-  const requireRegex = /require\(['"`]([^'"`]+)['"`]\)/g;
+  // Use shared import parsing utility
+  const { imports } = parseImportsExports(sourceContent);
 
-  const imports = new Set<string>();
+  for (const importInfo of imports) {
+    // Skip package imports, only process relative imports
+    if (!isRelativeImport(importInfo.source)) continue;
 
-  let match;
-  while ((match = importRegex.exec(sourceContent)) !== null) {
-    imports.add(match[1]);
-  }
-
-  while ((match = requireRegex.exec(sourceContent)) !== null) {
-    imports.add(match[1]);
-  }
-
-  for (const importPath of imports) {
-    // Skip node_modules
-    if (!importPath.startsWith(".")) continue;
-
-    let resolvedPath = path.resolve(
-      path.join(workspaceRoot, dirName),
-      importPath
+    // Use shared relative import resolution
+    const resolvedBasePath = resolveRelativeImport(
+      filePath,
+      importInfo.source,
+      workspaceRoot
     );
 
-    // Try different extensions
-    const extensions = ["", ".ts", ".js", ".tsx", ".jsx", ".json"];
-    for (const ext of extensions) {
-      const testPath = resolvedPath + ext;
-      const relativePath = path.relative(workspaceRoot, testPath);
+    if (!resolvedBasePath) continue;
+
+    // Try different extensions using shared utility
+    const candidates = resolveFileWithExtensions(
+      path.join(workspaceRoot, resolvedBasePath)
+    );
+
+    for (const candidate of candidates) {
+      const relativePath = getRelativePath(candidate, workspaceRoot);
 
       if (await fileExists(relativePath, workspaceRoot)) {
         results.push({
@@ -369,7 +385,11 @@ async function findDependentFiles(
   filePath: string,
   workspaceRoot: string
 ): Promise<Array<{ path: string; relationship: string; confidence: number }>> {
-  const results = [];
+  const results: Array<{
+    path: string;
+    relationship: string;
+    confidence: number;
+  }> = [];
 
   // This would require searching through all files, which could be expensive
   // For now, return empty array - could be implemented with workspace-wide search
@@ -390,13 +410,13 @@ async function findSimilarFiles(
 
   // Find files with similar names in the same directory
   try {
-    const dirUri = vscode.Uri.file(path.join(workspaceRoot, dirName));
-    const dirEntries = await vscode.workspace.fs.readDirectory(dirUri);
+    const dirEntries = await readDirectory(dirName, workspaceRoot);
 
     for (const [name, type] of dirEntries) {
-      if (type === vscode.FileType.File) {
+      if (type === 1) {
+        // vscode.FileType.File
         const nameWithoutExt = path.basename(name, path.extname(name));
-        const similarity = calculateSimilarity(baseName, nameWithoutExt);
+        const similarity = calculatePathSimilarity(baseName, nameWithoutExt);
 
         if (similarity > 0.5 && name !== path.basename(filePath)) {
           results.push({
@@ -419,7 +439,11 @@ async function findConfigFiles(
   dirName: string,
   workspaceRoot: string
 ): Promise<Array<{ path: string; relationship: string; confidence: number }>> {
-  const results = [];
+  const results: Array<{
+    path: string;
+    relationship: string;
+    confidence: number;
+  }> = [];
 
   const configFiles = [
     "package.json",
@@ -455,56 +479,5 @@ async function findConfigFiles(
   return results;
 }
 
-async function fileExists(
-  filePath: string,
-  workspaceRoot: string
-): Promise<boolean> {
-  try {
-    const fullPath = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(workspaceRoot, filePath);
-    const uri = vscode.Uri.file(fullPath);
-    await vscode.workspace.fs.stat(uri);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function calculateSimilarity(str1: string, str2: string): number {
-  const longer = str1.length > str2.length ? str1 : str2;
-  const shorter = str1.length > str2.length ? str2 : str1;
-
-  if (longer.length === 0) return 1.0;
-
-  const editDistance = levenshteinDistance(longer, shorter);
-  return (longer.length - editDistance) / longer.length;
-}
-
-function levenshteinDistance(str1: string, str2: string): number {
-  const matrix = [];
-
-  for (let i = 0; i <= str2.length; i++) {
-    matrix[i] = [i];
-  }
-
-  for (let j = 0; j <= str1.length; j++) {
-    matrix[0][j] = j;
-  }
-
-  for (let i = 1; i <= str2.length; i++) {
-    for (let j = 1; j <= str1.length; j++) {
-      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-
-  return matrix[str2.length][str1.length];
-}
+// Removed: fileExists, calculateSimilarity, and levenshteinDistance
+// These are now available from ./utils

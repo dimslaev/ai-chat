@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { Tool } from "./tool";
-import * as vscode from "vscode";
 import * as path from "path";
+import {
+  readDirectory,
+  getFileStat,
+  getRelativePath,
+  resolveWorkspacePath,
+  formatFileSize,
+} from "./utils";
 
 const IGNORE_PATTERNS = [
   "node_modules",
@@ -36,20 +42,19 @@ export const ListDirTool = Tool.define({
   }),
   async execute(params, ctx) {
     const workspaceRoot = ctx.workspaceRoot;
-    const targetPath = path.isAbsolute(params.path)
-      ? params.path
-      : path.join(workspaceRoot, params.path);
+    const targetPath = resolveWorkspacePath(params.path, workspaceRoot);
 
     try {
-      const uri = vscode.Uri.file(targetPath);
-      const stat = await vscode.workspace.fs.stat(uri);
+      const stat = await getFileStat(params.path, workspaceRoot);
 
-      if (stat.type !== vscode.FileType.Directory) {
+      if (stat.type !== 2) {
+        // vscode.FileType.Directory = 2
         throw new Error(`Path is not a directory: ${targetPath}`);
       }
 
-      const structure = await listDirectory(
-        uri,
+      const structure = await listDirectoryStructure(
+        params.path,
+        workspaceRoot,
         params.recursive || false,
         params.maxDepth || 3,
         params.includeHidden || false
@@ -57,14 +62,14 @@ export const ListDirTool = Tool.define({
 
       const output = formatDirectoryStructure(
         structure,
-        path.relative(workspaceRoot, targetPath)
+        getRelativePath(targetPath, workspaceRoot)
       );
 
       return {
         metadata: {
           path: targetPath,
           itemCount: countItems(structure),
-          title: path.relative(workspaceRoot, targetPath) || "Root",
+          title: getRelativePath(targetPath, workspaceRoot) || "Root",
         },
         output,
       };
@@ -86,8 +91,9 @@ interface DirectoryItem {
   modified?: number;
 }
 
-async function listDirectory(
-  uri: vscode.Uri,
+async function listDirectoryStructure(
+  dirPath: string,
+  workspaceRoot: string,
   recursive: boolean,
   maxDepth: number,
   includeHidden: boolean,
@@ -97,7 +103,7 @@ async function listDirectory(
     return [];
   }
 
-  const entries = await vscode.workspace.fs.readDirectory(uri);
+  const entries = await readDirectory(dirPath, workspaceRoot);
   const items: DirectoryItem[] = [];
 
   for (const [name, type] of entries) {
@@ -111,20 +117,22 @@ async function listDirectory(
       continue;
     }
 
-    const itemUri = vscode.Uri.joinPath(uri, name);
+    const itemPath = path.join(dirPath, name);
 
     try {
-      const stat = await vscode.workspace.fs.stat(itemUri);
+      const stat = await getFileStat(itemPath, workspaceRoot);
       const item: DirectoryItem = {
         name,
-        type: type === vscode.FileType.Directory ? "directory" : "file",
+        type: type === 2 ? "directory" : "file", // vscode.FileType.Directory = 2
         size: stat.size,
         modified: stat.mtime,
       };
 
-      if (recursive && type === vscode.FileType.Directory) {
-        item.children = await listDirectory(
-          itemUri,
+      if (recursive && type === 2) {
+        // vscode.FileType.Directory = 2
+        item.children = await listDirectoryStructure(
+          itemPath,
+          workspaceRoot,
           recursive,
           maxDepth,
           includeHidden,
@@ -189,8 +197,4 @@ function countItems(items: DirectoryItem[]): number {
   return count;
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
-}
+// formatFileSize is now imported from utils

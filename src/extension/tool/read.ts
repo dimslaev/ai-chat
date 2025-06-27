@@ -1,7 +1,14 @@
-import * as vscode from "vscode";
 import * as path from "path";
 import { z } from "zod";
 import { Tool } from "./tool";
+import {
+  readFileContent,
+  getFileStat,
+  getRelativePath,
+  resolveWorkspacePath,
+  findFiles,
+  readDirectory,
+} from "./utils";
 
 const DESCRIPTION = `- Read file contents with optional line range support
 - Files are resolved relative to the workspace root
@@ -35,15 +42,8 @@ export const ReadTool = Tool.define({
     const DEFAULT_READ_LIMIT = 2000;
     const MAX_LINE_LENGTH = 2000;
 
-    let filePath = params.filePath;
-    if (!path.isAbsolute(filePath)) {
-      filePath = path.resolve(ctx.workspaceRoot, filePath);
-    }
-
-    const uri = vscode.Uri.file(filePath);
-
     try {
-      const stat = await vscode.workspace.fs.stat(uri);
+      const stat = await getFileStat(params.filePath, ctx.workspaceRoot);
 
       if (stat.size > MAX_READ_SIZE) {
         throw new Error(
@@ -51,8 +51,7 @@ export const ReadTool = Tool.define({
         );
       }
 
-      const fileData = await vscode.workspace.fs.readFile(uri);
-      const content = Buffer.from(fileData).toString("utf8");
+      const content = await readFileContent(params.filePath, ctx.workspaceRoot);
 
       const limit = params.limit ?? DEFAULT_READ_LIMIT;
       const offset = params.offset || 0;
@@ -84,37 +83,30 @@ export const ReadTool = Tool.define({
         output,
         metadata: {
           preview,
-          title: path.relative(ctx.workspaceRoot, filePath),
+          title: getRelativePath(params.filePath, ctx.workspaceRoot),
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       if (
-        error instanceof vscode.FileSystemError &&
-        error.code === "FileNotFound"
+        error.code === "FileNotFound" ||
+        error.message?.includes("not found")
       ) {
-        const base = path.basename(filePath);
+        const base = path.basename(params.filePath);
         const suggestions: string[] = [];
 
         // Search for files with similar names in the workspace
         try {
           // First try exact filename matches anywhere in workspace
-          const exactPattern = new vscode.RelativePattern(
+          const exactMatches = await findFiles(
+            `**/${base}`,
             ctx.workspaceRoot,
-            `**/${base}`
-          );
-          const exactMatches = await vscode.workspace.findFiles(
-            exactPattern,
-            null,
             10
           );
 
           if (exactMatches.length > 0) {
             // Sort exact matches by path similarity (prefer shorter paths)
             const sortedMatches = exactMatches
-              .map((uri) => ({
-                path: path.relative(ctx.workspaceRoot, uri.fsPath),
-                uri,
-              }))
+              .map((filePath) => ({ path: filePath }))
               .sort((a, b) => {
                 // Prefer files in current directory or parent directories
                 const requestedDir = path.dirname(params.filePath);
@@ -132,27 +124,18 @@ export const ReadTool = Tool.define({
           } else {
             // If no exact matches, try partial matches (same name without extension)
             const baseName = path.parse(base).name;
-            const partialPattern = new vscode.RelativePattern(
+            const partialMatches = await findFiles(
+              `**/*${baseName}*`,
               ctx.workspaceRoot,
-              `**/*${baseName}*`
-            );
-            const partialMatches = await vscode.workspace.findFiles(
-              partialPattern,
-              null,
               5
             );
-            suggestions.push(
-              ...partialMatches.map((uri) =>
-                path.relative(ctx.workspaceRoot, uri.fsPath)
-              )
-            );
+            suggestions.push(...partialMatches);
           }
         } catch {
           // Fallback to directory search if workspace search fails
           try {
-            const dir = path.dirname(filePath);
-            const dirUri = vscode.Uri.file(dir);
-            const dirEntries = await vscode.workspace.fs.readDirectory(dirUri);
+            const dir = path.dirname(params.filePath);
+            const dirEntries = await readDirectory(dir, ctx.workspaceRoot);
             const dirSuggestions = dirEntries
               .filter(
                 ([entry]) =>
@@ -160,7 +143,7 @@ export const ReadTool = Tool.define({
                   base.toLowerCase().includes(entry.toLowerCase())
               )
               .map(([entry]) =>
-                path.relative(ctx.workspaceRoot, path.join(dir, entry))
+                getRelativePath(path.join(dir, entry), ctx.workspaceRoot)
               )
               .slice(0, 3);
             suggestions.push(...dirSuggestions);
@@ -172,18 +155,15 @@ export const ReadTool = Tool.define({
         if (suggestions.length > 0) {
           // If there's exactly one suggestion, automatically use it
           if (suggestions.length === 1) {
-            const suggestedPath = path.resolve(
-              ctx.workspaceRoot,
-              suggestions[0]
-            );
             console.log(
               `Auto-selecting: ${suggestions[0]} for ${params.filePath}`
             );
 
             try {
-              const uri = vscode.Uri.file(suggestedPath);
-              const fileData = await vscode.workspace.fs.readFile(uri);
-              const content = Buffer.from(fileData).toString("utf8");
+              const content = await readFileContent(
+                suggestions[0],
+                ctx.workspaceRoot
+              );
 
               // Apply the same processing as above
               const autoOffset = params.offset || 0;
