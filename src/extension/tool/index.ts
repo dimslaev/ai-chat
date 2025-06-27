@@ -9,7 +9,6 @@ import { TaskTool } from "./task";
 import { TodoWriteTool, TodoReadTool } from "./todo";
 import { CurrentContextTool } from "./current-context";
 import { SemanticDiscoveryTool } from "./semantic-discovery";
-import { ProjectContextTool } from "./project-context";
 import { IntentAnalysisTool } from "./intent-analysis";
 
 export {
@@ -24,7 +23,6 @@ export {
   TodoReadTool,
   CurrentContextTool,
   SemanticDiscoveryTool,
-  ProjectContextTool,
   IntentAnalysisTool,
 };
 
@@ -39,7 +37,6 @@ export const ALL_TOOLS = [
   TodoReadTool,
   CurrentContextTool,
   SemanticDiscoveryTool,
-  ProjectContextTool,
   IntentAnalysisTool,
 ] as const;
 
