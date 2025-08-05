@@ -66,7 +66,6 @@ export const Extension = {
   // Chat state
   history: [] as Message[],
   files: [] as AttachedFile[],
-  partialMessage: "", // For handling long responses that get cut off
 
   // Tools calling
   executor: new ToolExecutor(),
@@ -419,7 +418,7 @@ export const Extension = {
   chat: {
     // Build message context selectively
     async prepareMessages(toolContext: OpenAIMessage[] = []) {
-      const { config, history, partialMessage, files, category } = Extension;
+      const { config, history, files, category } = Extension;
       const messages: OpenAIMessage[] = history
         .slice(-config.HISTORY_LIMIT)
         .map(toOpenAIMessage);
@@ -462,17 +461,6 @@ export const Extension = {
       console.log(`Using system prompt for category: ${category}`);
 
       messages.unshift({ role: "system", content: systemPrompt });
-
-      // Continue partial message if response was cut off
-      if (partialMessage) {
-        console.log(
-          `Continuing partial message (${partialMessage.length} chars)`
-        );
-        messages.push({
-          role: "assistant",
-          content: partialMessage,
-        });
-      }
 
       return messages;
     },
@@ -523,16 +511,12 @@ export const Extension = {
         chat: { createCompletion },
         history,
         abort,
-        partialMessage,
         util: { handleError },
       } = Extension;
 
-      let reply = partialMessage || "";
-      let isFirstChunkOfContinuation = !!partialMessage;
+      let reply = "";
 
-      if (!partialMessage) {
-        postMessage(webview, "startAssistantMessage");
-      }
+      postMessage(webview, "startAssistantMessage");
 
       try {
         for await (const chunk of stream) {
@@ -544,38 +528,18 @@ export const Extension = {
 
           // Fix continuation issues for the first chunk of a continued stream
           let processedText = text;
-          if (isFirstChunkOfContinuation && partialMessage) {
-            processedText = getContinuationContent(partialMessage, text);
-            isFirstChunkOfContinuation = false;
-          }
 
           reply += processedText;
           postMessage(webview, "appendChunk", processedText);
-
-          const finishReason = chunk.choices[0]?.finish_reason;
-          if (finishReason === "length") {
-            // Response was cut off, continue in next request
-            Extension.partialMessage = reply;
-          }
-          if (finishReason === "stop") {
-            Extension.partialMessage = "";
-          }
         }
 
-        if (!Extension.partialMessage) {
-          // Response complete, add to history
-          postMessage(webview, "endAssistantMessage");
-          history.push({
-            id: Date.now().toString(),
-            role: "assistant",
-            content: reply,
-          });
-        } else {
-          // Resend the messages including last partial message for continuation
-          createCompletion(toolContext);
-        }
+        postMessage(webview, "endAssistantMessage");
+        history.push({
+          id: Date.now().toString(),
+          role: "assistant",
+          content: reply,
+        });
       } catch (error) {
-        Extension.partialMessage = "";
         postMessage(webview, "endAssistantMessage");
         if (!abort.signal.aborted) {
           handleError(error);
