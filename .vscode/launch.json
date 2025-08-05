@@ -7,7 +7,12 @@
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
-      "preLaunchTask": "npm: watch"
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "OPENAI_API_KEY": "your-openai-api-key-here",
+        "OPENAI_BASE_URL": "https://internal.infomaniak.com/api/internal-ai/ide",
+        "OPENAI_MODEL": "llama3"
+      }
     }
   ]
 }

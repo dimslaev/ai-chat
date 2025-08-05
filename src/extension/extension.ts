@@ -2,7 +2,6 @@
 
 import * as vscode from "vscode";
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import {
   Message,
   OpenAIMessage,
@@ -18,17 +17,15 @@ import {
   FILE_CONTEXT_PROMPT,
 } from "./prompts";
 
-const extConfig = vscode.workspace.getConfiguration("aiChat");
-
 export const Extension = {
   context: undefined! as vscode.ExtensionContext,
   webview: undefined! as vscode.Webview,
 
   // OpenAI clients - separate for chat and tools
   client: new OpenAI({
-    apiKey: extConfig.get<string>("apiKey") || "no-key",
+    apiKey: process.env.OPENAI_API_KEY ?? "no-key",
     baseURL:
-      extConfig.get<string>("baseURL") ||
+      process.env.OPENAI_BASE_URL ||
       "https://internal.infomaniak.com/api/internal-ai/ide",
   }),
 
@@ -40,7 +37,7 @@ export const Extension = {
     MAX_TOKENS: 8000,
     TEMPERATURE: 0.1,
     HISTORY_LIMIT: 10,
-    MODEL: extConfig.get<string>("model") || "llama3",
+    MODEL: process.env.OPENAI_MODEL || "llama3",
   },
 
   // Chat state

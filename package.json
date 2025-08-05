@@ -34,60 +34,13 @@
         }
       ]
     },
-    "configuration": {
-      "title": "AI Chat",
-      "properties": {
-        "aiChat.apiKey": {
-          "type": "string",
-          "default": "api-key",
-          "description": "API key for the chat service",
-          "scope": "application",
-          "order": 1
-        },
-        "aiChat.baseURL": {
-          "type": "string",
-          "default": "https://api.infomaniak.com/1/ai",
-          "description": "Base URL for the chat service",
-          "scope": "application",
-          "order": 2
-        },
-        "aiChat.model": {
-          "type": "string",
-          "default": "llama3",
-          "description": "AI model for the chat service",
-          "scope": "application",
-          "order": 3
-        },
-        "aiChat.toolsApiKey": {
-          "type": "string",
-          "default": "api-key",
-          "description": "API key for the tools service",
-          "scope": "application",
-          "order": 4
-        },
-        "aiChat.toolsBaseURL": {
-          "type": "string",
-          "default": "http://127.0.0.1:11434/v1",
-          "description": "Base URL for the tools service",
-          "scope": "application",
-          "order": 5
-        },
-        "aiChat.toolsModel": {
-          "type": "string",
-          "default": "qwen3:1.7b",
-          "description": "AI model for the tools service",
-          "scope": "application",
-          "order": 6
-        },
-        "aiChat.toolsEnabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable tools/agent mode by default",
-          "scope": "application",
-          "order": 7
-        }
+    "commands": [
+      {
+        "command": "ai-chat.generateProjectMd",
+        "title": "Analyze Project & Generate project.md",
+        "category": "AI Chat"
       }
-    }
+    ]
   },
   "scripts": {
     "build": "npm run build:extension && npm run build:webview",
@@ -117,6 +70,7 @@
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/themes": "^3.2.1",
+    "groq-sdk": "^0.25.0",
     "highlight.js": "^11.11.1",
     "marked": "^4.0.0",
     "openai": "^4.90.0",
