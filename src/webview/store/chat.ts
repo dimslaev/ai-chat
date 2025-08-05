@@ -17,7 +17,6 @@ export interface ChatStore {
   attachedFiles: AttachedFile[];
   suggestedFile: AttachedFile | null;
   apiError: ApiError;
-  toolsEnabled: boolean;
   shouldAutoScroll: boolean;
 
   setMessages: (messages: Message[]) => void;
@@ -26,7 +25,6 @@ export interface ChatStore {
   setAttachedFiles: (files: AttachedFile[]) => void;
   setSuggestedFile: (file: AttachedFile | null) => void;
   setApiError: (error: ApiError) => void;
-  setToolsEnabled: (enabled: boolean) => void;
   setShouldAutoScroll: (scroll: boolean) => void;
   setVscode: (vscode: vscodeApi) => void;
 
@@ -39,13 +37,11 @@ export interface ChatStore {
   attachFile: () => void;
   removeFile: (file: AttachedFile) => void;
   cleanup: () => void;
-  toggleTools: () => void;
 
   restoreState: (state: {
     history: Message[];
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
-    toolsEnabled: boolean;
   }) => void;
 
   handleMessage: (event: MessageEvent<PostMessage>) => void;
@@ -61,7 +57,6 @@ export const useChatStore = create<ChatStore>()(
     attachedFiles: [],
     suggestedFile: null,
     apiError: null,
-    toolsEnabled: false,
     shouldAutoScroll: true,
     vscode: null,
 
@@ -71,13 +66,6 @@ export const useChatStore = create<ChatStore>()(
     setAttachedFiles: (attachedFiles) => set({ attachedFiles }),
     setSuggestedFile: (suggestedFile) => set({ suggestedFile }),
     setApiError: (apiError) => set({ apiError }),
-    setToolsEnabled: (toolsEnabled) => {
-      const { vscode } = get();
-      set({ toolsEnabled });
-      if (vscode) {
-        postMessage(vscode, "toggleTools", toolsEnabled);
-      }
-    },
     setShouldAutoScroll: (shouldAutoScroll) => set({ shouldAutoScroll }),
     setVscode: (vscode) => set({ vscode }),
 
@@ -152,21 +140,11 @@ export const useChatStore = create<ChatStore>()(
       postMessage(vscode, "cleanup");
     },
 
-    toggleTools: () => {
-      const { toolsEnabled, vscode } = get();
-      if (!vscode) return;
-
-      const newToolsEnabled = !toolsEnabled;
-      set({ toolsEnabled: newToolsEnabled });
-      postMessage(vscode, "toggleTools", newToolsEnabled);
-    },
-
     restoreState: (state) => {
       set({
         messages: state.history,
         attachedFiles: state.attachedFiles,
         suggestedFile: state.suggestedFile,
-        toolsEnabled: state.toolsEnabled,
       });
     },
 

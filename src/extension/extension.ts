@@ -9,23 +9,14 @@ import {
   AttachedFile,
   PostMessage,
   OpenAIStream,
-  ToolCall,
-  ToolExecutionResult,
   MessageCategory,
-  ToolDefinition,
 } from "../types";
 import { postMessage, toOpenAIMessage } from "../utils/message";
-import { getContinuationContent } from "../utils/markdown";
 import {
   DEFAULT_SYSTEM_PROMPT,
   CATEGORY_SYSTEM_PROMPTS,
   FILE_CONTEXT_PROMPT,
-  CLASSIFICATION_SYSTEM_PROMPT,
-  TOOL_EXECUTION_SYSTEM_PROMPT,
-  TOOL_RESULT_PROMPT,
 } from "./prompts";
-import { TOOL_DEFINITIONS, ToolExecutor, Classification } from "./tools";
-import { ChatCompletionToolChoiceOption } from "openai/resources/chat";
 
 const extConfig = vscode.workspace.getConfiguration("aiChat");
 
@@ -40,44 +31,22 @@ export const Extension = {
       extConfig.get<string>("baseURL") ||
       "https://internal.infomaniak.com/api/internal-ai/ide",
   }),
-  toolsClient: new OpenAI({
-    apiKey:
-      extConfig.get<string>("toolsApiKey") ||
-      extConfig.get<string>("apiKey") ||
-      "no-key",
-    baseURL:
-      extConfig.get<string>("toolsBaseURL") || "https://api.openai.com/v1",
-  }),
 
   // Abort stream
   abort: new AbortController(),
 
   // Configuration settings
   config: {
-    MAX_TOKENS: 512,
+    MAX_TOKENS: 8000,
     TEMPERATURE: 0.1,
     HISTORY_LIMIT: 10,
     MODEL: extConfig.get<string>("model") || "llama3",
-    TOOLS_MODEL: extConfig.get<string>("toolsModel") || "gpt-4o-mini",
-    TOOLS_TEMPERATURE: 0.0,
-    USE_TOOLS: extConfig.get<boolean>("toolsEnabled") || false,
   },
 
   // Chat state
   history: [] as Message[],
   files: [] as AttachedFile[],
-
-  // Tools calling
-  executor: new ToolExecutor(),
-  category: null as MessageCategory | null, // Current conversation category
-
-  // Set the tools enabled state and persist it
-  setToolsEnabled(enabled: boolean): void {
-    this.config.USE_TOOLS = enabled;
-    if (this.context) {
-      this.context.globalState.update("toolsEnabled", enabled);
-    }
-  },
+  category: null as MessageCategory | null,
 
   init(context: vscode.ExtensionContext) {
     this.context = context;
@@ -178,10 +147,6 @@ export const Extension = {
         case "cleanup":
           this.cleanup();
           break;
-
-        case "toggleTools":
-          this.toggleTools(data.payload);
-          break;
       }
     },
 
@@ -199,7 +164,6 @@ export const Extension = {
               fileUri: activeTextEditor.document.uri,
             }
           : null,
-        toolsEnabled: config.USE_TOOLS,
       });
     },
 
@@ -208,15 +172,10 @@ export const Extension = {
       const {
         history,
         chat: { createCompletion },
-        tools,
       } = Extension;
       Extension.history = [...history, payload];
       Extension.abort = new AbortController();
-
-      // Get tool context if tools are enabled
-      const toolContext = await tools.prepareContext(payload);
-      console.log("Prepared tool context", toolContext);
-      createCompletion(toolContext);
+      createCompletion();
     },
 
     stopStream() {
@@ -241,10 +200,6 @@ export const Extension = {
       files.splice(index, 1);
     },
 
-    toggleTools(enabled: boolean) {
-      Extension.setToolsEnabled(enabled);
-    },
-
     cleanup() {
       Extension.history = [];
       Extension.files = [];
@@ -252,179 +207,16 @@ export const Extension = {
     },
   },
 
-  tools: {
-    getIcon(toolName: string): string {
-      const icons = {
-        search_files: "🔍",
-        read_file: "📖",
-        write_file: "✏️",
-        list_directory: "📁",
-        get_file_info: "ℹ️",
-      };
-      return icons[toolName as keyof typeof icons] || "🔧";
-    },
-
-    createToolMessage(toolName: string, target: string): Message {
-      const icon = this.getIcon(toolName);
-      const action = toolName.replace("_", " ");
-      return {
-        id: Date.now().toString(),
-        role: "assistant",
-        content: `${icon} ${action}: \`${target}\``,
-      };
-    },
-
-    async execute(tools: ToolCall[]): Promise<ToolExecutionResult[]> {
-      const { executor, history, webview } = Extension;
-      const results: ToolExecutionResult[] = [];
-
-      for (const tool of tools) {
-        try {
-          const args = JSON.parse(tool.function.arguments);
-          const toolName = tool.function.name;
-
-          const target =
-            args.file_path ||
-            args.directory_path ||
-            args.pattern ||
-            args.category ||
-            "unknown";
-
-          console.log(`Executing tool: ${toolName} with target: ${target}`);
-
-          // Show tool execution to user
-          const toolMessage = this.createToolMessage(toolName, target);
-          history.push(toolMessage);
-          postMessage(webview, "startAssistantMessage");
-          postMessage(webview, "appendChunk", toolMessage.content);
-          postMessage(webview, "endAssistantMessage");
-
-          // Execute the tool
-          const result = await executor.executeToolCall(
-            tool.id,
-            toolName,
-            args
-          );
-
-          results.push(result);
-        } catch (error) {
-          results.push({
-            tool_call_id: tool.id,
-            content: `Error parsing arguments: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          });
-        }
-      }
-
-      return results;
-    },
-
-    async getToolCalls(
-      messages: OpenAIMessage[],
-      tools: ToolDefinition[],
-      toolChoice: ChatCompletionToolChoiceOption = "auto"
-    ): Promise<ToolCall[]> {
-      const { config, toolsClient } = Extension;
-
-      const response = await toolsClient.chat.completions.create({
-        model: config.TOOLS_MODEL,
-        messages: messages,
-        tools: tools,
-        tool_choice: toolChoice,
-        temperature: config.TOOLS_TEMPERATURE,
-      });
-
-      return response.choices[0]?.message?.tool_calls || [];
-    },
-
-    // Analyze user message and prepare tool context
-    async prepareContext(userMessage: Message): Promise<OpenAIMessage[]> {
-      const { config, toolsClient, files } = Extension;
-
-      if (!config.USE_TOOLS) {
-        return [];
-      }
-
-      try {
-        // Phase 1: Classification
-        console.log("Classification...");
-        const messages: OpenAIMessage[] = [
-          { role: "system", content: CLASSIFICATION_SYSTEM_PROMPT },
-          { role: "user", content: userMessage.content },
-        ];
-        if (files.length) {
-          console.log(`Adding ${files.length} attached files as context`);
-          await Promise.all(
-            files.map(async (file) => {
-              const fileData = await vscode.workspace.fs.readFile(file.fileUri);
-              const fileContent = Buffer.from(fileData).toString("utf8");
-
-              messages.push({
-                role: "user",
-                content: FILE_CONTEXT_PROMPT(file.name, fileContent),
-              });
-            })
-          );
-        }
-        const classification = await toolsClient.beta.chat.completions.parse({
-          model: config.TOOLS_MODEL,
-          messages,
-          response_format: zodResponseFormat(Classification, "classification"),
-          temperature: config.TOOLS_TEMPERATURE,
-        });
-        const parsed = classification.choices[0]?.message?.parsed;
-        Extension.category = parsed?.category || "general";
-        console.log("Classification result", parsed);
-
-        // Phase 2: Tool execution
-        const toolCalls = await this.getToolCalls(
-          [
-            { role: "system", content: TOOL_EXECUTION_SYSTEM_PROMPT },
-            { role: "user", content: userMessage.content },
-          ],
-          TOOL_DEFINITIONS
-        );
-
-        if (!toolCalls.length) {
-          return [];
-        }
-
-        const toolResults = await this.execute(toolCalls);
-
-        const contextMessages: OpenAIMessage[] = [];
-        for (const result of toolResults) {
-          const toolCall = toolCalls.find(
-            (tc) => tc.id === result.tool_call_id
-          );
-
-          contextMessages.push({
-            role: "user",
-            content: TOOL_RESULT_PROMPT(
-              toolCall?.function.name || "unknown",
-              result.content
-            ),
-          });
-        }
-
-        return contextMessages;
-      } catch (error) {
-        console.error("Tool execution error:", error);
-        return [];
-      }
-    },
-  },
-
   chat: {
     // Build message context selectively
-    async prepareMessages(toolContext: OpenAIMessage[] = []) {
+    async prepareMessages() {
       const { config, history, files, category } = Extension;
       const messages: OpenAIMessage[] = history
         .slice(-config.HISTORY_LIMIT)
         .map(toOpenAIMessage);
 
       console.log(
-        `Preparing chat messages (history: ${messages.length}, files: ${files.length}, tools context: ${toolContext.length})`
+        `Preparing chat messages (history: ${messages.length}, files: ${files.length})`
       );
 
       // Add attached file contents as context
@@ -444,15 +236,6 @@ export const Extension = {
         );
       }
 
-      // Add tool results if any
-      if (toolContext.length > 0) {
-        console.log(
-          `Adding ${toolContext.length} tool results as context`,
-          toolContext
-        );
-        messages.unshift(...toolContext);
-      }
-
       // Use category-specific system prompt
       const systemPrompt = category
         ? CATEGORY_SYSTEM_PROMPTS[category]
@@ -466,7 +249,7 @@ export const Extension = {
     },
 
     // Create streaming completion from OpenAI
-    async createCompletion(toolContext: OpenAIMessage[] = []) {
+    async createCompletion() {
       const {
         client,
         config,
@@ -477,7 +260,7 @@ export const Extension = {
 
       console.log(`Starting main model completion (model: ${config.MODEL})`);
 
-      const messages = await prepareMessages(toolContext);
+      const messages = await prepareMessages();
 
       console.log(`Sending ${messages.length} messages to main model`);
 
@@ -494,7 +277,7 @@ export const Extension = {
         );
 
         console.log(`Received streaming response from main model`);
-        await handleStream(response, toolContext);
+        await handleStream(response);
       } catch (err) {
         console.error(`Main model request failed:`, err);
         handleError(err);
@@ -502,10 +285,7 @@ export const Extension = {
     },
 
     // Process streaming response and handle continuation
-    async handleStream(
-      stream: OpenAIStream,
-      toolContext: OpenAIMessage[] = []
-    ) {
+    async handleStream(stream: OpenAIStream) {
       const {
         webview,
         chat: { createCompletion },

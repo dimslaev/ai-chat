@@ -9,7 +9,6 @@ export const Messages: React.FC = () => {
   const messages = useChatStore((state) => state.messages);
   const isStreaming = useChatStore((state) => state.isStreaming);
   const isLoading = useChatStore((state) => state.isLoading);
-  const toolsEnabled = useChatStore((state) => state.toolsEnabled);
   const shouldAutoScroll = useChatStore((state) => state.shouldAutoScroll);
   const setShouldAutoScroll = useChatStore(
     (state) => state.setShouldAutoScroll
@@ -40,8 +39,6 @@ export const Messages: React.FC = () => {
     },
     [setShouldAutoScroll, shouldAutoScroll]
   );
-
-  const showSpinner = toolsEnabled && isLoading;
 
   return (
     <ScrollArea
@@ -78,7 +75,7 @@ export const Messages: React.FC = () => {
           </Callout.Root>
         )}
 
-        {showSpinner && (
+        {isLoading && (
           <Flex justify="center" p="3">
             <Spinner size="2" />
           </Flex>

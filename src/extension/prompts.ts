@@ -81,17 +81,3 @@ export const CLASSIFICATION_SYSTEM_PROMPT = `Analyze the user's request and clas
 - **general**: Questions, general discussions, mixed requests, or requests that don't fit other categories
 
 Provide your classification with confidence level (0-1) and brief reasoning for the classification.`;
-
-export const TOOL_EXECUTION_SYSTEM_PROMPT = `You are a helpful AI assistant that can explore project structure and gather context using available tools.
-
-Available tools:
-- read_file: Read the contents of a specific file
-- list_directory: List the contents of a directory
-- get_file_info: Get information about a file or directory
-
-Important guidelines:
-- Use tools efficiently to gather necessary context
-- Always use tools to gather context before providing responses when working with code or file operations.`;
-
-export const TOOL_RESULT_PROMPT = (toolName: string, result: string) =>
-  `Tool: ${toolName}\nResult: ${result}`;

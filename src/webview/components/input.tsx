@@ -34,8 +34,6 @@ export const Input: React.FC = React.memo(() => {
     [onSubmit]
   );
 
-  const isDisabled = isStreaming || isLoading;
-
   return (
     <Flex direction="row" gap="2" p="3" align="end">
       <Box

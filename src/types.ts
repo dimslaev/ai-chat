@@ -93,7 +93,6 @@ export type PostMessageType =
   | "stopStream"
   | "attachFile"
   | "removeAttachedFile"
-  | "toggleTools"
   | "apiError"
   | "cleanup";
 
@@ -103,7 +102,6 @@ export type PostMessagePayloadMap = {
     history: Message[];
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
-    toolsEnabled: boolean;
   };
   sendMessage: Message;
   startAssistantMessage: undefined;
@@ -113,7 +111,6 @@ export type PostMessagePayloadMap = {
   stopStream: undefined;
   attachFile: AttachedFile;
   removeAttachedFile: AttachedFile;
-  toggleTools: boolean;
   apiError: ApiError;
   cleanup: undefined;
 };
