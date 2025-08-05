@@ -57,6 +57,15 @@ export type MessageCategory =
   | "documentation"
   | "general";
 
+export type Configuration = {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  maxTokens: number;
+  temperature: number;
+  historyLimit: number;
+};
+
 export type FileInfo = {
   name: string;
   path: string;
@@ -94,7 +103,9 @@ export type PostMessageType =
   | "attachFile"
   | "removeAttachedFile"
   | "apiError"
-  | "cleanup";
+  | "cleanup"
+  | "saveConfig"
+  | "getConfig";
 
 export type PostMessagePayloadMap = {
   getState: undefined;
@@ -102,6 +113,7 @@ export type PostMessagePayloadMap = {
     history: Message[];
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
+    config: Configuration;
   };
   sendMessage: Message;
   startAssistantMessage: undefined;
@@ -113,6 +125,8 @@ export type PostMessagePayloadMap = {
   removeAttachedFile: AttachedFile;
   apiError: ApiError;
   cleanup: undefined;
+  saveConfig: Configuration;
+  getConfig: Configuration;
 };
 
 export type PostMessage = {

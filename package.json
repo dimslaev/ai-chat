@@ -46,6 +46,9 @@
     "build": "npm run build:extension && npm run build:webview",
     "build:extension": "tsc",
     "build:webview": "webpack --mode production",
+    "watch": "npm-run-all --parallel watch:*",
+    "watch:extension": "tsc -watch",
+    "watch:webview": "webpack --mode development --watch",
     "package": "npm run build && vsce package",
     "install": "code --install-extension ai-chat-0.0.1.vsix"
   },

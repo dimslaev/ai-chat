@@ -4,6 +4,7 @@ import { Messages } from "./messages";
 import { TopRow } from "./top-row";
 import { InputSection } from "./input-section";
 import { Input } from "./input";
+import { Settings } from "./settings";
 
 export const Container: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ export const Container: React.FC = () => {
       <TopRow />
       <Messages />
       <InputSection>
+        <Settings />
         <Input />
       </InputSection>
     </Flex>
