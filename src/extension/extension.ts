@@ -19,9 +19,12 @@ import {
 } from "./prompts";
 
 const DEFAULT_CONFIG: Configuration = {
+  id: "",
+  name: "",
+  active: false,
   apiKey: "",
-  baseUrl: "https://internal.infomaniak.com/api/internal-ai/ide",
-  model: "llama3",
+  baseUrl: "",
+  model: "",
   maxTokens: 8000,
   temperature: 0.1,
   historyLimit: 10,
@@ -35,6 +38,7 @@ export const Extension = {
     baseURL: DEFAULT_CONFIG.baseUrl,
   }),
   abort: new AbortController(),
+  configs: [] as Configuration[],
   config: { ...DEFAULT_CONFIG },
 
   // Chat state
@@ -46,7 +50,7 @@ export const Extension = {
     this.context = context;
     this.abort = new AbortController();
 
-    this.loadConfiguration()
+    this.loadConfigs()
       .then(() => {
         this.registerWebviewProvider();
         this.registerFileChangeListener();
@@ -154,8 +158,11 @@ export const Extension = {
           case "cleanup":
             this.cleanup();
             break;
-          case "saveConfig":
-            Extension.saveConfiguration(data.payload);
+          case "saveConfigs":
+            Extension.saveConfigs(data.payload);
+            break;
+          case "getConfigs":
+            Extension.sendConfigurations();
             break;
           default:
             console.warn(`Unknown message type: ${data.type}`);
@@ -168,7 +175,7 @@ export const Extension = {
 
     // Send current state to webview since changing tab unmounts the webview
     sendState() {
-      const { webview, history, files, config } = Extension;
+      const { webview, history, files, configs } = Extension;
       const { activeTextEditor } = vscode.window;
       postMessage(webview, "setState", {
         history,
@@ -180,7 +187,7 @@ export const Extension = {
               fileUri: activeTextEditor.document.uri,
             }
           : null,
-        config,
+        configs,
       });
     },
 
@@ -407,49 +414,70 @@ export const Extension = {
     },
   },
 
-  async loadConfiguration(): Promise<void> {
+  async loadConfigs(): Promise<void> {
     try {
-      const stored = (await this.context.globalState.get("aiChatConfig")) as
-        | Configuration
+      const configs = (await this.context.globalState.get("aiChatConfigs")) as
+        | Configuration[]
         | undefined;
 
-      if (stored) {
-        const validationErrors = this.util.validateConfiguration(stored);
-        if (validationErrors.length === 0) {
-          this.config = { ...DEFAULT_CONFIG, ...stored };
-          this.updateClient(this.config);
-          console.log("Configuration loaded successfully");
-        } else {
-          console.warn("Invalid stored configuration:", validationErrors);
-          this.config = { ...DEFAULT_CONFIG };
-        }
-      } else {
-        this.config = { ...DEFAULT_CONFIG };
+      if (!Array.isArray(configs) || configs.length === 0) {
+        return;
       }
+
+      this.configs = configs;
+      const activeConfig = configs.find((config) => config.active);
+
+      if (!activeConfig) {
+        throw new Error("No active config");
+      }
+
+      this.config = activeConfig;
+      this.updateClient(this.config);
     } catch (error) {
       console.error("Failed to load configuration:", error);
+      this.configs = [];
       this.config = { ...DEFAULT_CONFIG };
     }
   },
 
-  async saveConfiguration(config: Configuration): Promise<void> {
+  async saveConfigs(configs: Configuration[]): Promise<void> {
     try {
-      const validationErrors = this.util.validateConfiguration(config);
-      if (validationErrors.length > 0) {
-        throw new Error(
-          `Invalid configuration: ${validationErrors.join(", ")}`
-        );
+      // Validate all configurations
+      for (const config of configs) {
+        const validationErrors = this.util.validateConfiguration(config);
+        if (validationErrors.length > 0) {
+          throw new Error(
+            `Invalid configuration "${config.name}": ${validationErrors.join(
+              ", "
+            )}`
+          );
+        }
       }
 
-      await this.context.globalState.update("aiChatConfig", config);
-      this.config = { ...DEFAULT_CONFIG, ...config };
+      // Ensure only one config is marked as active
+      const activeConfigs = configs.filter((config) => config.active);
+      if (activeConfigs.length !== 1) {
+        throw new Error("Exactly one configuration must be marked as active");
+      }
+
+      await this.context.globalState.update("aiChatConfigs", configs);
+      this.configs = configs;
+
+      // Update current active config
+      const activeConfig = configs.find((config) => config.active)!;
+      this.config = { ...DEFAULT_CONFIG, ...activeConfig };
       this.updateClient(this.config);
 
-      console.log("Configuration saved successfully");
+      console.log("Configurations saved successfully");
     } catch (error) {
-      console.error("Failed to save configuration:", error);
+      console.error("Failed to save configurations:", error);
       throw error;
     }
+  },
+
+  sendConfigurations(): void {
+    const { webview, configs } = this;
+    postMessage(webview, "getConfigs", configs);
   },
 
   updateClient(config: Configuration): void {

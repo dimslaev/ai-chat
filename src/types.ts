@@ -11,25 +11,6 @@ export type vscodeApi = {
 export type OpenAIMessage = OpenAI.ChatCompletionMessageParam;
 export type OpenAIStream = Stream<OpenAI.ChatCompletionChunk>;
 
-/* Tool Calling */
-export type ToolDefinition = {
-  type: "function";
-  function: {
-    name: string;
-    description: string;
-    parameters: {
-      type: "object";
-      properties: Record<string, any>;
-      required: string[];
-    };
-  };
-};
-
-export type FunctionCall = {
-  name: string;
-  arguments: string;
-};
-
 export type MessageCategory =
   | "code_generation"
   | "code_refactoring"
@@ -39,6 +20,9 @@ export type MessageCategory =
   | "general";
 
 export type Configuration = {
+  id: string;
+  name: string;
+  active: boolean;
   apiKey: string;
   baseUrl: string;
   model: string;
@@ -86,8 +70,8 @@ export type PostMessageType =
   | "removeAttachedFile"
   | "apiError"
   | "cleanup"
-  | "saveConfig"
-  | "getConfig";
+  | "saveConfigs"
+  | "getConfigs";
 
 export type PostMessagePayloadMap = {
   getState: undefined;
@@ -95,7 +79,7 @@ export type PostMessagePayloadMap = {
     history: Message[];
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
-    config: Configuration;
+    configs: Configuration[];
   };
   sendMessage: Message;
   editMessage: { id: string; content: string };
@@ -108,8 +92,8 @@ export type PostMessagePayloadMap = {
   removeAttachedFile: AttachedFile;
   apiError: ApiError;
   cleanup: undefined;
-  saveConfig: Configuration;
-  getConfig: Configuration;
+  saveConfigs: Configuration[];
+  getConfigs: Configuration[];
 };
 
 export type PostMessage = {

@@ -17,7 +17,7 @@ export interface ChatStore {
   attachedFiles: AttachedFile[];
   suggestedFile: AttachedFile | null;
   apiError: ApiError;
-  config: Configuration | null;
+  configs: Configuration[];
 
   setMessages: (messages: Message[]) => void;
   setIsStreaming: (streaming: boolean) => void;
@@ -25,7 +25,7 @@ export interface ChatStore {
   setSuggestedFile: (file: AttachedFile | null) => void;
   setApiError: (error: ApiError) => void;
   setVscode: (vscode: vscodeApi) => void;
-  setConfig: (config: Configuration) => void;
+  setConfigs: (configs: Configuration[]) => void;
 
   addMessage: (message: Message) => void;
   appendToLastMessage: (content: string) => void;
@@ -37,13 +37,13 @@ export interface ChatStore {
   attachFile: () => void;
   removeFile: (file: AttachedFile) => void;
   cleanup: () => void;
-  saveConfig: (config: Configuration) => void;
+  saveConfigs: (configs: Configuration[]) => void;
 
   restoreState: (state: {
     history: Message[];
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
-    config: Configuration;
+    configs: Configuration[];
   }) => void;
 
   handleMessage: (event: MessageEvent<PostMessage>) => void;
@@ -59,7 +59,7 @@ export const useChatStore = create<ChatStore>()(
     suggestedFile: null,
     apiError: null,
     vscode: null,
-    config: null,
+    configs: [],
 
     setMessages: (messages) => set({ messages }),
     setIsStreaming: (isStreaming) => set({ isStreaming }),
@@ -67,7 +67,7 @@ export const useChatStore = create<ChatStore>()(
     setSuggestedFile: (suggestedFile) => set({ suggestedFile }),
     setApiError: (apiError) => set({ apiError }),
     setVscode: (vscode) => set({ vscode }),
-    setConfig: (config) => set({ config }),
+    setConfigs: (configs) => set({ configs }),
 
     addMessage: (message) =>
       set((state) => ({ messages: [...state.messages, message] })),
@@ -161,12 +161,12 @@ export const useChatStore = create<ChatStore>()(
       postMessage(vscode, "cleanup");
     },
 
-    saveConfig: (config) => {
+    saveConfigs: (configs) => {
       const { vscode } = get();
       if (!vscode) return;
 
-      set({ config });
-      postMessage(vscode, "saveConfig", config);
+      set({ configs });
+      postMessage(vscode, "saveConfigs", configs);
     },
 
     restoreState: (state) => {
@@ -174,7 +174,7 @@ export const useChatStore = create<ChatStore>()(
         messages: state.history,
         attachedFiles: state.attachedFiles,
         suggestedFile: state.suggestedFile,
-        config: state.config,
+        configs: state.configs,
       });
     },
 
@@ -210,8 +210,8 @@ export const useChatStore = create<ChatStore>()(
           set({ apiError: payload, isStreaming: false });
           break;
 
-        case "getConfig":
-          set({ config: payload });
+        case "getConfigs":
+          set({ configs: payload });
           break;
       }
     },

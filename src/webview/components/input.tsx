@@ -5,14 +5,17 @@ import { useChatStore } from "../store";
 
 export const Input: React.FC = React.memo(() => {
   const isStreaming = useChatStore((state) => state.isStreaming);
-  const config = useChatStore((state) => state.config);
+  const configs = useChatStore((state) => state.configs);
   const setApiError = useChatStore((state) => state.setApiError);
   const handleSubmit = useChatStore((state) => state.handleSubmit);
   const handleStopStream = useChatStore((state) => state.handleStopStream);
 
   const [inputValue, setInputValue] = React.useState("");
 
-  const isModelConfigured = Boolean(config?.model && config?.baseUrl);
+  const activeConfig = configs.find((it) => it.active);
+  const isModelConfigured = Boolean(
+    activeConfig?.model && activeConfig?.baseUrl
+  );
 
   const onSubmit = React.useCallback(() => {
     if (!inputValue.trim() || !isModelConfigured) return;
