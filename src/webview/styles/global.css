@@ -13,10 +13,10 @@ pre {
   flex-direction: column;
   position: relative;
   border-radius: var(--radius-3);
-  margin: 8px 0;
+  margin: 0;
   overflow-x: hidden;
   background: var(--gray-2) !important;
-  border: 1px solid var(--gray-6);
+  border: 0;
 }
 
 pre code {
@@ -26,12 +26,17 @@ pre code {
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.5;
+  pointer-events: none;
 }
 
-.copy-button {
+pre code * {
+  pointer-events: auto;
+}
+
+.action-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   opacity: 0.6;
   width: 32px;
   height: 32px;
@@ -47,18 +52,22 @@ pre code {
   justify-content: center;
 }
 
-.copy-button:hover {
+.action-button:hover {
   opacity: 1;
   background: var(--gray-3);
   border-color: var(--gray-8);
 }
 
-.copy-button:active {
+.action-button:active {
   opacity: 0.8;
   transform: scale(0.95);
 }
 
-pre:hover .copy-button {
+pre:hover .action-button {
+  opacity: 0.8;
+}
+
+.chat-message-user:hover .action-button {
   opacity: 0.8;
 }
 

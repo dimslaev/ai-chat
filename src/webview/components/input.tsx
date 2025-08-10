@@ -5,24 +5,21 @@ import { useChatStore } from "../store";
 
 export const Input: React.FC = React.memo(() => {
   const isStreaming = useChatStore((state) => state.isStreaming);
-  const isLoading = useChatStore((state) => state.isLoading);
-
+  const config = useChatStore((state) => state.config);
   const setApiError = useChatStore((state) => state.setApiError);
-  const setShouldAutoScroll = useChatStore(
-    (state) => state.setShouldAutoScroll
-  );
   const handleSubmit = useChatStore((state) => state.handleSubmit);
   const handleStopStream = useChatStore((state) => state.handleStopStream);
 
   const [inputValue, setInputValue] = React.useState("");
 
+  const isModelConfigured = Boolean(config?.model && config?.baseUrl);
+
   const onSubmit = React.useCallback(() => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !isModelConfigured) return;
     handleSubmit(inputValue);
     setInputValue("");
-    setShouldAutoScroll(true);
     setApiError(null);
-  }, [inputValue, handleSubmit, setShouldAutoScroll, setApiError]);
+  }, [inputValue, handleSubmit, setApiError, isModelConfigured]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -66,7 +63,7 @@ export const Input: React.FC = React.memo(() => {
           variant="ghost"
           size="2"
           onClick={isStreaming ? handleStopStream : onSubmit}
-          disabled={(!isStreaming && !inputValue.trim()) || isLoading}
+          disabled={!inputValue.trim() || !isModelConfigured}
           color={isStreaming ? "blue" : "gray"}
           style={{
             position: "absolute",

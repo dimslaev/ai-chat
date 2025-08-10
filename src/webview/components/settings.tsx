@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  Dialog,
-  Button,
-  Flex,
-  Text,
-  TextField,
-  IconButton,
-} from "@radix-ui/themes";
+import { Dialog, Button, Flex, Text, TextField } from "@radix-ui/themes";
 import { useChatStore } from "../store";
 import { Configuration } from "../../types";
 
@@ -41,11 +34,12 @@ export const Settings: React.FC = () => {
       const value = event.target.value;
       setFormData((prev) => ({
         ...prev,
-        [field]: field === 'maxTokens' || field === 'historyLimit' 
-          ? parseInt(value) || 0
-          : field === 'temperature'
-          ? parseFloat(value) || 0
-          : value,
+        [field]:
+          field === "maxTokens" || field === "historyLimit"
+            ? parseInt(value) || 0
+            : field === "temperature"
+            ? parseFloat(value) || 0
+            : value,
       }));
     };
 

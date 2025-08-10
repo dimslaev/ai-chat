@@ -4,46 +4,39 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { Message } from "./message";
 import { useChatStore } from "../store";
 import { Message as MessageType } from "../../types";
+// import { simulateStreamingResponse } from "./mockresponse";
 
 export const Messages: React.FC = () => {
   const messages = useChatStore((state) => state.messages);
   const isStreaming = useChatStore((state) => state.isStreaming);
-  const isLoading = useChatStore((state) => state.isLoading);
-  const shouldAutoScroll = useChatStore((state) => state.shouldAutoScroll);
-  const setShouldAutoScroll = useChatStore(
-    (state) => state.setShouldAutoScroll
-  );
   const apiError = useChatStore((state) => state.apiError);
 
   const messagesRef = React.useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
-    if (shouldAutoScroll && messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    }
-  }, [messages, shouldAutoScroll]);
+  // React.useEffect(() => {
+  //   const { addMessage, setIsStreaming, appendToLastMessage } =
+  //     useChatStore.getState();
 
-  const handleWheel = React.useCallback(
-    (event: React.WheelEvent<HTMLDivElement>) => {
-      if (event.deltaY < 0 && shouldAutoScroll) {
-        // User scrolled up
-        setShouldAutoScroll(false);
-      } else if (event.deltaY > 0 && messagesRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = messagesRef.current;
-        const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
-        if (isNearBottom && !shouldAutoScroll) {
-          // User scrolled down to the bottom
-          setShouldAutoScroll(true);
-        }
-      }
-    },
-    [setShouldAutoScroll, shouldAutoScroll]
-  );
+  //   simulateStreamingResponse({
+  //     addMessage,
+  //     setIsStreaming,
+  //     appendToLastMessage,
+  //   });
+  // }, []);
+
+  // Auto-scroll when streaming ends
+  React.useEffect(() => {
+    if (!isStreaming && messagesRef.current) {
+      messagesRef.current.scrollTo({
+        top: messagesRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [isStreaming]);
 
   return (
     <ScrollArea
       ref={messagesRef}
-      onWheel={handleWheel}
       style={{
         flex: 1,
         paddingBottom: "16px",
@@ -75,7 +68,7 @@ export const Messages: React.FC = () => {
           </Callout.Root>
         )}
 
-        {isLoading && (
+        {isStreaming && messages[messages.length - 1].role !== "assistant" && (
           <Flex justify="center" p="3">
             <Spinner size="2" />
           </Flex>

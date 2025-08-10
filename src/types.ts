@@ -30,25 +30,6 @@ export type FunctionCall = {
   arguments: string;
 };
 
-export type ToolCall = {
-  id: string;
-  type: "function";
-  function: FunctionCall;
-};
-
-export type ToolExecutionResult = {
-  tool_call_id: string;
-  content: string;
-};
-
-export type ToolResultCache = {
-  [key: string]: {
-    result: string;
-    timestamp: number;
-    toolName: string;
-  };
-};
-
 export type MessageCategory =
   | "code_generation"
   | "code_refactoring"
@@ -95,6 +76,7 @@ export type PostMessageType =
   | "getState"
   | "setState"
   | "sendMessage"
+  | "editMessage"
   | "startAssistantMessage"
   | "appendChunk"
   | "endAssistantMessage"
@@ -116,6 +98,7 @@ export type PostMessagePayloadMap = {
     config: Configuration;
   };
   sendMessage: Message;
+  editMessage: { id: string; content: string };
   startAssistantMessage: undefined;
   appendChunk: string;
   endAssistantMessage: undefined;

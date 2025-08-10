@@ -139,6 +139,9 @@ export const Extension = {
           case "sendMessage":
             this.handleUserMessage(data.payload);
             break;
+          case "editMessage":
+            this.handleEditMessage(data.payload);
+            break;
           case "stopStream":
             this.stopStream();
             break;
@@ -189,6 +192,23 @@ export const Extension = {
       Extension.chat.createCompletion();
     },
 
+    async handleEditMessage(payload: { id: string; content: string }) {
+      const { history } = Extension;
+      const messageIndex = history.findIndex((msg) => msg.id === payload.id);
+
+      if (messageIndex === -1) return;
+
+      const updatedHistory = [...history];
+      updatedHistory[messageIndex] = {
+        ...updatedHistory[messageIndex],
+        content: payload.content,
+      };
+
+      Extension.history = updatedHistory.slice(0, messageIndex + 1);
+      Extension.abort = new AbortController();
+      Extension.chat.createCompletion();
+    },
+
     stopStream() {
       const { webview, abort } = Extension;
       abort.abort();
@@ -199,7 +219,6 @@ export const Extension = {
       const { fileUri } = payload;
       const fileName = Extension.util.getFileName(fileUri.path);
 
-      // Prevent duplicate attachments
       if (!Extension.files.some((f) => f.fileUri.path === fileUri.path)) {
         Extension.files.push({ name: fileName, fileUri });
       }

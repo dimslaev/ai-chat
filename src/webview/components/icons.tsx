@@ -6,6 +6,7 @@ import {
   Cross2Icon,
   PlusIcon,
   CopyIcon,
+  Pencil1Icon,
 } from "@radix-ui/react-icons";
 
 export const IconStart: React.FC = () => <PaperPlaneIcon />;
@@ -14,3 +15,4 @@ export const IconTrash: React.FC = () => <TrashIcon />;
 export const IconClose: React.FC = () => <Cross2Icon />;
 export const IconAdd: React.FC = () => <PlusIcon />;
 export const IconCopy: React.FC = () => <CopyIcon />;
+export const IconEdit: React.FC = () => <Pencil1Icon />;

@@ -14,20 +14,16 @@ export interface ChatStore {
   vscode: vscodeApi | null;
   messages: Message[];
   isStreaming: boolean;
-  isLoading: boolean;
   attachedFiles: AttachedFile[];
   suggestedFile: AttachedFile | null;
   apiError: ApiError;
-  shouldAutoScroll: boolean;
   config: Configuration | null;
 
   setMessages: (messages: Message[]) => void;
   setIsStreaming: (streaming: boolean) => void;
-  setIsLoading: (loading: boolean) => void;
   setAttachedFiles: (files: AttachedFile[]) => void;
   setSuggestedFile: (file: AttachedFile | null) => void;
   setApiError: (error: ApiError) => void;
-  setShouldAutoScroll: (scroll: boolean) => void;
   setVscode: (vscode: vscodeApi) => void;
   setConfig: (config: Configuration) => void;
 
@@ -36,6 +32,7 @@ export interface ChatStore {
   addAttachedFile: (file: AttachedFile) => void;
   removeAttachedFile: (file: AttachedFile) => void;
   handleSubmit: (content: string) => void;
+  editMessage: (id: string, content: string) => void;
   handleStopStream: () => void;
   attachFile: () => void;
   removeFile: (file: AttachedFile) => void;
@@ -58,21 +55,17 @@ export const useChatStore = create<ChatStore>()(
   subscribeWithSelector((set, get) => ({
     messages: [],
     isStreaming: false,
-    isLoading: false,
     attachedFiles: [],
     suggestedFile: null,
     apiError: null,
-    shouldAutoScroll: true,
     vscode: null,
     config: null,
 
     setMessages: (messages) => set({ messages }),
     setIsStreaming: (isStreaming) => set({ isStreaming }),
-    setIsLoading: (isLoading) => set({ isLoading }),
     setAttachedFiles: (attachedFiles) => set({ attachedFiles }),
     setSuggestedFile: (suggestedFile) => set({ suggestedFile }),
     setApiError: (apiError) => set({ apiError }),
-    setShouldAutoScroll: (shouldAutoScroll) => set({ shouldAutoScroll }),
     setVscode: (vscode) => set({ vscode }),
     setConfig: (config) => set({ config }),
 
@@ -100,10 +93,10 @@ export const useChatStore = create<ChatStore>()(
       })),
 
     handleSubmit: (content) => {
-      const { isStreaming, isLoading, vscode } = get();
-      if (!content.trim() || isStreaming || isLoading || !vscode) return;
+      const { isStreaming, vscode } = get();
+      if (!content.trim() || isStreaming || !vscode) return;
 
-      set({ isLoading: true });
+      set({ isStreaming: true });
 
       const newMessage: Message = {
         id: Date.now().toString(),
@@ -115,12 +108,33 @@ export const useChatStore = create<ChatStore>()(
       postMessage(vscode, "sendMessage", newMessage);
     },
 
+    editMessage: (id, content) => {
+      const { isStreaming, vscode, messages } = get();
+      if (!content.trim() || isStreaming || !vscode) return;
+
+      const messageIndex = messages.findIndex((msg) => msg.id === id);
+      if (messageIndex === -1) return;
+
+      set({ isStreaming: true });
+
+      const updatedMessages = [...messages];
+      updatedMessages[messageIndex] = {
+        ...updatedMessages[messageIndex],
+        content: content.trim(),
+      };
+
+      const truncatedMessages = updatedMessages.slice(0, messageIndex + 1);
+
+      set({ messages: truncatedMessages });
+      postMessage(vscode, "editMessage", { id, content: content.trim() });
+    },
+
     handleStopStream: () => {
       const { vscode } = get();
       if (!vscode) return;
 
       postMessage(vscode, "stopStream");
-      set({ isStreaming: false, isLoading: false });
+      set({ isStreaming: false });
     },
 
     attachFile: () => {
@@ -173,7 +187,6 @@ export const useChatStore = create<ChatStore>()(
           break;
 
         case "startAssistantMessage":
-          set({ isStreaming: true, isLoading: false });
           get().addMessage({
             id: Date.now().toString(),
             role: "assistant",
@@ -194,7 +207,7 @@ export const useChatStore = create<ChatStore>()(
           break;
 
         case "apiError":
-          set({ apiError: payload, isLoading: false });
+          set({ apiError: payload, isStreaming: false });
           break;
 
         case "getConfig":
