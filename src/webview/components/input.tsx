@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Button, Flex, TextArea, Box } from "@radix-ui/themes";
-import { IconStart, IconStop } from "./icons";
+import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
 import { useChatStore } from "../store";
 
 export const Input: React.FC = React.memo(() => {
@@ -78,7 +78,7 @@ export const Input: React.FC = React.memo(() => {
           }}
           className="no-hover"
         >
-          {isStreaming ? <IconStop /> : <IconStart />}
+          {isStreaming ? <StopIcon /> : <PaperPlaneIcon />}
         </Button>
       </Box>
     </Flex>

@@ -3,7 +3,7 @@ import { marked } from "marked";
 import hljs from "highlight.js";
 import { Box, TextArea } from "@radix-ui/themes";
 import { Message as MessageType } from "../../types";
-import { IconEdit } from "./icons";
+import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useChatStore } from "../store";
 
 interface MessageProps {
@@ -132,7 +132,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
       <div dangerouslySetInnerHTML={{ __html: parsedContent }} />
       {message.role === "user" && isHovered && !isEditing && (
         <button className="action-button" onClick={handleEditClick}>
-          <IconEdit />
+          <Pencil1Icon />
         </button>
       )}
     </Box>

@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button, Flex, Badge } from "@radix-ui/themes";
 import { useChatStore } from "../store";
 import { AttachedFile } from "../../types";
-import { IconAdd, IconClose } from "./icons";
+import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
 
 export const TopRow: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
@@ -40,7 +40,7 @@ export const TopRow: React.FC = React.memo(() => {
             style={{ cursor: "pointer" }}
             onClick={() => removeFile(file)}
           >
-            <IconClose />
+            <Cross2Icon />
             {file.name}
           </Badge>
         ))}
@@ -56,7 +56,7 @@ export const TopRow: React.FC = React.memo(() => {
               size="1"
               onClick={attachFile}
             >
-              <IconAdd />
+              <PlusIcon />
               {suggestedFile.name}
             </Button>
           )}
