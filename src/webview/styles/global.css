@@ -26,11 +26,15 @@ pre code {
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.5;
-  pointer-events: none;
 }
 
-pre code * {
-  pointer-events: auto;
+code:not(pre code) {
+  font-family: var(--font-mono);
+  background-color: var(--gray-3);
+  color: var(--accent-11);
+  padding: 2px 4px;
+  border-radius: var(--radius-1);
+  font-size: 0.9em;
 }
 
 .action-button {
@@ -67,17 +71,23 @@ pre:hover .action-button {
   opacity: 0.8;
 }
 
+.chat-message {
+  background-color: transparent;
+  word-break: break-word;
+  position: relative;
+}
+
+.chat-message-user {
+  background-color: var(--gray-3);
+  border-radius: var(--radius-3);
+}
+
 .chat-message-user:hover .action-button {
   opacity: 0.8;
 }
 
-code:not(pre code) {
-  font-family: var(--font-mono);
-  background-color: var(--gray-3);
-  color: var(--accent-11);
-  padding: 2px 4px;
-  border-radius: var(--radius-1);
-  font-size: 0.9em;
+.chat-message-streaming pre code {
+  pointer-events: none;
 }
 
 .chat-message p {
