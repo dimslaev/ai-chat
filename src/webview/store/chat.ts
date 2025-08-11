@@ -157,7 +157,7 @@ export const useChatStore = create<ChatStore>()(
       const { vscode } = get();
       if (!vscode) return;
 
-      set({ messages: [], attachedFiles: [] });
+      set({ messages: [], attachedFiles: [], apiError: null });
       postMessage(vscode, "cleanup");
     },
 
