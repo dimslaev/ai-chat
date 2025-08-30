@@ -66,7 +66,7 @@ export const Input: React.FC = React.memo(() => {
           variant="ghost"
           size="2"
           onClick={isStreaming ? handleStopStream : onSubmit}
-          disabled={!inputValue.trim() || !isModelConfigured}
+          disabled={isStreaming ? false : (!inputValue.trim() || !isModelConfigured)}
           color={isStreaming ? "blue" : "gray"}
           style={{
             position: "absolute",

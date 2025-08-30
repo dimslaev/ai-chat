@@ -2,7 +2,12 @@ import * as React from "react";
 import { Button, Flex, Badge } from "@radix-ui/themes";
 import { useChatStore } from "../store";
 import { AttachedFile } from "../../types";
-import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
+import {
+  PlusIcon,
+  Cross2Icon,
+  DownloadIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 
 export const TopRow: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
@@ -11,8 +16,26 @@ export const TopRow: React.FC = React.memo(() => {
   const cleanup = useChatStore((state) => state.cleanup);
   const attachFile = useChatStore((state) => state.attachFile);
   const removeFile = useChatStore((state) => state.removeFile);
+  const vscode = useChatStore((state) => state.vscode);
+  const isStreaming = useChatStore((state) => state.isStreaming);
 
   const hasMessages = messages.length > 0;
+
+  const handleSaveChat = React.useCallback(() => {
+    if (!hasMessages || !vscode) return;
+
+    const markdownContent = messages
+      .map((message) => {
+        const role = message.role === "user" ? "User" : "Assistant";
+        return `## ${role}\n\n${message.content}\n`;
+      })
+      .join("\n");
+
+    vscode.postMessage({
+      type: "saveChat",
+      payload: markdownContent,
+    });
+  }, [messages, hasMessages, vscode]);
 
   return (
     <Flex
@@ -61,18 +84,29 @@ export const TopRow: React.FC = React.memo(() => {
             </Button>
           )}
       </Flex>
+      {hasMessages && (
+        <Flex direction="row" align="center" gap="2">
+          <Button
+            variant="outline"
+            color="gray"
+            size="1"
+            disabled={isStreaming}
+            onClick={handleSaveChat}
+          >
+            <DownloadIcon />
+          </Button>
 
-      <Flex direction="row" align="center" gap="2">
-        <Button
-          variant="outline"
-          color="gray"
-          size="1"
-          disabled={!hasMessages}
-          onClick={cleanup}
-        >
-          Clear
-        </Button>
-      </Flex>
+          <Button 
+            variant="outline" 
+            color="gray" 
+            size="1" 
+            disabled={isStreaming}
+            onClick={cleanup}
+          >
+            <TrashIcon />
+          </Button>
+        </Flex>
+      )}
     </Flex>
   );
 });

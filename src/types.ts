@@ -71,7 +71,8 @@ export type PostMessageType =
   | "apiError"
   | "cleanup"
   | "saveConfigs"
-  | "getConfigs";
+  | "getConfigs"
+  | "saveChat";
 
 export type PostMessagePayloadMap = {
   getState: undefined;
@@ -94,6 +95,7 @@ export type PostMessagePayloadMap = {
   cleanup: undefined;
   saveConfigs: Configuration[];
   getConfigs: Configuration[];
+  saveChat: string;
 };
 
 export type PostMessage = {

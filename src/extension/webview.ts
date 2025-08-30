@@ -91,6 +91,9 @@ export namespace Webview {
         case "getConfigs":
           post("getConfigs", State.configs);
           break;
+        case "saveChat":
+          saveChatToFile(data.payload);
+          break;
         default:
           console.warn(`Unknown message type: ${data.type}`);
       }
@@ -179,6 +182,83 @@ export namespace Webview {
     State.history = [];
     State.files = [];
     State.category = null;
+  }
+
+  async function saveChatToFile(markdownContent: string) {
+    try {
+      const title = await generateChatTitle();
+      const fileName = `${title}.md`;
+
+      // Save directly to workspace with the generated filename
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (workspaceFolder) {
+        const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
+        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(markdownContent, 'utf8'));
+        
+        // Open the saved file
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document);
+      } else {
+        // Fallback: open as untitled document if no workspace
+        const document = await vscode.workspace.openTextDocument({
+          content: markdownContent,
+          language: "markdown",
+        });
+        await vscode.window.showTextDocument(document);
+      }
+    } catch (error) {
+      console.error("Failed to save chat:", error);
+      handleError(error);
+    }
+  }
+
+  async function generateChatTitle(): Promise<string> {
+    try {
+      if (State.history.length === 0) {
+        return "empty_chat";
+      }
+
+      // Get first few messages for context
+      const contextMessages = State.history
+        .slice(0, 3)
+        .map((msg) => `${msg.role}: ${msg.content.slice(0, 200)}`)
+        .join("\n");
+
+      const { client, config } = State;
+      const response = await client.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content:
+              "Generate a 5 word or less snake_case title that summarizes this chat conversation. Use only lowercase letters, numbers, and underscores. Be concise and descriptive.",
+          },
+          {
+            role: "user",
+            content: `Summarize this chat in 5 words or less using snake_case:\n\n${contextMessages}`,
+          },
+        ],
+        model: config.model,
+        temperature: 0.3,
+        max_completion_tokens: 20,
+      });
+
+      const title =
+        response.choices?.[0]?.message?.content?.trim() || "chat_summary";
+
+      // Ensure snake_case format and max 5 words
+      return (
+        title
+          .toLowerCase()
+          .replace(/[^a-z0-9_\s]/g, "")
+          .replace(/\s+/g, "_")
+          .split("_")
+          .slice(0, 5)
+          .join("_") || "chat_summary"
+      );
+    } catch (error) {
+      console.error("Failed to generate chat title:", error);
+      return `chat_${Date.now().toString().slice(-6)}`;
+    }
   }
 
   export function post<T extends PostMessageType>(
