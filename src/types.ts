@@ -29,6 +29,8 @@ export type Configuration = {
   maxTokens: number;
   temperature: number;
   historyLimit: number;
+  systemPrompt?: string;
+  replaceSystemPrompt?: boolean;
 };
 
 export type FileInfo = {

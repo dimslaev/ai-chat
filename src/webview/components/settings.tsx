@@ -5,7 +5,9 @@ import {
   Flex,
   Text,
   TextField,
+  TextArea,
   DropdownMenu,
+  Checkbox,
 } from "@radix-ui/themes";
 import {
   MixerHorizontalIcon,
@@ -38,6 +40,8 @@ export const Settings: React.FC = () => {
     maxTokens: 8000,
     temperature: 0.1,
     historyLimit: 10,
+    systemPrompt: "",
+    replaceSystemPrompt: false,
   });
 
   React.useEffect(() => {
@@ -54,6 +58,8 @@ export const Settings: React.FC = () => {
         maxTokens: 8000,
         temperature: 0.1,
         historyLimit: 10,
+        systemPrompt: "",
+        replaceSystemPrompt: false,
       });
     }
   }, [editingConfig, configs.length]);
@@ -274,6 +280,41 @@ export const Settings: React.FC = () => {
                 value={formData.historyLimit.toString()}
                 onChange={handleInputChange("historyLimit")}
               />
+            </label>
+
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                System Prompt (Optional)
+              </Text>
+              <TextArea
+                placeholder="Additional instructions to append to the default system prompt..."
+                value={formData.systemPrompt || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    systemPrompt: e.target.value,
+                  }))
+                }
+                rows={3}
+                style={{ resize: "vertical" }}
+              />
+            </label>
+
+            <label>
+              <Flex align="center" gap="2">
+                <Checkbox
+                  checked={formData.replaceSystemPrompt || false}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      replaceSystemPrompt: checked === true,
+                    }))
+                  }
+                />
+                <Text size="2">
+                  Replace system prompt (instead of appending)
+                </Text>
+              </Flex>
             </label>
           </Flex>
 

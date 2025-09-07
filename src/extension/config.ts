@@ -13,6 +13,7 @@ export namespace Config {
     maxTokens: 8000,
     temperature: 0.1,
     historyLimit: 10,
+    systemPrompt: "",
   } as const;
 
   async function load(): Promise<Configuration[]> {

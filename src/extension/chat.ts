@@ -73,11 +73,27 @@ export namespace Chat {
   }
 
   export function getSystemPrompt(category: MessageCategory | null): string {
-    const prompt = category
+    const { config } = State;
+    const basePrompt = category
       ? Prompts.CATEGORY_SYSTEM_PROMPTS[category]
       : Prompts.DEFAULT_SYSTEM_PROMPT;
-    console.log(`Using system prompt for category: ${category || "default"}`);
-    return prompt;
+
+    const customPrompt = config.systemPrompt?.trim();
+    
+    if (!customPrompt) {
+      return basePrompt;
+    }
+
+    const finalPrompt = config.replaceSystemPrompt
+      ? customPrompt
+      : `${basePrompt}\n\nAdditional instructions: ${customPrompt}`;
+
+    console.log(
+      `Using system prompt for category: ${category || "default"}${
+        customPrompt ? ` with ${config.replaceSystemPrompt ? "replaced" : "appended"} instructions` : ""
+      }`
+    );
+    return finalPrompt;
   }
 
   export async function createCompletion(
