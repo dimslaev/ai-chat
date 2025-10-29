@@ -50,7 +50,11 @@
     "watch:extension": "tsc -watch",
     "watch:webview": "webpack --mode development --watch",
     "package": "npm run build && vsce package",
-    "install": "code --install-extension ai-chat-0.0.1.vsix"
+    "install:local": "code --install-extension ai-chat-$(node -p \"require('./package.json').version\").vsix",
+    "version:patch": "npm version patch && npm run package",
+    "version:minor": "npm version minor && npm run package",
+    "version:major": "npm version major && npm run package",
+    "release": "npm run package && git push && git push --tags"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
