@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Button, Flex, TextArea, Box } from "@radix-ui/themes";
+import { Button, Flex, Box } from "@radix-ui/themes";
 import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
+import TextareaAutosize from "react-textarea-autosize";
 import { useChatStore } from "../store";
 
 export const Input: React.FC = React.memo(() => {
@@ -47,18 +48,24 @@ export const Input: React.FC = React.memo(() => {
           flex: 1,
         }}
       >
-        <TextArea
+        <TextareaAutosize
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
+          minRows={3}
+          maxRows={30}
           style={{
-            minHeight: "80px",
-            maxHeight: "160px",
+            width: "100%",
             border: "none",
             background: "transparent",
             padding: "0",
-            boxShadow: "none",
+            resize: "none",
+            outline: "none",
+            fontFamily: "inherit",
+            fontSize: "0.945rem",
+            lineHeight: "1.5",
+            color: "inherit",
           }}
         />
 
@@ -66,7 +73,9 @@ export const Input: React.FC = React.memo(() => {
           variant="ghost"
           size="2"
           onClick={isStreaming ? handleStopStream : onSubmit}
-          disabled={isStreaming ? false : (!inputValue.trim() || !isModelConfigured)}
+          disabled={
+            isStreaming ? false : !inputValue.trim() || !isModelConfigured
+          }
           color={isStreaming ? "blue" : "gray"}
           style={{
             position: "absolute",
