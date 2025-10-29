@@ -138,3 +138,37 @@ pre:hover .action-button {
 .rt-TextAreaInput {
   font-size: 0.945rem;
 }
+
+.scroll-to-bottom-button {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  background: var(--gray-1);
+  color: var(--gray-11);
+  border: 1px solid var(--gray-6);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.scroll-to-bottom-button:hover {
+  opacity: 1;
+  background: var(--gray-3);
+  border-color: var(--gray-8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-to-bottom-button:active {
+  opacity: 0.8;
+  transform: translateX(-50%) scale(0.95);
+}
