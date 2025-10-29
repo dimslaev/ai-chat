@@ -82,7 +82,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
   };
 
   const handleSaveEdit = () => {
-    if (editContent.trim() && editContent.trim() !== message.content) {
+    if (editContent.trim()) {
       editMessage(message.id, editContent.trim());
     }
     setIsEditing(false);
