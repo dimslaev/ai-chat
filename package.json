@@ -1,7 +1,7 @@
 {
   "name": "ai-chat-vscode",
   "description": "AI Chat",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "dimslaev",
   "repository": {
     "type": "git",
