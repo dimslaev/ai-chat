@@ -1,5 +1,5 @@
 {
-  "name": "ai-chat",
+  "name": "ai-chat-vscode",
   "description": "AI Chat",
   "version": "0.1.0",
   "publisher": "dimslaev",
@@ -13,7 +13,7 @@
   },
   "activationEvents": [],
   "main": "./out/extension/extension.js",
-  "icon": "resources/chat-logo.png",
+  "icon": "resources/chat-icon.png",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -30,7 +30,7 @@
           "type": "webview",
           "id": "ai-chat-view",
           "name": "AI Chat",
-          "icon": "resources/chat-logo.png"
+          "icon": "resources/chat-icon.png"
         }
       ]
     },
