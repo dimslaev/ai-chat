@@ -5,21 +5,85 @@ import {
   Flex,
   Text,
   TextField,
-  TextArea,
   DropdownMenu,
   Checkbox,
+  Select,
+  Separator,
 } from "@radix-ui/themes";
+import TextareaAutosize from "react-textarea-autosize";
 import {
   MixerHorizontalIcon,
   PlusIcon,
   TrashIcon,
   CaretDownIcon,
+  Cross2Icon,
 } from "@radix-ui/react-icons";
 import { useChatStore } from "../store";
 import { Configuration } from "../../types";
 
+const DEFAULT_BASE_URL = "https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai";
+
+const MODELS = [
+  {
+    label: "Qwen 3 Coder",
+    value: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+  },
+  {
+    label: "Qwen 3",
+    value: "Qwen/Qwen3-VL-235B-A22B-Instruct",
+  },
+  {
+    label: "Mistral 24B",
+    value: "mistral24b",
+  },
+  {
+    label: "Mistral 3",
+    value: "mistral31",
+  },
+];
+
+const DEFAULT_CONFIG: Omit<Configuration, "id"> = {
+  name: "",
+  active: false,
+  apiKey: "",
+  baseUrl: DEFAULT_BASE_URL,
+  model: MODELS[0].value,
+  maxTokens: 8000,
+  temperature: 0.1,
+  historyLimit: 10,
+  systemPrompt: "",
+  replaceSystemPrompt: false,
+};
+
+const TEXTAREA_STYLES = {
+  width: "100%",
+  padding: "8px",
+  borderRadius: "var(--radius-2)",
+  border: "1px solid var(--gray-6)",
+  backgroundColor: "var(--color-surface)",
+  color: "var(--gray-12)",
+  fontFamily: "inherit",
+  fontSize: "inherit",
+  lineHeight: "inherit",
+  resize: "none" as const,
+  boxSizing: "border-box" as const,
+};
+
+const FormField: React.FC<{
+  label: string;
+  children: React.ReactNode;
+}> = ({ label, children }) => (
+  <label>
+    <Text as="div" size="2" mb="1" weight="bold">
+      {label}
+    </Text>
+    {children}
+  </label>
+);
+
 export const Settings: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [editingConfig, setEditingConfig] =
     React.useState<Configuration | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
@@ -31,38 +95,25 @@ export const Settings: React.FC = () => {
   const activeConfig = configs.find((c) => c.active);
 
   const [formData, setFormData] = React.useState<Configuration>({
+    ...DEFAULT_CONFIG,
     id: "",
-    name: "",
-    active: false,
-    apiKey: "",
-    baseUrl: "",
-    model: "",
-    maxTokens: 8000,
-    temperature: 0.1,
-    historyLimit: 10,
-    systemPrompt: "",
-    replaceSystemPrompt: false,
   });
 
   React.useEffect(() => {
-    if (editingConfig) {
-      setFormData(editingConfig);
-    } else {
-      setFormData({
+    setFormData(
+      editingConfig || {
+        ...DEFAULT_CONFIG,
         id: Date.now().toString(),
-        name: "",
-        active: false,
-        apiKey: "",
-        baseUrl: "",
-        model: "",
-        maxTokens: 8000,
-        temperature: 0.1,
-        historyLimit: 10,
-        systemPrompt: "",
-        replaceSystemPrompt: false,
-      });
-    }
+      }
+    );
   }, [editingConfig, configs.length]);
+
+  const updateFormData = <K extends keyof Configuration>(
+    field: K,
+    value: Configuration[K]
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleConfigChange = (value: string) => {
     if (value === "add-new") {
@@ -80,6 +131,7 @@ export const Settings: React.FC = () => {
 
   const handleEditConfig = (config: Configuration) => {
     setEditingConfig(config);
+    setDropdownOpen(false);
     setDialogOpen(true);
   };
 
@@ -121,15 +173,13 @@ export const Settings: React.FC = () => {
     (field: keyof Configuration) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
-      setFormData((prev) => ({
-        ...prev,
-        [field]:
-          field === "maxTokens" || field === "historyLimit"
-            ? parseInt(value) || 0
-            : field === "temperature"
-            ? parseFloat(value) || 0
-            : value,
-      }));
+      const parsedValue =
+        field === "maxTokens" || field === "historyLimit"
+          ? parseInt(value) || 0
+          : field === "temperature"
+          ? parseFloat(value) || 0
+          : value;
+      updateFormData(field, parsedValue as Configuration[typeof field]);
     };
 
   return (
@@ -144,7 +194,7 @@ export const Settings: React.FC = () => {
           Model
         </Button>
       ) : (
-        <DropdownMenu.Root>
+        <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenu.Trigger>
             <Button variant="outline" color="gray" size="1">
               <CaretDownIcon />
@@ -192,73 +242,116 @@ export const Settings: React.FC = () => {
       )}
 
       <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
-        <Dialog.Content style={{ maxWidth: 450 }}>
-          <Dialog.Title>
-            {editingConfig ? "Edit Model" : "Add Model"}
-          </Dialog.Title>
+        <Dialog.Content
+          style={{
+            width: "100vw",
+            height: "100vh",
+            maxWidth: "100vw",
+            maxHeight: "100vh",
+            padding: 0,
+            position: "fixed",
+            top: 0,
+            left: 0,
+            margin: 0,
+            borderRadius: 0,
+            border: "none",
+            display: "flex",
+            flexDirection: "column",
+            animation: "none",
+          }}
+        >
+          <Flex
+            direction="row"
+            justify="between"
+            align="center"
+            p="4"
+            style={{
+              borderBottom: "1px solid var(--gray-6)",
+            }}
+          >
+            <Dialog.Title style={{ margin: 0 }}>
+              {editingConfig ? "Edit Model" : "Add Model"}
+            </Dialog.Title>
+            <Dialog.Close>
+              <Button variant="ghost" color="gray" size="1" tabIndex={-1}>
+                <Cross2Icon />
+              </Button>
+            </Dialog.Close>
+          </Flex>
 
-          <Flex direction="column" gap="3">
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Name
-              </Text>
+          <Flex
+            direction="column"
+            gap="3"
+            p="4"
+            style={{
+              maxWidth: 500,
+              flex: 1,
+              overflowY: "auto",
+            }}
+          >
+            <FormField label="Name">
               <TextField.Root
                 placeholder="Display Name"
                 value={formData.name}
                 onChange={handleInputChange("name")}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                API Key
-              </Text>
+            <FormField label="API Key">
               <TextField.Root
                 type="password"
                 placeholder="Enter API key"
                 value={formData.apiKey}
                 onChange={handleInputChange("apiKey")}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Base URL
-              </Text>
+            <FormField label="Base URL">
               <TextField.Root
-                placeholder="https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai"
+                placeholder={DEFAULT_BASE_URL}
                 value={formData.baseUrl}
                 onChange={handleInputChange("baseUrl")}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Model - qwen3 | mistral24b | mistral3
-              </Text>
-              <TextField.Root
-                placeholder="mistral24b"
+            <FormField label="Model">
+              <Select.Root
                 value={formData.model}
-                onChange={handleInputChange("model")}
-              />
-            </label>
+                onValueChange={(value) => updateFormData("model", value)}
+              >
+                <Select.Trigger placeholder="Select a model" />
+                <Select.Content>
+                  {MODELS.map((model) => (
+                    <Select.Item key={model.value} value={model.value}>
+                      {model.label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            </FormField>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Max Tokens
-              </Text>
+            <Separator size="4" my="2" />
+
+            <FormField label="System Prompt (Optional)">
+              <TextareaAutosize
+                placeholder="Additional instructions to append to the default system prompt..."
+                value={formData.systemPrompt || ""}
+                onChange={(e) => updateFormData("systemPrompt", e.target.value)}
+                minRows={3}
+                style={TEXTAREA_STYLES}
+              />
+            </FormField>
+
+            <FormField label="Max Tokens">
               <TextField.Root
                 type="number"
                 placeholder="8000"
                 value={formData.maxTokens.toString()}
                 onChange={handleInputChange("maxTokens")}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                Temperature
-              </Text>
+            <FormField label="Temperature">
               <TextField.Root
                 type="number"
                 step="0.1"
@@ -268,47 +361,23 @@ export const Settings: React.FC = () => {
                 value={formData.temperature.toString()}
                 onChange={handleInputChange("temperature")}
               />
-            </label>
+            </FormField>
 
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                History Limit
-              </Text>
+            <FormField label="History Limit">
               <TextField.Root
                 type="number"
                 placeholder="10"
                 value={formData.historyLimit.toString()}
                 onChange={handleInputChange("historyLimit")}
               />
-            </label>
-
-            <label>
-              <Text as="div" size="2" mb="1" weight="bold">
-                System Prompt (Optional)
-              </Text>
-              <TextArea
-                placeholder="Additional instructions to append to the default system prompt..."
-                value={formData.systemPrompt || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    systemPrompt: e.target.value,
-                  }))
-                }
-                rows={3}
-                style={{ resize: "vertical" }}
-              />
-            </label>
+            </FormField>
 
             <label>
               <Flex align="center" gap="2">
                 <Checkbox
                   checked={formData.replaceSystemPrompt || false}
                   onCheckedChange={(checked) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      replaceSystemPrompt: checked === true,
-                    }))
+                    updateFormData("replaceSystemPrompt", checked === true)
                   }
                 />
                 <Text size="2">
@@ -318,7 +387,14 @@ export const Settings: React.FC = () => {
             </label>
           </Flex>
 
-          <Flex gap="3" mt="4" justify="end">
+          <Flex
+            gap="3"
+            p="4"
+            justify="end"
+            style={{
+              borderTop: "1px solid var(--gray-6)",
+            }}
+          >
             <Dialog.Close>
               <Button variant="soft" color="gray">
                 Cancel
