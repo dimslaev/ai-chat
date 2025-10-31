@@ -1,0 +1,20 @@
+# Source files
+src/**
+webpack.config.js
+tsconfig.json
+
+# Build artifacts
+**/*.map
+*.vsix
+
+# Development
+.vscode/**
+.gitignore
+jest.config.js
+RELEASE.md
+
+# Dependencies
+node_modules/**
+
+# IDE
+.DS_Store

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Flex, Badge } from "@radix-ui/themes";
+import { Button, Flex, Badge, Tooltip } from "@radix-ui/themes";
 import { useChatStore } from "../store";
 import { AttachedFile } from "../../types";
 import {
@@ -86,25 +86,29 @@ export const TopRow: React.FC = React.memo(() => {
       </Flex>
       {hasMessages && (
         <Flex direction="row" align="center" gap="2">
-          <Button
-            variant="outline"
-            color="gray"
-            size="1"
-            disabled={isStreaming}
-            onClick={handleSaveChat}
-          >
-            <DownloadIcon />
-          </Button>
+          <Tooltip content="Export chat">
+            <Button
+              variant="outline"
+              color="gray"
+              size="1"
+              disabled={isStreaming}
+              onClick={handleSaveChat}
+            >
+              <DownloadIcon />
+            </Button>
+          </Tooltip>
 
-          <Button 
-            variant="outline" 
-            color="gray" 
-            size="1" 
-            disabled={isStreaming}
-            onClick={cleanup}
-          >
-            <TrashIcon />
-          </Button>
+          <Tooltip content="Reset">
+            <Button
+              variant="outline"
+              color="gray"
+              size="1"
+              disabled={isStreaming}
+              onClick={cleanup}
+            >
+              <TrashIcon />
+            </Button>
+          </Tooltip>
         </Flex>
       )}
     </Flex>
