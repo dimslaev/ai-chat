@@ -6,7 +6,7 @@ import {
   ApiError,
   vscodeApi,
   Configuration,
-} from "../../types";
+} from "../../lib/types";
 
 export interface ChatStore {
   // State

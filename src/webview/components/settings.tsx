@@ -20,7 +20,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useChatStore } from "../store";
 import { useChatConfig } from "../hooks";
-import { Configuration } from "../../types";
+import { Configuration } from "../../lib/types";
 
 const DEFAULT_BASE_URL = "https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai";
 
@@ -216,7 +216,7 @@ export const Settings: React.FC = () => {
           onClick={() => handleConfigChange("add-new")}
         >
           <CaretDownIcon />
-          Model
+          Add model config
         </Button>
       ) : (
         <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -259,7 +259,7 @@ export const Settings: React.FC = () => {
             >
               <Flex align="end" gap="2">
                 <PlusIcon />
-                Add new
+                Add new config
               </Flex>
             </DropdownMenu.Item>
           </DropdownMenu.Content>

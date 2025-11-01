@@ -1,4 +1,4 @@
-import { Message } from "../../types";
+import { Message } from "../../lib/types";
 
 export const mockUserMessage = `I'm having trouble with a TypeScript function that calculates the sum of an array. The function seems to work fine, but I'm experiencing a scrolling issue when hovering over the code block during streaming. The problem is that wheel events don't bubble up properly from code blocks. Can you help me with this?`;
 

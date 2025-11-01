@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button, Flex, Badge, Tooltip } from "@radix-ui/themes";
 import { useChatStore } from "../store";
 import { useChatActions } from "../hooks";
-import { AttachedFile } from "../../types";
+import { AttachedFile } from "../../lib/types";
 import {
   PlusIcon,
   Cross2Icon,

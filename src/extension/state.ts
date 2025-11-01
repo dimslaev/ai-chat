@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import OpenAI from "openai";
-import { Message, AttachedFile, MessageCategory, Configuration } from "../types";
+import {
+  Message,
+  AttachedFile,
+  MessageCategory,
+  Configuration,
+} from "../lib/types";
 
 export namespace State {
   export let context: vscode.ExtensionContext;

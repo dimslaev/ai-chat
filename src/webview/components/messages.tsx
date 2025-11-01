@@ -3,7 +3,7 @@ import { Box, Callout, Spinner, Flex } from "@radix-ui/themes";
 import { ExclamationTriangleIcon, ArrowDownIcon } from "@radix-ui/react-icons";
 import { Message } from "./message";
 import { useChatStore } from "../store";
-import { Message as MessageType } from "../../types";
+import { Message as MessageType } from "../../lib/types";
 // import { simulateStreamingResponse } from "./mockresponse";
 
 export const Messages: React.FC = () => {

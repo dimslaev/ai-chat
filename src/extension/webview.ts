@@ -5,12 +5,11 @@ import {
   Message,
   PostMessageType,
   PostMessagePayloadMap,
-} from "../types";
+} from "../lib/types";
 import { State } from "./state";
 import { Chat } from "./chat";
 import { Config } from "./config";
-import { postMessage } from "../utils/message";
-import { getFileName } from "./utils";
+import { postMessage, getFileName } from "../lib/utils";
 
 export namespace Webview {
   export function setup(webviewView: vscode.WebviewView) {
@@ -193,8 +192,11 @@ export namespace Webview {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (workspaceFolder) {
         const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
-        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(markdownContent, 'utf8'));
-        
+        await vscode.workspace.fs.writeFile(
+          fileUri,
+          Buffer.from(markdownContent, "utf8")
+        );
+
         // Open the saved file
         const document = await vscode.workspace.openTextDocument(fileUri);
         await vscode.window.showTextDocument(document);

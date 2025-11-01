@@ -5,7 +5,7 @@ import {
   PostMessagePayloadMap,
   Message,
   OpenAIMessage,
-} from "../types";
+} from "./types";
 
 export function postMessage<T extends PostMessageType>(
   target: vscodeApi | Webview,
@@ -16,7 +16,10 @@ export function postMessage<T extends PostMessageType>(
 }
 
 export function toOpenAIMessage(message: Message): OpenAIMessage {
-  const clone: Partial<Message> = { ...message };
-  delete clone.id;
-  return clone as OpenAIMessage;
+  const { id, ...rest } = message;
+  return rest;
+}
+
+export function getFileName(path: string): string {
+  return path.split(/[\\/]/).pop() || "";
 }

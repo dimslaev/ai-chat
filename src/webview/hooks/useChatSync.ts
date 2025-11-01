@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useChatStore } from "../store";
-import { postMessage } from "../../utils/message";
-import { PostMessage } from "../../types";
+import { postMessage } from "../../lib/utils";
+import { PostMessage } from "../../lib/types";
 
 /**
  * Hook for VSCode message synchronization
@@ -14,7 +14,9 @@ export const useChatSync = () => {
   const setApiError = useChatStore((state) => state.setApiError);
   const setConfigs = useChatStore((state) => state.setConfigs);
   const addMessage = useChatStore((state) => state.addMessage);
-  const appendToLastMessage = useChatStore((state) => state.appendToLastMessage);
+  const appendToLastMessage = useChatStore(
+    (state) => state.appendToLastMessage
+  );
   const restoreState = useChatStore((state) => state.restoreState);
 
   useEffect(() => {

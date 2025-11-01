@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { Configuration } from "../types";
+import { Configuration } from "../lib/types";
 import { State } from "./state";
 
 export namespace Config {

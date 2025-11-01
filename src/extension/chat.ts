@@ -4,8 +4,8 @@ import {
   AttachedFile,
   MessageCategory,
   OpenAIStream,
-} from "../types";
-import { toOpenAIMessage } from "../utils/message";
+} from "../lib/types";
+import { toOpenAIMessage } from "../lib/utils";
 import { State } from "./state";
 import { Prompts } from "./prompts";
 
@@ -99,7 +99,7 @@ export namespace Chat {
       : Prompts.DEFAULT_SYSTEM_PROMPT;
 
     const customPrompt = config.systemPrompt?.trim();
-    
+
     if (!customPrompt) {
       return basePrompt;
     }
@@ -110,7 +110,11 @@ export namespace Chat {
 
     console.log(
       `Using system prompt for category: ${category || "default"}${
-        customPrompt ? ` with ${config.replaceSystemPrompt ? "replaced" : "appended"} instructions` : ""
+        customPrompt
+          ? ` with ${
+              config.replaceSystemPrompt ? "replaced" : "appended"
+            } instructions`
+          : ""
       }`
     );
     return finalPrompt;

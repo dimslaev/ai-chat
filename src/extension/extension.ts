@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { State } from "./state";
 import { Webview } from "./webview";
 import { Config } from "./config";
-import { getFileName } from "./utils";
+import { getFileName } from "../lib/utils";
 
 export namespace Extension {
   export async function init(ctx: vscode.ExtensionContext) {

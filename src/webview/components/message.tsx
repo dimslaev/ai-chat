@@ -3,7 +3,7 @@ import { marked } from "marked";
 import hljs from "highlight.js";
 import TextareaAutosize from "react-textarea-autosize";
 import { Box, Tooltip } from "@radix-ui/themes";
-import { Message as MessageType } from "../../types";
+import { Message as MessageType } from "../../lib/types";
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useChatActions } from "../hooks";
 

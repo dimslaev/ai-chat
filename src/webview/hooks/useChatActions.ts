@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useChatStore } from "../store";
-import { postMessage } from "../../utils/message";
-import { AttachedFile, Message } from "../../types";
+import { postMessage } from "../../lib/utils";
+import { AttachedFile, Message } from "../../lib/types";
 
 /**
  * Hook for user-triggered chat actions with side effects
