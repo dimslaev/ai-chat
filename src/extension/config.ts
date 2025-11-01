@@ -1,21 +1,9 @@
 import OpenAI from "openai";
 import { Configuration } from "../lib/types";
+import { DEFAULT_CONFIG } from "../lib/config";
 import { State } from "./state";
 
 export namespace Config {
-  const DEFAULT_CONFIG: Configuration = {
-    id: "",
-    name: "",
-    active: false,
-    apiKey: "",
-    baseUrl: "",
-    model: "",
-    maxTokens: 8000,
-    temperature: 0.1,
-    historyLimit: 10,
-    systemPrompt: "",
-  } as const;
-
   async function load(): Promise<Configuration[]> {
     try {
       const configs = (await State.context.globalState.get("aiChatConfigs")) as

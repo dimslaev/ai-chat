@@ -92,11 +92,9 @@ export namespace Chat {
     return fileMessages;
   }
 
-  export function getSystemPrompt(category: MessageCategory | null): string {
+  export function getSystemPrompt(category: MessageCategory): string {
     const { config } = State;
-    const basePrompt = category
-      ? Prompts.CATEGORY_SYSTEM_PROMPTS[category]
-      : Prompts.DEFAULT_SYSTEM_PROMPT;
+    const basePrompt = Prompts.CATEGORY_SYSTEM_PROMPTS[category];
 
     const customPrompt = config.systemPrompt?.trim();
 

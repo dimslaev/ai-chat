@@ -31,7 +31,7 @@ export namespace State {
   // Chat state
   export let history: Message[] = [];
   export let files: AttachedFile[] = [];
-  export let category: MessageCategory | null = null;
+  export let category: MessageCategory = "general";
 
   export function setContext(ctx: vscode.ExtensionContext) {
     context = ctx;

@@ -21,44 +21,7 @@ import {
 import { useChatStore } from "../store";
 import { useChatConfig } from "../hooks";
 import { Configuration } from "../../lib/types";
-
-const DEFAULT_BASE_URL = "https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai";
-
-const MODELS = [
-  {
-    label: "Qwen 3 Coder",
-    value: "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-  },
-  {
-    label: "Qwen 3",
-    value: "Qwen/Qwen3-VL-235B-A22B-Instruct",
-  },
-  {
-    label: "Mistral 24B",
-    value: "mistral24b",
-  },
-  {
-    label: "Mistral 3",
-    value: "mistral31",
-  },
-  {
-    label: "Custom",
-    value: "custom",
-  },
-];
-
-const DEFAULT_CONFIG: Omit<Configuration, "id"> = {
-  name: "",
-  active: false,
-  apiKey: "",
-  baseUrl: DEFAULT_BASE_URL,
-  model: MODELS[0].value,
-  maxTokens: 8000,
-  temperature: 0.1,
-  historyLimit: 10,
-  systemPrompt: "",
-  replaceSystemPrompt: false,
-};
+import { DEFAULT_BASE_URL, DEFAULT_CONFIG, MODELS } from "../../lib/config";
 
 const TEXTAREA_STYLES = {
   width: "100%",

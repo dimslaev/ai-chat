@@ -180,7 +180,7 @@ export namespace Webview {
   function cleanup() {
     State.history = [];
     State.files = [];
-    State.category = null;
+    State.category = "general";
   }
 
   async function saveChatToFile(markdownContent: string) {
