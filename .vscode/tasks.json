@@ -4,7 +4,17 @@
     {
       "type": "npm",
       "script": "watch",
-      "problemMatcher": "$tsc-watch",
+      "problemMatcher": {
+        "owner": "webpack",
+        "pattern": {
+          "regexp": "."
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^> ai-chat-vscode@",
+          "endsPattern": "extension \\(webpack.*\\) compiled successfully"
+        }
+      },
       "isBackground": true,
       "presentation": {
         "reveal": "never"

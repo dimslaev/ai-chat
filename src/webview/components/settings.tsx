@@ -40,6 +40,10 @@ const MODELS = [
     label: "Mistral 3",
     value: "mistral31",
   },
+  {
+    label: "Custom",
+    value: "custom",
+  },
 ];
 
 const DEFAULT_CONFIG: Omit<Configuration, "id"> = {
@@ -89,6 +93,7 @@ export const Settings: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
   const [configToDelete, setConfigToDelete] =
     React.useState<Configuration | null>(null);
+  const [customModel, setCustomModel] = React.useState("");
   const configs = useChatStore((state) => state.configs);
   const saveConfigs = useChatStore((state) => state.saveConfigs);
 
@@ -100,12 +105,19 @@ export const Settings: React.FC = () => {
   });
 
   React.useEffect(() => {
-    setFormData(
-      editingConfig || {
-        ...DEFAULT_CONFIG,
-        id: Date.now().toString(),
-      }
-    );
+    const config = editingConfig || {
+      ...DEFAULT_CONFIG,
+      id: Date.now().toString(),
+    };
+    setFormData(config);
+
+    // Check if the model is a custom one (not in the predefined list)
+    const isCustomModel = !MODELS.slice(0, -1).some(m => m.value === config.model);
+    if (isCustomModel && config.model !== "custom") {
+      setCustomModel(config.model);
+    } else {
+      setCustomModel("");
+    }
   }, [editingConfig, configs.length]);
 
   const updateFormData = <K extends keyof Configuration>(
@@ -153,16 +165,22 @@ export const Settings: React.FC = () => {
   };
 
   const handleSave = () => {
+    // Use custom model if "custom" is selected and customModel is provided
+    const finalFormData = {
+      ...formData,
+      model: formData.model === "custom" && customModel ? customModel : formData.model,
+    };
+
     if (editingConfig) {
       // Update existing config
       const updatedConfigs = configs.map((c) =>
-        c.id === formData.id ? formData : c
+        c.id === finalFormData.id ? finalFormData : c
       );
       saveConfigs(updatedConfigs);
     } else {
       // Add new config
       const updatedConfigs = configs.map((c) => ({ ...c, active: false }));
-      updatedConfigs.push({ ...formData, active: true });
+      updatedConfigs.push({ ...finalFormData, active: true });
       saveConfigs(updatedConfigs);
     }
     setDialogOpen(false);
@@ -316,8 +334,17 @@ export const Settings: React.FC = () => {
 
             <FormField label="Model">
               <Select.Root
-                value={formData.model}
-                onValueChange={(value) => updateFormData("model", value)}
+                value={
+                  MODELS.some(m => m.value === formData.model)
+                    ? formData.model
+                    : "custom"
+                }
+                onValueChange={(value) => {
+                  updateFormData("model", value);
+                  if (value !== "custom") {
+                    setCustomModel("");
+                  }
+                }}
               >
                 <Select.Trigger placeholder="Select a model" />
                 <Select.Content>
@@ -329,6 +356,16 @@ export const Settings: React.FC = () => {
                 </Select.Content>
               </Select.Root>
             </FormField>
+
+            {(formData.model === "custom" || !MODELS.some(m => m.value === formData.model)) && (
+              <FormField label="Custom Model Name">
+                <TextField.Root
+                  placeholder="e.g., gpt-4, claude-3-opus-20240229"
+                  value={customModel}
+                  onChange={(e) => setCustomModel(e.target.value)}
+                />
+              </FormField>
+            )}
 
             <Separator size="4" my="2" />
 

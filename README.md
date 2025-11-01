@@ -1,18 +1,8 @@
 ## Vscode AI Chat
 
-- AI-powered chat using Infomaniak's AI models
-- Attaching multiple files to chat context
+No telemetry, no database - completely private AI coding assistant.
 
-### Installation
-
-1. Clone the project locally
-2. Package and install:
-
-```bash
-npm install -g @vscode/vsce
-npm run package
-npm run install
-```
+Works great with open models hosted by Infomaniak provider.
 
 ### Config
 

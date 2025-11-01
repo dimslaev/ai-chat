@@ -11,10 +11,12 @@ tsconfig.json
 .vscode/**
 .gitignore
 jest.config.js
+jest.setup.ts
 RELEASE.md
 
-# Dependencies
+# Dependencies (bundled into out/ directory)
 node_modules/**
 
 # IDE
 .DS_Store
+*.log

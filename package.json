@@ -43,12 +43,12 @@
     ]
   },
   "scripts": {
-    "build": "npm run build:extension && npm run build:webview",
-    "build:extension": "tsc",
-    "build:webview": "webpack --mode production",
-    "watch": "npm-run-all --parallel watch:*",
-    "watch:extension": "tsc -watch",
-    "watch:webview": "webpack --mode development --watch",
+    "build": "webpack --mode production",
+    "build:extension": "webpack --mode production --config-name extension",
+    "build:webview": "webpack --mode production --config-name webview",
+    "watch": "webpack --mode development --watch",
+    "watch:extension": "webpack --mode development --watch --config-name extension",
+    "watch:webview": "webpack --mode development --watch --config-name webview",
     "package": "npm run build && vsce package",
     "install:local": "code --install-extension ai-chat-vscode-$(node -p \"require('./package.json').version\").vsix",
     "version:patch": "npm version patch",
