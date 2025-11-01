@@ -17,7 +17,6 @@ const vscode = window.acquireVsCodeApi();
 
 // Initialize the store with vscode API
 useChatStore.getState().setVscode(vscode);
-useChatStore.getState().initialize(); // Comment out to allow stream simulation
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 

@@ -19,6 +19,7 @@ import {
   Cross2Icon,
 } from "@radix-ui/react-icons";
 import { useChatStore } from "../store";
+import { useChatConfig } from "../hooks";
 import { Configuration } from "../../types";
 
 const DEFAULT_BASE_URL = "https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai";
@@ -95,7 +96,8 @@ export const Settings: React.FC = () => {
     React.useState<Configuration | null>(null);
   const [customModel, setCustomModel] = React.useState("");
   const configs = useChatStore((state) => state.configs);
-  const saveConfigs = useChatStore((state) => state.saveConfigs);
+
+  const { saveConfigs } = useChatConfig();
 
   const activeConfig = configs.find((c) => c.active);
 

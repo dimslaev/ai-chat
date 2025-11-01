@@ -3,13 +3,14 @@ import { Button, Flex, Box } from "@radix-ui/themes";
 import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
 import TextareaAutosize from "react-textarea-autosize";
 import { useChatStore } from "../store";
+import { useChatActions } from "../hooks";
 
 export const Input: React.FC = React.memo(() => {
   const isStreaming = useChatStore((state) => state.isStreaming);
   const configs = useChatStore((state) => state.configs);
   const setApiError = useChatStore((state) => state.setApiError);
-  const handleSubmit = useChatStore((state) => state.handleSubmit);
-  const handleStopStream = useChatStore((state) => state.handleStopStream);
+
+  const { submitMessage, stopStream } = useChatActions();
 
   const [inputValue, setInputValue] = React.useState("");
 
@@ -20,10 +21,10 @@ export const Input: React.FC = React.memo(() => {
 
   const onSubmit = React.useCallback(() => {
     if (!inputValue.trim() || !isModelConfigured) return;
-    handleSubmit(inputValue);
+    submitMessage(inputValue);
     setInputValue("");
     setApiError(null);
-  }, [inputValue, handleSubmit, setApiError, isModelConfigured]);
+  }, [inputValue, submitMessage, setApiError, isModelConfigured]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -72,7 +73,7 @@ export const Input: React.FC = React.memo(() => {
         <Button
           variant="ghost"
           size="2"
-          onClick={isStreaming ? handleStopStream : onSubmit}
+          onClick={isStreaming ? stopStream : onSubmit}
           disabled={
             isStreaming ? false : !inputValue.trim() || !isModelConfigured
           }

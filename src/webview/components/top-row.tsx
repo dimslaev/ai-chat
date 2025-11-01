@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, Flex, Badge, Tooltip } from "@radix-ui/themes";
 import { useChatStore } from "../store";
+import { useChatActions } from "../hooks";
 import { AttachedFile } from "../../types";
 import {
   PlusIcon,
@@ -13,11 +14,10 @@ export const TopRow: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
   const attachedFiles = useChatStore((state) => state.attachedFiles);
   const suggestedFile = useChatStore((state) => state.suggestedFile);
-  const cleanup = useChatStore((state) => state.cleanup);
-  const attachFile = useChatStore((state) => state.attachFile);
-  const removeFile = useChatStore((state) => state.removeFile);
   const vscode = useChatStore((state) => state.vscode);
   const isStreaming = useChatStore((state) => state.isStreaming);
+
+  const { cleanup, attachFile, removeFile } = useChatActions();
 
   const hasMessages = messages.length > 0;
 

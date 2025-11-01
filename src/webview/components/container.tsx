@@ -5,8 +5,12 @@ import { TopRow } from "./top-row";
 import { InputSection } from "./input-section";
 import { Input } from "./input";
 import { Settings } from "./settings";
+import { useChatSync } from "../hooks";
 
 export const Container: React.FC = () => {
+  // Initialize VSCode message synchronization
+  useChatSync();
+
   return (
     <Flex
       direction="column"

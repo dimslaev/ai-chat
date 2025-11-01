@@ -4,7 +4,7 @@ import hljs from "highlight.js";
 import { Box, TextArea } from "@radix-ui/themes";
 import { Message as MessageType } from "../../types";
 import { Pencil1Icon } from "@radix-ui/react-icons";
-import { useChatStore } from "../store";
+import { useChatActions } from "../hooks";
 
 interface MessageProps {
   message: MessageType;
@@ -46,7 +46,8 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [editContent, setEditContent] = React.useState(message.content);
   const [isHovered, setIsHovered] = React.useState(false);
-  const editMessage = useChatStore((state) => state.editMessage);
+
+  const { editMessage } = useChatActions();
 
   let parsedContent;
   try {
