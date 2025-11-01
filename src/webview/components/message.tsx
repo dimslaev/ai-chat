@@ -1,7 +1,8 @@
 import * as React from "react";
 import { marked } from "marked";
 import hljs from "highlight.js";
-import { Box, TextArea } from "@radix-ui/themes";
+import TextareaAutosize from "react-textarea-autosize";
+import { Box, Tooltip } from "@radix-ui/themes";
 import { Message as MessageType } from "../../types";
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useChatActions } from "../hooks";
@@ -105,16 +106,26 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
 
   if (isEditing && message.role === "user") {
     return (
-      <Box p="3" className="chat-message chat-message-user">
-        <TextArea
-          value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleSaveEdit}
-          autoFocus
-          style={{ minHeight: "60px", resize: "vertical" }}
-        />
-      </Box>
+      <TextareaAutosize
+        autoFocus
+        value={editContent}
+        onChange={(e) => setEditContent(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => setIsEditing(false)}
+        minRows={2}
+        maxRows={10}
+        style={{
+          background: "var(--color-surface)",
+          borderRadius: "var(--radius-3)",
+          border: "1px solid var(--gray-7)",
+          padding: "8px",
+          fontSize: "0.945rem",
+          lineHeight: "1.5",
+          resize: "none",
+          outline: "none",
+          color: "inherit",
+        }}
+      />
     );
   }
 
@@ -132,9 +143,11 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
     >
       <div dangerouslySetInnerHTML={{ __html: parsedContent }} />
       {message.role === "user" && isHovered && !isEditing && (
-        <button className="action-button" onClick={handleEditClick}>
-          <Pencil1Icon />
-        </button>
+        <Tooltip content="Edit message">
+          <button className="action-button" onClick={handleEditClick}>
+            <Pencil1Icon />
+          </button>
+        </Tooltip>
       )}
     </Box>
   );

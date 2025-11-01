@@ -1,7 +1,7 @@
 import * as React from "react";
+import TextareaAutosize from "react-textarea-autosize";
 import { Button, Flex, Box } from "@radix-ui/themes";
 import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
-import TextareaAutosize from "react-textarea-autosize";
 import { useChatStore } from "../store";
 import { useChatActions } from "../hooks";
 
