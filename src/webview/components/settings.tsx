@@ -177,7 +177,7 @@ export const Settings: React.FC = () => {
           onClick={() => handleConfigChange("add-new")}
         >
           <CaretDownIcon />
-          Add model config
+          Add config
         </Button>
       ) : (
         <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
