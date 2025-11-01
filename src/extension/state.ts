@@ -1,11 +1,7 @@
 import * as vscode from "vscode";
 import OpenAI from "openai";
-import {
-  Message,
-  AttachedFile,
-  MessageCategory,
-  Configuration,
-} from "../lib/types";
+import { DEFAULT_CONFIG } from "../lib/config";
+import { Message, AttachedFile, Configuration } from "../lib/types";
 
 export namespace State {
   export let context: vscode.ExtensionContext;
@@ -16,22 +12,11 @@ export namespace State {
   });
   export let abort = new AbortController();
   export let configs: Configuration[] = [];
-  export let config: Configuration = {
-    id: "",
-    name: "",
-    active: false,
-    apiKey: "",
-    baseUrl: "",
-    model: "",
-    maxTokens: 8000,
-    temperature: 0.1,
-    historyLimit: 10,
-  };
+  export let config: Configuration = { ...DEFAULT_CONFIG };
 
   // Chat state
   export let history: Message[] = [];
   export let files: AttachedFile[] = [];
-  export let category: MessageCategory = "general";
 
   export function setContext(ctx: vscode.ExtensionContext) {
     context = ctx;

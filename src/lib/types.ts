@@ -11,14 +11,6 @@ export type vscodeApi = {
 export type OpenAIMessage = OpenAI.ChatCompletionMessageParam;
 export type OpenAIStream = Stream<OpenAI.ChatCompletionChunk>;
 
-export type MessageCategory =
-  | "code_generation"
-  | "code_refactoring"
-  | "testing"
-  | "debugging"
-  | "documentation"
-  | "general";
-
 export type Configuration = {
   id: string;
   name: string;
@@ -29,8 +21,7 @@ export type Configuration = {
   maxTokens: number;
   temperature: number;
   historyLimit: number;
-  systemPrompt?: string;
-  replaceSystemPrompt?: boolean;
+  systemPrompt: string;
 };
 
 export type FileInfo = {

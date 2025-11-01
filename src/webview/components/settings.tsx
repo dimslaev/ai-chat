@@ -6,7 +6,6 @@ import {
   Text,
   TextField,
   DropdownMenu,
-  Checkbox,
   Select,
   Separator,
 } from "@radix-ui/themes";
@@ -66,7 +65,6 @@ export const Settings: React.FC = () => {
 
   const [formData, setFormData] = React.useState<Configuration>({
     ...DEFAULT_CONFIG,
-    id: "",
   });
 
   React.useEffect(() => {
@@ -339,29 +337,15 @@ export const Settings: React.FC = () => {
 
             <Separator size="4" my="2" />
 
-            <FormField label="System Prompt (Optional)">
+            <FormField label="System Prompt">
               <TextareaAutosize
-                placeholder="Additional instructions to append to the default system prompt..."
+                placeholder="Use this field to set a custom system prompt"
                 value={formData.systemPrompt || ""}
                 onChange={(e) => updateFormData("systemPrompt", e.target.value)}
                 minRows={3}
                 style={TEXTAREA_STYLES}
               />
             </FormField>
-
-            <label>
-              <Flex align="center" gap="2">
-                <Checkbox
-                  checked={formData.replaceSystemPrompt || false}
-                  onCheckedChange={(checked) =>
-                    updateFormData("replaceSystemPrompt", checked === true)
-                  }
-                />
-                <Text size="2">
-                  Replace system prompt (instead of appending)
-                </Text>
-              </Flex>
-            </label>
 
             <FormField label="Max Tokens">
               <TextField.Root

@@ -1,13 +1,8 @@
 import * as vscode from "vscode";
-import {
-  OpenAIMessage,
-  AttachedFile,
-  MessageCategory,
-  OpenAIStream,
-} from "../lib/types";
+import { DEFAULT_SYSTEM_PROMPT } from "../lib/config";
+import { OpenAIMessage, AttachedFile, OpenAIStream } from "../lib/types";
 import { toOpenAIMessage } from "../lib/utils";
 import { State } from "./state";
-import { Prompts } from "./prompts";
 
 export namespace Chat {
   export type CompletionHandlers = {
@@ -18,7 +13,7 @@ export namespace Chat {
   };
 
   export async function prepareMessages(): Promise<OpenAIMessage[]> {
-    const { config, history, files, category } = State;
+    const { config, history, files } = State;
     const messages: OpenAIMessage[] = history
       .slice(-config.historyLimit)
       .map(toOpenAIMessage);
@@ -36,8 +31,10 @@ export namespace Chat {
     }
 
     // Add system prompt
-    const systemPrompt = getSystemPrompt(category);
-    messages.unshift({ role: "system", content: systemPrompt });
+    messages.unshift({
+      role: "system",
+      content: config.systemPrompt || DEFAULT_SYSTEM_PROMPT,
+    });
 
     return messages;
   }
@@ -52,28 +49,19 @@ export namespace Chat {
         const fileData = await vscode.workspace.fs.readFile(file.fileUri);
         const fullContent = Buffer.from(fileData).toString("utf8");
 
-        // If selection is specified, extract only those lines
         let fileContent = fullContent;
-        let contextInfo = "";
 
         if (file.selection) {
           const lines = fullContent.split("\n");
           const { start, end } = file.selection;
 
-          // Extract selected lines (inclusive range)
           const selectedLines = lines.slice(start, end + 1);
           fileContent = selectedLines.join("\n");
-
-          // Add context info about the selection
-          contextInfo = ` (lines ${start + 1}-${end + 1})`;
         }
 
         return {
           role: "user" as const,
-          content: Prompts.FILE_CONTEXT_PROMPT(
-            `${file.name}${contextInfo}`,
-            fileContent
-          ),
+          content: `Context: Using file ${file.name}\n${fileContent}`,
         };
       })
     );
@@ -90,32 +78,6 @@ export namespace Chat {
     });
 
     return fileMessages;
-  }
-
-  export function getSystemPrompt(category: MessageCategory): string {
-    const { config } = State;
-    const basePrompt = Prompts.CATEGORY_SYSTEM_PROMPTS[category];
-
-    const customPrompt = config.systemPrompt?.trim();
-
-    if (!customPrompt) {
-      return basePrompt;
-    }
-
-    const finalPrompt = config.replaceSystemPrompt
-      ? customPrompt
-      : `${basePrompt}\n\nAdditional instructions: ${customPrompt}`;
-
-    console.log(
-      `Using system prompt for category: ${category || "default"}${
-        customPrompt
-          ? ` with ${
-              config.replaceSystemPrompt ? "replaced" : "appended"
-            } instructions`
-          : ""
-      }`
-    );
-    return finalPrompt;
   }
 
   export async function createCompletion(
