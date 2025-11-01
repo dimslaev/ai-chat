@@ -112,7 +112,9 @@ export const Settings: React.FC = () => {
     setFormData(config);
 
     // Check if the model is a custom one (not in the predefined list)
-    const isCustomModel = !MODELS.slice(0, -1).some(m => m.value === config.model);
+    const isCustomModel = !MODELS.slice(0, -1).some(
+      (m) => m.value === config.model
+    );
     if (isCustomModel && config.model !== "custom") {
       setCustomModel(config.model);
     } else {
@@ -168,7 +170,10 @@ export const Settings: React.FC = () => {
     // Use custom model if "custom" is selected and customModel is provided
     const finalFormData = {
       ...formData,
-      model: formData.model === "custom" && customModel ? customModel : formData.model,
+      model:
+        formData.model === "custom" && customModel
+          ? customModel
+          : formData.model,
     };
 
     if (editingConfig) {
@@ -335,7 +340,7 @@ export const Settings: React.FC = () => {
             <FormField label="Model">
               <Select.Root
                 value={
-                  MODELS.some(m => m.value === formData.model)
+                  MODELS.some((m) => m.value === formData.model)
                     ? formData.model
                     : "custom"
                 }
@@ -357,10 +362,10 @@ export const Settings: React.FC = () => {
               </Select.Root>
             </FormField>
 
-            {(formData.model === "custom" || !MODELS.some(m => m.value === formData.model)) && (
+            {(formData.model === "custom" ||
+              !MODELS.some((m) => m.value === formData.model)) && (
               <FormField label="Custom Model Name">
                 <TextField.Root
-                  placeholder="e.g., gpt-4, claude-3-opus-20240229"
                   value={customModel}
                   onChange={(e) => setCustomModel(e.target.value)}
                 />
@@ -378,6 +383,20 @@ export const Settings: React.FC = () => {
                 style={TEXTAREA_STYLES}
               />
             </FormField>
+
+            <label>
+              <Flex align="center" gap="2">
+                <Checkbox
+                  checked={formData.replaceSystemPrompt || false}
+                  onCheckedChange={(checked) =>
+                    updateFormData("replaceSystemPrompt", checked === true)
+                  }
+                />
+                <Text size="2">
+                  Replace system prompt (instead of appending)
+                </Text>
+              </Flex>
+            </label>
 
             <FormField label="Max Tokens">
               <TextField.Root
@@ -408,20 +427,6 @@ export const Settings: React.FC = () => {
                 onChange={handleInputChange("historyLimit")}
               />
             </FormField>
-
-            <label>
-              <Flex align="center" gap="2">
-                <Checkbox
-                  checked={formData.replaceSystemPrompt || false}
-                  onCheckedChange={(checked) =>
-                    updateFormData("replaceSystemPrompt", checked === true)
-                  }
-                />
-                <Text size="2">
-                  Replace system prompt (instead of appending)
-                </Text>
-              </Flex>
-            </label>
           </Flex>
 
           <Flex

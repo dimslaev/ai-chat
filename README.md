@@ -4,6 +4,11 @@ No telemetry, no database - completely private AI coding assistant.
 
 Works great with open models hosted by Infomaniak provider.
 
+- context-aware file attachment
+- smark task classification
+- multiple providers
+- custom system prompt
+
 ### Config
 
 - Click "Model" button in the AI Chat panel
@@ -12,7 +17,7 @@ Works great with open models hosted by Infomaniak provider.
   - _you can get these at https://manager.infomaniak.com/ > Cloud Computing > AI Tools_
   - API Key: Your Infomaniak AI API key
   - Base URL: `https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai`
-  - Model: Choose from `qwen3`, `mistral24b`, or `mistral3`
+  - Model: choose from available options or select a custom model name
 
 - Save and start chatting
 
