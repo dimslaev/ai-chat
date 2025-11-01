@@ -33,13 +33,42 @@ export namespace Extension {
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) {
           const fileName = getFileName(editor.document.uri.path);
+          const selection = getEditorSelection(editor);
           Webview.post("activeFileChanged", {
             name: fileName,
             fileUri: editor.document.uri,
+            selection,
           });
         }
       })
     );
+
+    State.context.subscriptions.push(
+      vscode.window.onDidChangeTextEditorSelection((event) => {
+        const editor = event.textEditor;
+        const fileName = getFileName(editor.document.uri.path);
+        const selection = getEditorSelection(editor);
+        Webview.post("activeFileChanged", {
+          name: fileName,
+          fileUri: editor.document.uri,
+          selection,
+        });
+      })
+    );
+  }
+
+  function getEditorSelection(editor: vscode.TextEditor) {
+    const selection = editor.selection;
+    if (
+      !selection.isEmpty &&
+      (selection.start.line !== selection.end.line ||
+        selection.end.character - selection.start.character > 0)
+    ) {
+      return {
+        start: selection.start.line,
+        end: selection.end.line,
+      };
+    }
   }
 }
 

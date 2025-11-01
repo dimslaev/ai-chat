@@ -159,13 +159,13 @@ export namespace Webview {
   }
 
   function attachFile(payload: AttachedFile) {
-    const { fileUri } = payload;
+    const { fileUri, selection } = payload;
     const fileName = getFileName(fileUri.path);
 
     if (
       !State.files.some((f: AttachedFile) => f.fileUri.path === fileUri.path)
     ) {
-      State.files.push({ name: fileName, fileUri });
+      State.files.push({ name: fileName, fileUri, selection });
     }
   }
 

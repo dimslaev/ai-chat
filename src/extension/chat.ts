@@ -50,10 +50,30 @@ export namespace Chat {
     const results = await Promise.allSettled(
       files.map(async (file) => {
         const fileData = await vscode.workspace.fs.readFile(file.fileUri);
-        const fileContent = Buffer.from(fileData).toString("utf8");
+        const fullContent = Buffer.from(fileData).toString("utf8");
+
+        // If selection is specified, extract only those lines
+        let fileContent = fullContent;
+        let contextInfo = "";
+
+        if (file.selection) {
+          const lines = fullContent.split("\n");
+          const { start, end } = file.selection;
+
+          // Extract selected lines (inclusive range)
+          const selectedLines = lines.slice(start, end + 1);
+          fileContent = selectedLines.join("\n");
+
+          // Add context info about the selection
+          contextInfo = ` (lines ${start + 1}-${end + 1})`;
+        }
+
         return {
           role: "user" as const,
-          content: Prompts.FILE_CONTEXT_PROMPT(file.name, fileContent),
+          content: Prompts.FILE_CONTEXT_PROMPT(
+            `${file.name}${contextInfo}`,
+            fileContent
+          ),
         };
       })
     );

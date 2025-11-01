@@ -51,6 +51,10 @@ export type Message = {
 export type AttachedFile = {
   name: string;
   fileUri: vscode.Uri;
+  selection?: {
+    start: number;
+    end: number;
+  };
 };
 
 export type ApiError = {

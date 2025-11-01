@@ -49,41 +49,40 @@ export const TopRow: React.FC = React.memo(() => {
         background: "var(--color-panel-solid)",
       }}
     >
-      <Flex
-        direction="row"
-        align="center"
-        gap="2"
-        style={{ flex: 1, overflowX: "auto" }}
-      >
-        {attachedFiles.map((file: AttachedFile) => (
-          <Badge
-            key={file.fileUri.path}
-            variant="solid"
-            color="gray"
-            style={{ cursor: "pointer" }}
-            onClick={() => removeFile(file)}
-          >
-            <Cross2Icon />
-            {file.name}
-          </Badge>
-        ))}
+      <Flex direction="row" align="center" flexGrow="1" wrap="wrap" gap="2">
+        {attachedFiles.map((file: AttachedFile) => {
+          const displayName = file.selection
+            ? `${file.name} (${file.selection.start + 1}-${
+                file.selection.end + 1
+              })`
+            : file.name;
+
+          return (
+            <Badge
+              key={file.fileUri.path}
+              variant="solid"
+              color="gray"
+              style={{ cursor: "pointer" }}
+              onClick={() => removeFile(file)}
+            >
+              <Cross2Icon />
+              {displayName}
+            </Badge>
+          );
+        })}
 
         {suggestedFile &&
           !attachedFiles.some(
             (file: AttachedFile) =>
               file.fileUri.path === suggestedFile.fileUri.path
           ) && (
-            <Button
-              variant="outline"
-              color="gray"
-              size="1"
-              onClick={attachFile}
-            >
+            <Badge variant="outline" color="gray" size="1" onClick={attachFile}>
               <PlusIcon />
               {suggestedFile.name}
-            </Button>
+            </Badge>
           )}
       </Flex>
+
       {hasMessages && (
         <Flex direction="row" align="center" gap="2">
           <Tooltip content="Export chat">
