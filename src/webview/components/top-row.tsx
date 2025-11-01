@@ -40,7 +40,7 @@ export const TopRow: React.FC = React.memo(() => {
   return (
     <Flex
       direction="row"
-      align="center"
+      align="start"
       justify="between"
       gap="2"
       p="3"
@@ -58,16 +58,16 @@ export const TopRow: React.FC = React.memo(() => {
             : file.name;
 
           return (
-            <Badge
+            <Button
               key={file.fileUri.path}
               variant="solid"
               color="gray"
-              style={{ cursor: "pointer" }}
+              size="1"
               onClick={() => removeFile(file)}
             >
               <Cross2Icon />
               {displayName}
-            </Badge>
+            </Button>
           );
         })}
 
@@ -76,10 +76,15 @@ export const TopRow: React.FC = React.memo(() => {
             (file: AttachedFile) =>
               file.fileUri.path === suggestedFile.fileUri.path
           ) && (
-            <Badge variant="outline" color="gray" size="1" onClick={attachFile}>
+            <Button
+              variant="outline"
+              color="gray"
+              size="1"
+              onClick={attachFile}
+            >
               <PlusIcon />
               {suggestedFile.name}
-            </Badge>
+            </Button>
           )}
       </Flex>
 
