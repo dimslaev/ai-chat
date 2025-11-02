@@ -21,8 +21,8 @@ export const TokenUsage: React.FC = () => {
       }}
     >
       <Text>Tokens</Text>
-      <Text>In: 2</Text>
-      <Text>Out: 1000</Text>
+      <Text>In: {tokenUsage.promptTokens}</Text>
+      <Text>Out: {tokenUsage.completionTokens}</Text>
     </Flex>
   );
 };

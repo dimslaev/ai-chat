@@ -9,7 +9,6 @@ import { useChatSync } from "../hooks";
 import { TokenUsage } from "./token-usage";
 
 export const Container: React.FC = () => {
-  // Initialize VSCode message synchronization
   useChatSync();
 
   return (
