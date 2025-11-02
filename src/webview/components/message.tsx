@@ -6,6 +6,7 @@ import { Box, Tooltip } from "@radix-ui/themes";
 import { Message as MessageType } from "../../lib/types";
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useChatActions } from "../hooks";
+import { useChatStore } from "../store";
 
 interface MessageProps {
   message: MessageType;
@@ -49,6 +50,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   const { editMessage } = useChatActions();
+  const setApiError = useChatStore((state) => state.setApiError);
 
   let parsedContent;
   try {
@@ -86,6 +88,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
   const handleSaveEdit = () => {
     if (editContent.trim()) {
       editMessage(message.id, editContent.trim());
+      setApiError(null);
     }
     setIsEditing(false);
   };
