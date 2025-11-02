@@ -6,6 +6,7 @@ import {
   ApiError,
   vscodeApi,
   Configuration,
+  TokenUsage,
 } from "../../lib/types";
 
 export interface ChatStore {
@@ -17,6 +18,7 @@ export interface ChatStore {
   suggestedFile: AttachedFile | null;
   apiError: ApiError;
   configs: Configuration[];
+  tokenUsage: TokenUsage;
 
   // Pure setters
   setVscode: (vscode: vscodeApi) => void;
@@ -26,6 +28,7 @@ export interface ChatStore {
   setSuggestedFile: (file: AttachedFile | null) => void;
   setApiError: (error: ApiError) => void;
   setConfigs: (configs: Configuration[]) => void;
+  setTokenUsage: (usage: TokenUsage) => void;
 
   // Simple state operations (no side effects)
   addMessage: (message: Message) => void;
@@ -53,6 +56,11 @@ export const useChatStore = create<ChatStore>()(
     suggestedFile: null,
     apiError: null,
     configs: [],
+    tokenUsage: {
+      promptTokens: 0,
+      completionTokens: 0,
+      totalTokens: 0,
+    },
 
     // Pure setters
     setVscode: (vscode) => set({ vscode }),
@@ -62,6 +70,7 @@ export const useChatStore = create<ChatStore>()(
     setSuggestedFile: (suggestedFile) => set({ suggestedFile }),
     setApiError: (apiError) => set({ apiError }),
     setConfigs: (configs) => set({ configs }),
+    setTokenUsage: (tokenUsage) => set({ tokenUsage }),
 
     // Simple state operations
     addMessage: (message) =>
@@ -102,7 +111,17 @@ export const useChatStore = create<ChatStore>()(
         ),
       })),
 
-    clearChat: () => set({ messages: [], attachedFiles: [], apiError: null }),
+    clearChat: () =>
+      set({
+        messages: [],
+        attachedFiles: [],
+        apiError: null,
+        tokenUsage: {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        },
+      }),
 
     restoreState: (state) =>
       set({

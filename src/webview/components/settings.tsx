@@ -169,7 +169,7 @@ export const Settings: React.FC = () => {
     };
 
   return (
-    <Flex direction="row" align="center" px="3" pt="3" pb="0" gap="2">
+    <>
       {configs.length === 0 ? (
         <Button
           variant="ghost"
@@ -417,6 +417,6 @@ export const Settings: React.FC = () => {
           </Flex>
         </Dialog.Content>
       </Dialog.Root>
-    </Flex>
+    </>
   );
 };

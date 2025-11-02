@@ -6,6 +6,7 @@ import { InputSection } from "./input-section";
 import { Input } from "./input";
 import { Settings } from "./settings";
 import { useChatSync } from "../hooks";
+import { TokenUsage } from "./token-usage";
 
 export const Container: React.FC = () => {
   // Initialize VSCode message synchronization
@@ -24,7 +25,10 @@ export const Container: React.FC = () => {
       <TopRow />
       <Messages />
       <InputSection>
-        <Settings />
+        <Flex align="center" justify="between" gap="2" pt="3" px="3">
+          <Settings />
+          <TokenUsage />
+        </Flex>
         <Input />
       </InputSection>
     </Flex>

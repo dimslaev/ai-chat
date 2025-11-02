@@ -53,6 +53,12 @@ export type ApiError = {
   message?: string;
 } | null;
 
+export type TokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+};
+
 export type PostMessageType =
   | "getState"
   | "setState"
@@ -69,7 +75,8 @@ export type PostMessageType =
   | "cleanup"
   | "saveConfigs"
   | "getConfigs"
-  | "saveChat";
+  | "saveChat"
+  | "tokenUsage";
 
 export type PostMessagePayloadMap = {
   getState: undefined;
@@ -93,6 +100,7 @@ export type PostMessagePayloadMap = {
   saveConfigs: Configuration[];
   getConfigs: Configuration[];
   saveChat: string;
+  tokenUsage: TokenUsage;
 };
 
 export type PostMessage = {

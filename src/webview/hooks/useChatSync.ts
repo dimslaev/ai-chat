@@ -13,6 +13,7 @@ export const useChatSync = () => {
   const setSuggestedFile = useChatStore((state) => state.setSuggestedFile);
   const setApiError = useChatStore((state) => state.setApiError);
   const setConfigs = useChatStore((state) => state.setConfigs);
+  const setTokenUsage = useChatStore((state) => state.setTokenUsage);
   const addMessage = useChatStore((state) => state.addMessage);
   const appendToLastMessage = useChatStore(
     (state) => state.appendToLastMessage
@@ -61,6 +62,10 @@ export const useChatSync = () => {
         case "getConfigs":
           setConfigs(payload);
           break;
+
+        case "tokenUsage":
+          setTokenUsage(payload);
+          break;
       }
     };
 
@@ -73,6 +78,7 @@ export const useChatSync = () => {
     setSuggestedFile,
     setApiError,
     setConfigs,
+    setTokenUsage,
     addMessage,
     appendToLastMessage,
     restoreState,

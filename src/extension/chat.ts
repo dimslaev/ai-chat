@@ -10,6 +10,11 @@ export namespace Chat {
     onChunk: (content: string) => void;
     onEnd: () => void;
     onError: (error: unknown) => void;
+    onTokenUsage?: (usage: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      total_tokens?: number;
+    }) => void;
   };
 
   export async function prepareMessages(): Promise<OpenAIMessage[]> {
@@ -98,6 +103,9 @@ export namespace Chat {
           temperature: config.temperature,
           max_completion_tokens: config.maxTokens,
           stream: true,
+          stream_options: {
+            include_usage: true,
+          },
         },
         { signal: abort.signal }
       );
@@ -129,6 +137,14 @@ export namespace Chat {
         if (content) {
           reply += content;
           handlers.onChunk(content);
+        }
+
+        if (chunk.usage && handlers.onTokenUsage) {
+          handlers.onTokenUsage({
+            prompt_tokens: chunk.usage.prompt_tokens,
+            completion_tokens: chunk.usage.completion_tokens,
+            total_tokens: chunk.usage.total_tokens,
+          });
         }
       }
 

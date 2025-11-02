@@ -125,6 +125,10 @@ export namespace Webview {
       onChunk: (content: string) => post("appendChunk", content),
       onEnd: () => post("endAssistantMessage"),
       onError: (error: unknown) => handleError(error),
+      onTokenUsage: (usage) => {
+        State.updateTokenUsage(usage);
+        post("tokenUsage", State.tokenUsage);
+      },
     });
   }
 
@@ -149,6 +153,10 @@ export namespace Webview {
       onChunk: (content: string) => post("appendChunk", content),
       onEnd: () => post("endAssistantMessage"),
       onError: (error: unknown) => handleError(error),
+      onTokenUsage: (usage) => {
+        State.updateTokenUsage(usage);
+        post("tokenUsage", State.tokenUsage);
+      },
     });
   }
 
@@ -180,6 +188,7 @@ export namespace Webview {
   function cleanup() {
     State.history = [];
     State.files = [];
+    State.resetTokenUsage();
   }
 
   async function saveChatToFile(markdownContent: string) {

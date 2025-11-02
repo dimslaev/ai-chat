@@ -17,6 +17,11 @@ export namespace State {
   // Chat state
   export let history: Message[] = [];
   export let files: AttachedFile[] = [];
+  export let tokenUsage = {
+    promptTokens: 0,
+    completionTokens: 0,
+    totalTokens: 0,
+  };
 
   export function setContext(ctx: vscode.ExtensionContext) {
     context = ctx;
@@ -40,5 +45,23 @@ export namespace State {
 
   export function resetAbort() {
     abort = new AbortController();
+  }
+
+  export function updateTokenUsage(usage: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  }) {
+    tokenUsage.promptTokens += usage.prompt_tokens || 0;
+    tokenUsage.completionTokens += usage.completion_tokens || 0;
+    tokenUsage.totalTokens += usage.total_tokens || 0;
+  }
+
+  export function resetTokenUsage() {
+    tokenUsage = {
+      promptTokens: 0,
+      completionTokens: 0,
+      totalTokens: 0,
+    };
   }
 }

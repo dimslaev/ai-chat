@@ -17,7 +17,7 @@ export const MODELS = [
   },
   {
     label: "Qwen 3",
-    value: "Qwen/Qwen3-VL-235B-A22B-Instruct",
+    value: "qwen3",
   },
   {
     label: "Mistral 24B",
@@ -25,7 +25,7 @@ export const MODELS = [
   },
   {
     label: "Mistral 3",
-    value: "mistral31",
+    value: "mistral3",
   },
   {
     label: "Custom",
