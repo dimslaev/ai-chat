@@ -66,10 +66,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
       const button = target.closest(".copy-button") as HTMLButtonElement;
       if (button && button.dataset.code) {
         const code = decodeURIComponent(button.dataset.code);
-        navigator.clipboard.writeText(code).then(() => {
-          // Visual feedback could be added here
-          console.log("Code copied to clipboard");
-        });
+        navigator.clipboard.writeText(code);
       }
     };
 
