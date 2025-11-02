@@ -1,8 +1,10 @@
 ## VS Code AI Chat
 
-[Installation](https://marketplace.visualstudio.com/items?itemName=Dimslaev.ai-chat-vscode)
+[![Privacy First](https://img.shields.io/badge/privacy-first-green?style=flat-square)](https://github.com/Dimslaev/ai-chat-vscode)
 
-No telemetry, no database - completely private AI coding assistant.
+**[📦 Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Dimslaev.ai-chat-vscode)**
+
+No telemetry, no database, no third parties - completely private AI coding assistant.
 
 Works with any OpenAI-compatible LLM API, local or hosted.
 
@@ -27,6 +29,6 @@ Works with any OpenAI-compatible LLM API, local or hosted.
 - Get your API key at https://manager.infomaniak.com/ > Cloud Computing > AI Tools
 - Base URL: `https://api.infomaniak.com/2/ai/[PRODUCT_ID]/openai/v1`
 
-### Screenshots
+### Demo
 
-![chat](./resources/chat.png)
+https://github.com/user-attachments/assets/edb75c28-a8d8-4b08-9e4c-01667082c4fa
