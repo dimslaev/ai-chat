@@ -8,7 +8,7 @@ For refactoring requests, provide the refactored code and a very short summary o
 Always deliver clear, concise and efficient answers.`;
 
 export const DEFAULT_BASE_URL =
-  "https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai";
+  "https://api.infomaniak.com/2/ai/[PRODUCT_ID]/openai/v1";
 
 export const MODELS = [
   {

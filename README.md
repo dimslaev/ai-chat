@@ -25,7 +25,7 @@ Works with any OpenAI-compatible LLM API, local or hosted.
 ### Example: Infomaniak
 
 - Get your API key at https://manager.infomaniak.com/ > Cloud Computing > AI Tools
-- Base URL: `https://api.infomaniak.com/1/ai/[PRODUCT_ID]/openai`
+- Base URL: `https://api.infomaniak.com/2/ai/[PRODUCT_ID]/openai/v1`
 
 ### Screenshots
 
