@@ -19,6 +19,7 @@ export interface ChatStore {
   apiError: ApiError;
   configs: Configuration[];
   tokenUsage: TokenUsage;
+  inputValue: string;
 
   // Pure setters
   setVscode: (vscode: vscodeApi) => void;
@@ -29,6 +30,7 @@ export interface ChatStore {
   setApiError: (error: ApiError) => void;
   setConfigs: (configs: Configuration[]) => void;
   setTokenUsage: (usage: TokenUsage) => void;
+  setInputValue: (value: string) => void;
 
   // Simple state operations (no side effects)
   addMessage: (message: Message) => void;
@@ -43,6 +45,7 @@ export interface ChatStore {
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
     configs: Configuration[];
+    inputValue?: string;
   }) => void;
 }
 
@@ -61,6 +64,7 @@ export const useChatStore = create<ChatStore>()(
       completionTokens: 0,
       totalTokens: 0,
     },
+    inputValue: "",
 
     // Pure setters
     setVscode: (vscode) => set({ vscode }),
@@ -71,6 +75,7 @@ export const useChatStore = create<ChatStore>()(
     setApiError: (apiError) => set({ apiError }),
     setConfigs: (configs) => set({ configs }),
     setTokenUsage: (tokenUsage) => set({ tokenUsage }),
+    setInputValue: (inputValue) => set({ inputValue }),
 
     // Simple state operations
     addMessage: (message) =>
@@ -116,6 +121,7 @@ export const useChatStore = create<ChatStore>()(
         messages: [],
         attachedFiles: [],
         apiError: null,
+        inputValue: "",
         tokenUsage: {
           promptTokens: 0,
           completionTokens: 0,
@@ -129,6 +135,7 @@ export const useChatStore = create<ChatStore>()(
         attachedFiles: state.attachedFiles,
         suggestedFile: state.suggestedFile,
         configs: state.configs,
+        inputValue: state.inputValue || "",
         apiError: null,
       }),
   }))

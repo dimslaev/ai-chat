@@ -9,6 +9,7 @@ import { PostMessage } from "../../lib/types";
  */
 export const useChatSync = () => {
   const vscode = useChatStore((state) => state.vscode);
+  const inputValue = useChatStore((state) => state.inputValue);
   const setIsStreaming = useChatStore((state) => state.setIsStreaming);
   const setSuggestedFile = useChatStore((state) => state.setSuggestedFile);
   const setApiError = useChatStore((state) => state.setApiError);
@@ -83,4 +84,9 @@ export const useChatSync = () => {
     appendToLastMessage,
     restoreState,
   ]);
+
+  useEffect(() => {
+    if (!vscode) return;
+    postMessage(vscode, "setInputValue", inputValue);
+  }, [vscode, inputValue]);
 };

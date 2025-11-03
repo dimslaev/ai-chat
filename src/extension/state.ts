@@ -17,6 +17,7 @@ export namespace State {
   // Chat state
   export let history: Message[] = [];
   export let files: AttachedFile[] = [];
+  export let inputValue = "";
   export let tokenUsage = {
     promptTokens: 0,
     completionTokens: 0,

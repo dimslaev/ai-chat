@@ -76,6 +76,7 @@ export type PostMessageType =
   | "saveConfigs"
   | "getConfigs"
   | "saveChat"
+  | "setInputValue"
   | "tokenUsage";
 
 export type PostMessagePayloadMap = {
@@ -84,6 +85,7 @@ export type PostMessagePayloadMap = {
     history: Message[];
     attachedFiles: AttachedFile[];
     suggestedFile: AttachedFile | null;
+    inputValue?: string;
     configs: Configuration[];
   };
   sendMessage: Message;
@@ -100,6 +102,7 @@ export type PostMessagePayloadMap = {
   saveConfigs: Configuration[];
   getConfigs: Configuration[];
   saveChat: string;
+  setInputValue: string;
   tokenUsage: TokenUsage;
 };
 

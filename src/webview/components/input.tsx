@@ -8,11 +8,11 @@ import { useChatActions } from "../hooks";
 export const Input: React.FC = React.memo(() => {
   const isStreaming = useChatStore((state) => state.isStreaming);
   const configs = useChatStore((state) => state.configs);
+  const inputValue = useChatStore((state) => state.inputValue);
+  const setInputValue = useChatStore((state) => state.setInputValue);
   const setApiError = useChatStore((state) => state.setApiError);
 
   const { submitMessage, stopStream } = useChatActions();
-
-  const [inputValue, setInputValue] = React.useState("");
 
   const activeConfig = configs.find((it) => it.active);
   const isModelConfigured = Boolean(
@@ -24,7 +24,13 @@ export const Input: React.FC = React.memo(() => {
     submitMessage(inputValue);
     setInputValue("");
     setApiError(null);
-  }, [inputValue, submitMessage, setApiError, isModelConfigured]);
+  }, [
+    inputValue,
+    submitMessage,
+    setApiError,
+    isModelConfigured,
+    setInputValue,
+  ]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -39,14 +45,14 @@ export const Input: React.FC = React.memo(() => {
   return (
     <Flex direction="row" gap="2" p="3" align="end">
       <Box
+        position="relative"
+        flexGrow="1"
         style={{
-          position: "relative",
           background: "var(--color-surface)",
           borderRadius: "var(--radius-3)",
           border: "1px solid var(--gray-7)",
           padding: "8px",
           paddingRight: "48px",
-          flex: 1,
         }}
       >
         <TextareaAutosize
@@ -56,18 +62,7 @@ export const Input: React.FC = React.memo(() => {
           placeholder="Type your message..."
           minRows={3}
           maxRows={30}
-          style={{
-            width: "100%",
-            border: "none",
-            background: "transparent",
-            padding: "0",
-            resize: "none",
-            outline: "none",
-            fontFamily: "inherit",
-            fontSize: "0.945rem",
-            lineHeight: "1.5",
-            color: "inherit",
-          }}
+          className="chat-textarea"
         />
 
         <Button

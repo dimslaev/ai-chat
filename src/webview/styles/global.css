@@ -172,3 +172,23 @@ pre:hover .action-button {
   opacity: 0.8;
   transform: translateX(-50%) scale(0.95);
 }
+
+.chat-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.945rem;
+  line-height: 1.5;
+  color: inherit;
+}
+
+.chat-textarea-edit {
+  background: var(--color-surface);
+  border-radius: var(--radius-3);
+  border: 1px solid var(--gray-7);
+  padding: 8px;
+}

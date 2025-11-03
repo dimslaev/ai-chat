@@ -93,6 +93,9 @@ export namespace Webview {
         case "saveChat":
           saveChatToFile(data.payload);
           break;
+        case "setInputValue":
+          State.inputValue = data.payload;
+          break;
         default:
           console.warn(`Unknown message type: ${data.type}`);
       }
@@ -113,6 +116,7 @@ export namespace Webview {
           }
         : null,
       configs: State.configs,
+      inputValue: State.inputValue,
     });
   }
 
@@ -188,6 +192,7 @@ export namespace Webview {
   function cleanup() {
     State.history = [];
     State.files = [];
+    State.inputValue = "";
     State.resetTokenUsage();
   }
 
