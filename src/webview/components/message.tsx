@@ -114,17 +114,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
         onBlur={() => setIsEditing(false)}
         minRows={2}
         maxRows={10}
-        style={{
-          background: "var(--color-surface)",
-          borderRadius: "var(--radius-3)",
-          border: "1px solid var(--gray-7)",
-          padding: "8px",
-          fontSize: "0.945rem",
-          lineHeight: "1.5",
-          resize: "none",
-          outline: "none",
-          color: "inherit",
-        }}
+        className="chat-textarea chat-textarea-edit"
       />
     );
   }

@@ -77,16 +77,15 @@ export const Messages: React.FC = () => {
   };
 
   return (
-    <Box style={{ position: "relative", flex: 1, overflow: "hidden" }}>
-      <Box
+    <Box position="relative" flexGrow="1" overflow="hidden">
+      <Flex
         ref={messagesRef}
+        direction="column"
+        gap="4"
         p="4"
         style={{
           height: "100%",
           overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
         }}
       >
         {messages.map((message: MessageType, index: number) => (
@@ -116,7 +115,7 @@ export const Messages: React.FC = () => {
             <Spinner size="2" />
           </Flex>
         )}
-      </Box>
+      </Flex>
 
       {showScrollButton && (
         <button className="scroll-to-bottom-button" onClick={scrollToBottom}>
