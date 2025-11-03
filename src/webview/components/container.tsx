@@ -1,12 +1,12 @@
 import * as React from "react";
 import { Flex } from "@radix-ui/themes";
-import { Messages } from "./messages";
-import { TopRow } from "./top-row";
-import { InputSection } from "./input-section";
-import { Input } from "./input";
-import { Settings } from "./settings/settings";
-import { useChatSync } from "../hooks";
-import { TokenUsage } from "./token-usage";
+import { Messages } from "@/components/messages";
+import { TopRow } from "@/components/top-row";
+import { InputSection } from "@/components/input-section";
+import { Input } from "@/components/input";
+import { Settings } from "@/components/settings/settings";
+import { useChatSync } from "@/hooks/useChatSync";
+import { TokenUsage } from "@/components/token-usage";
 
 export const Container: React.FC = () => {
   useChatSync();

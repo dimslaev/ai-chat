@@ -1,7 +1,7 @@
 import OpenAI from "openai";
-import { Configuration } from "../lib/types";
-import { DEFAULT_CONFIG } from "../lib/config";
-import { State } from "./state";
+import { Configuration } from "@/lib/types";
+import { DEFAULT_CONFIG } from "@/lib/config";
+import { State } from "@/extension/state";
 
 export namespace Config {
   async function load(): Promise<Configuration[]> {

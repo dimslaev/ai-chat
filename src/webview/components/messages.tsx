@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Box, Callout, Spinner, Flex } from "@radix-ui/themes";
 import { ExclamationTriangleIcon, ArrowDownIcon } from "@radix-ui/react-icons";
-import { Message } from "./message";
-import { useChatStore } from "../store";
-import { Message as MessageType } from "../../lib/types";
-// import { simulateStreamingResponse } from "./mockresponse";
+import { Message } from "@/components/message";
+import { useChatStore } from "@/store/chat";
+import { Message as MessageType } from "@/lib/types";
+// import { simulateStreamingResponse } from "@/components/mockresponse";
 
 export const Messages: React.FC = () => {
   const messages = useChatStore((state) => state.messages);

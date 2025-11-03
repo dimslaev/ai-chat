@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { DEFAULT_SYSTEM_PROMPT } from "../lib/config";
-import { OpenAIMessage, AttachedFile, OpenAIStream } from "../lib/types";
-import { toOpenAIMessage } from "../lib/utils";
-import { State } from "./state";
+import { DEFAULT_SYSTEM_PROMPT } from "@/lib/config";
+import { OpenAIMessage, AttachedFile, OpenAIStream } from "@/lib/types";
+import { toOpenAIMessage } from "@/lib/utils";
+import { State } from "@/extension/state";
 
 export namespace Chat {
   export type CompletionHandlers = {

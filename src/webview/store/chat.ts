@@ -7,7 +7,7 @@ import {
   vscodeApi,
   Configuration,
   TokenUsage,
-} from "../../lib/types";
+} from "@/lib/types";
 
 export interface ChatStore {
   // State

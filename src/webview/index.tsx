@@ -1,8 +1,8 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import { Theme } from "@radix-ui/themes";
-import { Container } from "./components/container";
-import { useChatStore } from "./store";
+import { Container } from "@/components/container";
+import { useChatStore } from "@/store/chat";
 
 import "@radix-ui/themes/styles.css";
 import "./styles/global.css";

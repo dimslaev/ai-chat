@@ -10,8 +10,8 @@ import {
 } from "@radix-ui/themes";
 import TextareaAutosize from "react-textarea-autosize";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import { Configuration } from "../../../lib/types";
-import { DEFAULT_BASE_URL, DEFAULT_CONFIG, MODELS } from "../../../lib/config";
+import { Configuration } from "@/lib/types";
+import { DEFAULT_BASE_URL, DEFAULT_CONFIG, MODELS } from "@/lib/config";
 
 const FormField: React.FC<{
   label: string;

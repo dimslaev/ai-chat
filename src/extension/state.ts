@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import OpenAI from "openai";
-import { DEFAULT_CONFIG } from "../lib/config";
-import { Message, AttachedFile, Configuration } from "../lib/types";
+import { DEFAULT_CONFIG } from "@/lib/config";
+import { Message, AttachedFile, Configuration } from "@/lib/types";
 
 export namespace State {
   export let context: vscode.ExtensionContext;

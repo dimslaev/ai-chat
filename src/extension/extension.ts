@@ -1,10 +1,10 @@
 "use strict";
 
 import * as vscode from "vscode";
-import { State } from "./state";
-import { Webview } from "./webview";
-import { Config } from "./config";
-import { getFileName } from "../lib/utils";
+import { State } from "@/extension/state";
+import { Webview } from "@/extension/webview";
+import { Config } from "@/extension/config";
+import { getFileName } from "@/lib/utils";
 
 export namespace Extension {
   export async function init(ctx: vscode.ExtensionContext) {

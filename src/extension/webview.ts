@@ -5,11 +5,11 @@ import {
   Message,
   PostMessageType,
   PostMessagePayloadMap,
-} from "../lib/types";
-import { State } from "./state";
-import { Chat } from "./chat";
-import { Config } from "./config";
-import { postMessage, getFileName } from "../lib/utils";
+} from "@/lib/types";
+import { State } from "@/extension/state";
+import { Chat } from "@/extension/chat";
+import { Config } from "@/extension/config";
+import { postMessage, getFileName } from "@/lib/utils";
 
 export namespace Webview {
   export function setup(webviewView: vscode.WebviewView) {

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { useChatStore } from "../store";
-import { postMessage } from "../../lib/utils";
-import { PostMessage } from "../../lib/types";
+import { useChatStore } from "@/store/chat";
+import { postMessage } from "@/lib/utils";
+import { PostMessage } from "@/lib/types";
 
 /**
  * Hook for VSCode message synchronization

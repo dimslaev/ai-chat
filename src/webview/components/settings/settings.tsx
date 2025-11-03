@@ -6,9 +6,9 @@ import {
   TrashIcon,
   CaretDownIcon,
 } from "@radix-ui/react-icons";
-import { useChatStore } from "../../store";
-import { useChatConfig } from "../../hooks";
-import { Configuration } from "../../../lib/types";
+import { useChatStore } from "@/store/chat";
+import { useChatConfig } from "@/hooks/useChatConfig";
+import { Configuration } from "@/lib/types";
 import { ConfigDialog } from "./config-dialog";
 import { DeleteConfigDialog } from "./delete-config-dialog";
 

@@ -2,8 +2,8 @@ import * as React from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { Button, Flex, Box } from "@radix-ui/themes";
 import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
-import { useChatStore } from "../store";
-import { useChatActions } from "../hooks";
+import { useChatStore } from "@/store/chat";
+import { useChatActions } from "@/hooks/useChatActions";
 
 export const Input: React.FC = React.memo(() => {
   const isStreaming = useChatStore((state) => state.isStreaming);

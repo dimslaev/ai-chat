@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Flex, Text } from "@radix-ui/themes";
-import { useChatStore } from "../store";
+import { useChatStore } from "@/store/chat";
 
 export const TokenUsage: React.FC = () => {
   const tokenUsage = useChatStore((state) => state.tokenUsage);

@@ -9,7 +9,15 @@
     "jsx": "react",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": ["src/webview/components/*"],
+      "@/hooks/*": ["src/webview/hooks/*"],
+      "@/store/*": ["src/webview/store/*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/extension/*": ["src/extension/*"]
+    }
   },
   "exclude": [
     "node_modules",

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
-import { useChatStore } from "../store";
-import { postMessage } from "../../lib/utils";
-import { Configuration } from "../../lib/types";
+import { useChatStore } from "@/store/chat";
+import { postMessage } from "@/lib/utils";
+import { Configuration } from "@/lib/types";
 
 /**
  * Hook for configuration management with side effects

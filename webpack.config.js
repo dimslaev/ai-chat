@@ -14,6 +14,12 @@ module.exports = (_env, argv) => {
       },
       resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx"],
+        alias: {
+          "@/components": path.resolve(__dirname, "src/webview/components"),
+          "@/hooks": path.resolve(__dirname, "src/webview/hooks"),
+          "@/store": path.resolve(__dirname, "src/webview/store"),
+          "@/lib": path.resolve(__dirname, "src/lib"),
+        },
       },
       module: {
         rules: [
@@ -45,6 +51,10 @@ module.exports = (_env, argv) => {
       },
       resolve: {
         extensions: [".ts", ".js"],
+        alias: {
+          "@/extension": path.resolve(__dirname, "src/extension"),
+          "@/lib": path.resolve(__dirname, "src/lib"),
+        },
       },
       module: {
         rules: [
