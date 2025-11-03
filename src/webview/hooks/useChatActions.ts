@@ -79,6 +79,22 @@ export const useChatActions = () => {
     postMessage(vscode, "cleanup");
   }, [vscode, clearChat]);
 
+  const saveChat = useCallback(() => {
+    if (!vscode) return;
+
+    const messages = useChatStore.getState().messages;
+    if (messages.length === 0) return;
+
+    const markdownContent = messages
+      .map((message) => {
+        const role = message.role === "user" ? "User" : "Assistant";
+        return `## ${role}\n\n${message.content}\n`;
+      })
+      .join("\n");
+
+    postMessage(vscode, "saveChat", markdownContent);
+  }, [vscode]);
+
   return {
     submitMessage,
     editMessage,
@@ -86,5 +102,6 @@ export const useChatActions = () => {
     attachFile,
     removeFile,
     cleanup,
+    saveChat,
   };
 };

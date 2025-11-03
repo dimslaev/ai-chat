@@ -14,28 +14,11 @@ export const TopRow: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
   const attachedFiles = useChatStore((state) => state.attachedFiles);
   const suggestedFile = useChatStore((state) => state.suggestedFile);
-  const vscode = useChatStore((state) => state.vscode);
   const isStreaming = useChatStore((state) => state.isStreaming);
 
-  const { cleanup, attachFile, removeFile } = useChatActions();
+  const { cleanup, attachFile, removeFile, saveChat } = useChatActions();
 
   const hasMessages = messages.length > 0;
-
-  const handleSaveChat = React.useCallback(() => {
-    if (!hasMessages || !vscode) return;
-
-    const markdownContent = messages
-      .map((message) => {
-        const role = message.role === "user" ? "User" : "Assistant";
-        return `## ${role}\n\n${message.content}\n`;
-      })
-      .join("\n");
-
-    vscode.postMessage({
-      type: "saveChat",
-      payload: markdownContent,
-    });
-  }, [messages, hasMessages, vscode]);
 
   return (
     <Flex
@@ -96,7 +79,7 @@ export const TopRow: React.FC = React.memo(() => {
               color="gray"
               size="1"
               disabled={isStreaming}
-              onClick={handleSaveChat}
+              onClick={saveChat}
             >
               <DownloadIcon />
             </Button>
