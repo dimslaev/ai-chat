@@ -4,7 +4,7 @@ import { Messages } from "./messages";
 import { TopRow } from "./top-row";
 import { InputSection } from "./input-section";
 import { Input } from "./input";
-import { Settings } from "./settings";
+import { Settings } from "./settings/settings";
 import { useChatSync } from "../hooks";
 import { TokenUsage } from "./token-usage";
 
