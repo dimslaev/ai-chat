@@ -201,3 +201,30 @@ pre:hover .action-button {
   color: var(--gray-12);
   box-sizing: border-box;
 }
+
+/* Tooltip styles */
+.rt-TooltipContent {
+  background-color: var(--gray-3) !important;
+  border: 1px solid var(--gray-6);
+  backdrop-filter: blur(8px);
+}
+
+.rt-TooltipContent,
+.rt-TooltipContent * {
+  color: var(--gray-11) !important;
+}
+
+.rt-TooltipContent .rt-Kbd {
+  background-color: var(--gray-a5) !important;
+  border-color: var(--gray-a7) !important;
+}
+
+.rt-TooltipArrow {
+  fill: var(--gray-3) !important;
+  stroke: var(--gray-6) !important;
+}
+
+/* Dropdown menu trigger focus ring */
+.rt-BaseButton:where(.rt-variant-ghost):where(:focus-visible) {
+  outline-color: var(--gray-8) !important;
+}

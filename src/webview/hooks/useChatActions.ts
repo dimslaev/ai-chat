@@ -79,6 +79,16 @@ export const useChatActions = () => {
     postMessage(vscode, "cleanup");
   }, [vscode, clearChat]);
 
+  const clearFiles = useCallback(() => {
+    if (!vscode) return;
+
+    const currentFiles = useChatStore.getState().attachedFiles;
+    currentFiles.forEach((file) => {
+      removeAttachedFile(file);
+      postMessage(vscode, "removeAttachedFile", file);
+    });
+  }, [vscode, removeAttachedFile]);
+
   const saveChat = useCallback(() => {
     if (!vscode) return;
 
@@ -102,6 +112,7 @@ export const useChatActions = () => {
     attachFile,
     removeFile,
     cleanup,
+    clearFiles,
     saveChat,
   };
 };

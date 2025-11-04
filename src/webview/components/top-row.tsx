@@ -1,5 +1,14 @@
 import * as React from "react";
-import { Button, Flex, Badge, Tooltip, IconButton } from "@radix-ui/themes";
+import {
+  Button,
+  Flex,
+  IconButton,
+  Kbd,
+  DropdownMenu,
+  Dialog,
+  Text,
+  Table,
+} from "@radix-ui/themes";
 import { useChatStore } from "@/store/chat";
 import { useChatActions } from "@/hooks/useChatActions";
 import { AttachedFile } from "@/lib/types";
@@ -8,7 +17,46 @@ import {
   Cross2Icon,
   DownloadIcon,
   TrashIcon,
+  DotsVerticalIcon,
+  KeyboardIcon,
 } from "@radix-ui/react-icons";
+
+const KeyBindingsDialog: React.FC<{
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}> = ({ open, onOpenChange }) => {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content style={{ maxWidth: 450 }}>
+        <Dialog.Title>Keyboard Shortcuts</Dialog.Title>
+        <Dialog.Description size="2" mb="4">
+          Available keyboard shortcuts for AI Chat
+        </Dialog.Description>
+
+        <Table.Root variant="surface">
+          <Table.Body>
+            <Table.Row>
+              <Table.Cell>
+                <Text size="2">Toggle file attachment</Text>
+              </Table.Cell>
+              <Table.Cell align="right">
+                <Kbd>⌘ K</Kbd>
+              </Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table.Root>
+
+        <Flex gap="3" mt="4" justify="end">
+          <Dialog.Close>
+            <Button variant="soft" color="gray">
+              Close
+            </Button>
+          </Dialog.Close>
+        </Flex>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+};
 
 export const TopRow: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
@@ -16,9 +64,16 @@ export const TopRow: React.FC = React.memo(() => {
   const suggestedFile = useChatStore((state) => state.suggestedFile);
   const isStreaming = useChatStore((state) => state.isStreaming);
 
-  const { cleanup, attachFile, removeFile, saveChat } = useChatActions();
+  const { cleanup, clearFiles, attachFile, removeFile, saveChat } =
+    useChatActions();
+
+  const [keyBindingsOpen, setKeyBindingsOpen] = React.useState(false);
 
   const hasMessages = messages.length > 0;
+  const hasFiles = attachedFiles.length > 0;
+  const showExportChat = hasMessages;
+  const showClearChat = hasMessages;
+  const showClearFiles = hasFiles;
 
   return (
     <Flex
@@ -61,46 +116,61 @@ export const TopRow: React.FC = React.memo(() => {
           ) && (
             <Button variant="soft" color="gray" size="1" onClick={attachFile}>
               <PlusIcon />
-              {suggestedFile.name}
+              {suggestedFile.selection
+                ? `${suggestedFile.name} (${
+                    suggestedFile.selection.start + 1
+                  }-${suggestedFile.selection.end + 1})`
+                : suggestedFile.name}
             </Button>
           )}
       </Flex>
 
-      <Flex
-        align="center"
-        gap="4"
-        pt="1"
-        style={
-          !hasMessages
-            ? { visibility: "hidden", pointerEvents: "none" }
-            : undefined
-        }
-      >
-        <Tooltip content="Export chat">
-          <IconButton
-            variant="ghost"
-            color="gray"
-            size="3"
-            radius="full"
-            disabled={isStreaming}
-            onClick={saveChat}
-          >
-            <DownloadIcon />
-          </IconButton>
-        </Tooltip>
+      <Flex align="center" gap="2" pt="1">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <IconButton
+              variant="ghost"
+              color="gray"
+              size="3"
+              radius="full"
+              disabled={isStreaming}
+            >
+              <DotsVerticalIcon />
+            </IconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content size="2" variant="soft" color="gray">
+            {showExportChat && (
+              <DropdownMenu.Item onClick={saveChat}>
+                <DownloadIcon />
+                Export chat
+              </DropdownMenu.Item>
+            )}
+            {showClearChat && (
+              <DropdownMenu.Item onClick={cleanup}>
+                <TrashIcon />
+                Clear chat
+              </DropdownMenu.Item>
+            )}
+            {showClearFiles && (
+              <DropdownMenu.Item onClick={clearFiles}>
+                <Cross2Icon />
+                Clear files
+              </DropdownMenu.Item>
+            )}
+            {(showExportChat || showClearChat || showClearFiles) && (
+              <DropdownMenu.Separator />
+            )}
+            <DropdownMenu.Item onClick={() => setKeyBindingsOpen(true)}>
+              <KeyboardIcon />
+              Keyboard shortcuts
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
 
-        <Tooltip content="Reset">
-          <IconButton
-            variant="ghost"
-            color="gray"
-            size="3"
-            radius="full"
-            disabled={isStreaming}
-            onClick={cleanup}
-          >
-            <TrashIcon />
-          </IconButton>
-        </Tooltip>
+        <KeyBindingsDialog
+          open={keyBindingsOpen}
+          onOpenChange={setKeyBindingsOpen}
+        />
       </Flex>
     </Flex>
   );

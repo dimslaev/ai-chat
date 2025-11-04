@@ -67,10 +67,11 @@ export type PostMessageType =
   | "startAssistantMessage"
   | "appendChunk"
   | "endAssistantMessage"
-  | "activeFileChanged"
   | "stopStream"
+  | "activeFileChanged"
   | "attachFile"
   | "removeAttachedFile"
+  | "toggleSuggestedFile"
   | "apiError"
   | "cleanup"
   | "saveConfigs"
@@ -104,6 +105,7 @@ export type PostMessagePayloadMap = {
   saveChat: string;
   setInputValue: string;
   tokenUsage: TokenUsage;
+  toggleSuggestedFile: undefined;
 };
 
 export type PostMessage = {

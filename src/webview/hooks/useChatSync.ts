@@ -20,6 +20,8 @@ export const useChatSync = () => {
     (state) => state.appendToLastMessage
   );
   const restoreState = useChatStore((state) => state.restoreState);
+  const addAttachedFile = useChatStore((state) => state.addAttachedFile);
+  const removeAttachedFile = useChatStore((state) => state.removeAttachedFile);
 
   useEffect(() => {
     if (!vscode) return;
@@ -67,6 +69,30 @@ export const useChatSync = () => {
         case "tokenUsage":
           setTokenUsage(payload);
           break;
+
+        case "toggleSuggestedFile":
+          const currentSuggestedFile = useChatStore.getState().suggestedFile;
+          const currentAttachedFiles = useChatStore.getState().attachedFiles;
+
+          if (currentSuggestedFile) {
+            const isAttached = currentAttachedFiles.some(
+              (file) => file.fileUri.path === currentSuggestedFile.fileUri.path
+            );
+
+            if (isAttached) {
+              const fileToRemove = currentAttachedFiles.find(
+                (file) => file.fileUri.path === currentSuggestedFile.fileUri.path
+              );
+              if (fileToRemove) {
+                removeAttachedFile(fileToRemove);
+                postMessage(vscode, "removeAttachedFile", fileToRemove);
+              }
+            } else {
+              addAttachedFile(currentSuggestedFile);
+              postMessage(vscode, "attachFile", currentSuggestedFile);
+            }
+          }
+          break;
       }
     };
 
@@ -83,6 +109,8 @@ export const useChatSync = () => {
     addMessage,
     appendToLastMessage,
     restoreState,
+    addAttachedFile,
+    removeAttachedFile,
   ]);
 
   useEffect(() => {

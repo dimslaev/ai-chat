@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { State } from "@/extension/state";
 import { Webview } from "@/extension/webview";
 import { Config } from "@/extension/config";
-import { getFileName } from "@/lib/utils";
+import { getFileName, getEditorSelection } from "@/lib/utils";
 
 export namespace Extension {
   export async function init(ctx: vscode.ExtensionContext) {
@@ -15,6 +15,7 @@ export namespace Extension {
       await Config.initialize();
       registerWebviewProvider();
       registerFileChangeListener();
+      registerCommands();
     } catch (error) {
       console.error("Failed to initialize extension:", error);
       vscode.window.showErrorMessage("AI Chat extension failed to initialize");
@@ -57,18 +58,12 @@ export namespace Extension {
     );
   }
 
-  function getEditorSelection(editor: vscode.TextEditor) {
-    const selection = editor.selection;
-    if (
-      !selection.isEmpty &&
-      (selection.start.line !== selection.end.line ||
-        selection.end.character - selection.start.character > 0)
-    ) {
-      return {
-        start: selection.start.line,
-        end: selection.end.line,
-      };
-    }
+  function registerCommands() {
+    State.context.subscriptions.push(
+      vscode.commands.registerCommand("ai-chat.toggleSuggestedFile", () => {
+        Webview.post("toggleSuggestedFile");
+      })
+    );
   }
 }
 

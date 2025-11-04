@@ -1,4 +1,4 @@
-import { Webview } from "vscode";
+import { Webview, TextEditor } from "vscode";
 import {
   vscodeApi,
   PostMessageType,
@@ -22,4 +22,18 @@ export function toOpenAIMessage(message: Message): OpenAIMessage {
 
 export function getFileName(path: string): string {
   return path.split(/[\\/]/).pop() || "";
+}
+
+export function getEditorSelection(editor: TextEditor) {
+  const selection = editor.selection;
+  if (
+    !selection.isEmpty &&
+    (selection.start.line !== selection.end.line ||
+      selection.end.character - selection.start.character > 0)
+  ) {
+    return {
+      start: selection.start.line,
+      end: selection.end.line,
+    };
+  }
 }

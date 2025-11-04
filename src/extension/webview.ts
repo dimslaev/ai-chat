@@ -9,7 +9,7 @@ import {
 import { State } from "@/extension/state";
 import { Chat } from "@/extension/chat";
 import { Config } from "@/extension/config";
-import { postMessage, getFileName } from "@/lib/utils";
+import { postMessage, getFileName, getEditorSelection } from "@/lib/utils";
 
 export namespace Webview {
   export function setup(webviewView: vscode.WebviewView) {
@@ -106,15 +106,20 @@ export namespace Webview {
 
   function sendState() {
     const { activeTextEditor } = vscode.window;
+
+    let suggestedFile = null;
+    if (activeTextEditor) {
+      suggestedFile = {
+        name: getFileName(activeTextEditor.document.uri.path),
+        fileUri: activeTextEditor.document.uri,
+        selection: getEditorSelection(activeTextEditor),
+      };
+    }
+
     postMessage(State.webview, "setState", {
       history: State.history,
       attachedFiles: State.files,
-      suggestedFile: activeTextEditor
-        ? {
-            name: activeTextEditor.document.uri.path.split(/[\\/]/).pop() || "",
-            fileUri: activeTextEditor.document.uri,
-          }
-        : null,
+      suggestedFile,
       configs: State.configs,
       inputValue: State.inputValue,
     });

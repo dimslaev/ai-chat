@@ -39,6 +39,19 @@
         "command": "ai-chat.generateProjectMd",
         "title": "Analyze Project & Generate project.md",
         "category": "AI Chat"
+      },
+      {
+        "command": "ai-chat.toggleSuggestedFile",
+        "title": "Toggle Suggested File in Context",
+        "category": "AI Chat"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ai-chat.toggleSuggestedFile",
+        "key": "ctrl+k",
+        "mac": "cmd+k",
+        "when": "editorTextFocus"
       }
     ]
   },
