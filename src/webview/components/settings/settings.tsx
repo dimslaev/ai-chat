@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Flex, Text, DropdownMenu } from "@radix-ui/themes";
+import { Button, Flex, DropdownMenu, IconButton } from "@radix-ui/themes";
 import {
   MixerHorizontalIcon,
   PlusIcon,
@@ -11,6 +11,7 @@ import { useChatConfig } from "@/hooks/useChatConfig";
 import { Configuration } from "@/lib/types";
 import { ConfigDialog } from "./config-dialog";
 import { DeleteConfigDialog } from "./delete-config-dialog";
+import "./settings.css";
 
 export const Settings: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -84,7 +85,7 @@ export const Settings: React.FC = () => {
     <>
       {configs.length === 0 ? (
         <Button
-          variant="ghost"
+          variant="soft"
           size="1"
           onClick={() => handleConfigChange("add-new")}
         >
@@ -94,33 +95,54 @@ export const Settings: React.FC = () => {
       ) : (
         <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenu.Trigger>
-            <Button variant="outline" color="gray" size="1">
+            <Button variant="soft" color="gray" size="1">
               <CaretDownIcon />
-              {activeConfig?.name || "Select model"}
+              <div className="config-name">
+                {activeConfig?.name || "Select model"}
+              </div>
             </Button>
           </DropdownMenu.Trigger>
-          <DropdownMenu.Content size="1" style={{ width: 160 }}>
+          <DropdownMenu.Content
+            size="2"
+            variant="soft"
+            color="gray"
+            style={{ width: 180 }}
+          >
             {configs.map((config) => (
               <DropdownMenu.Item
                 key={config.id}
                 onClick={() => handleConfigChange(config.id)}
-                color="gray"
+                className="config-menu-item"
               >
-                <Flex align="center" justify="between" width="100%">
-                  <Text>{config.name}</Text>
-                  <Flex gap="2">
-                    <MixerHorizontalIcon
+                <Flex align="center" justify="between" width="100%" gap="2">
+                  <div className="config-name">{config.name}</div>
+                  <Flex mr="-1" gap="2" className="config-actions">
+                    <IconButton
+                      size="1"
+                      variant="ghost"
+                      color="gray"
+                      radius="full"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditConfig(config);
                       }}
-                    />
-                    <TrashIcon
+                      aria-label="Edit config"
+                    >
+                      <MixerHorizontalIcon />
+                    </IconButton>
+                    <IconButton
+                      size="1"
+                      variant="ghost"
+                      color="gray"
+                      radius="full"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteConfig(config);
                       }}
-                    />
+                      aria-label="Delete config"
+                    >
+                      <TrashIcon />
+                    </IconButton>
                   </Flex>
                 </Flex>
               </DropdownMenu.Item>
@@ -130,9 +152,8 @@ export const Settings: React.FC = () => {
               onClick={() => handleConfigChange("add-new")}
               color="gray"
             >
-              <Flex align="end" gap="2">
-                <PlusIcon />
-                Add new config
+              <Flex align="center" width="100%" gap="2">
+                Add config
               </Flex>
             </DropdownMenu.Item>
           </DropdownMenu.Content>

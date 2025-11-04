@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button, Flex, Badge, Tooltip } from "@radix-ui/themes";
+import { Button, Flex, Badge, Tooltip, IconButton } from "@radix-ui/themes";
 import { useChatStore } from "@/store/chat";
 import { useChatActions } from "@/hooks/useChatActions";
 import { AttachedFile } from "@/lib/types";
@@ -59,45 +59,49 @@ export const TopRow: React.FC = React.memo(() => {
             (file: AttachedFile) =>
               file.fileUri.path === suggestedFile.fileUri.path
           ) && (
-            <Button
-              variant="outline"
-              color="gray"
-              size="1"
-              onClick={attachFile}
-            >
+            <Button variant="soft" color="gray" size="1" onClick={attachFile}>
               <PlusIcon />
               {suggestedFile.name}
             </Button>
           )}
       </Flex>
 
-      {hasMessages && (
-        <Flex direction="row" align="center" gap="2">
-          <Tooltip content="Export chat">
-            <Button
-              variant="outline"
-              color="gray"
-              size="1"
-              disabled={isStreaming}
-              onClick={saveChat}
-            >
-              <DownloadIcon />
-            </Button>
-          </Tooltip>
+      <Flex
+        align="center"
+        gap="4"
+        pt="1"
+        style={
+          !hasMessages
+            ? { visibility: "hidden", pointerEvents: "none" }
+            : undefined
+        }
+      >
+        <Tooltip content="Export chat">
+          <IconButton
+            variant="ghost"
+            color="gray"
+            size="3"
+            radius="full"
+            disabled={isStreaming}
+            onClick={saveChat}
+          >
+            <DownloadIcon />
+          </IconButton>
+        </Tooltip>
 
-          <Tooltip content="Reset">
-            <Button
-              variant="outline"
-              color="gray"
-              size="1"
-              disabled={isStreaming}
-              onClick={cleanup}
-            >
-              <TrashIcon />
-            </Button>
-          </Tooltip>
-        </Flex>
-      )}
+        <Tooltip content="Reset">
+          <IconButton
+            variant="ghost"
+            color="gray"
+            size="3"
+            radius="full"
+            disabled={isStreaming}
+            onClick={cleanup}
+          >
+            <TrashIcon />
+          </IconButton>
+        </Tooltip>
+      </Flex>
     </Flex>
   );
 });

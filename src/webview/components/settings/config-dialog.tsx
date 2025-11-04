@@ -93,6 +93,15 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
     onSave(finalFormData);
   };
 
+  // Validation
+  const finalModel =
+    formData.model === "custom" && customModel ? customModel : formData.model;
+  const isValid =
+    formData.name.trim() !== "" &&
+    formData.baseUrl.trim() !== "" &&
+    finalModel !== "" &&
+    finalModel !== "custom";
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Content
@@ -258,7 +267,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
               Cancel
             </Button>
           </Dialog.Close>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={!isValid}>
             {editingConfig ? "Update" : "Add"}
           </Button>
         </Flex>

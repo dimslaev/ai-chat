@@ -1,0 +1,18 @@
+/* Show actions only on hover */
+.config-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.config-menu-item:hover .config-actions {
+  opacity: 1;
+}
+
+/* Config name styling */
+.config-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
