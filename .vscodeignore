@@ -13,6 +13,8 @@ tsconfig.json
 jest.config.js
 jest.setup.ts
 RELEASE.md
+CLAUDE.md
+history/
 
 # Dependencies (bundled into out/ directory)
 node_modules/**
@@ -20,3 +22,4 @@ node_modules/**
 # IDE
 .DS_Store
 *.log
+
