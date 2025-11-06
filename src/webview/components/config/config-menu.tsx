@@ -2,7 +2,6 @@ import * as React from "react";
 import { Button, Flex, DropdownMenu, IconButton } from "@radix-ui/themes";
 import {
   MixerHorizontalIcon,
-  PlusIcon,
   TrashIcon,
   CaretDownIcon,
 } from "@radix-ui/react-icons";
@@ -11,9 +10,9 @@ import { useChatConfig } from "@/hooks/useChatConfig";
 import { Configuration } from "@/lib/types";
 import { ConfigDialog } from "./config-dialog";
 import { DeleteConfigDialog } from "./delete-config-dialog";
-import "./settings.css";
+import "./config.css";
 
-export const Settings: React.FC = () => {
+export const ConfigMenu: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [editingConfig, setEditingConfig] =

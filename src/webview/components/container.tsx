@@ -4,7 +4,7 @@ import { Messages } from "@/components/messages";
 import { TopRow } from "@/components/top-row";
 import { InputSection } from "@/components/input-section";
 import { Input } from "@/components/input";
-import { Settings } from "@/components/settings/settings";
+import { ConfigMenu } from "@/components/config/config-menu";
 import { useChatSync } from "@/hooks/useChatSync";
 import { TokenUsage } from "@/components/token-usage";
 
@@ -25,7 +25,7 @@ export const Container: React.FC = () => {
       <Messages />
       <InputSection>
         <Flex align="center" justify="between" gap="2" pt="3" px="3">
-          <Settings />
+          <ConfigMenu />
           <TokenUsage />
         </Flex>
         <Input />
