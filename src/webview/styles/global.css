@@ -175,6 +175,7 @@ pre:hover .action-button {
 
 .chat-textarea {
   width: 100%;
+  max-width: 100%;
   border: none;
   background: transparent;
   padding: 0;
@@ -184,6 +185,7 @@ pre:hover .action-button {
   font-size: 0.945rem;
   line-height: 1.5;
   color: inherit;
+  box-sizing: border-box;
 }
 
 .chat-textarea-edit {

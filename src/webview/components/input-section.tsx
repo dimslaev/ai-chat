@@ -10,7 +10,6 @@ export const InputSection: React.FC<InputSectionProps> = ({ children }) => {
     <Flex
       direction="column"
       style={{
-        borderTop: "1px solid var(--gray-6)",
         background: "var(--color-panel-solid)",
       }}
     >

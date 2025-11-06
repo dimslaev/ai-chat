@@ -2,11 +2,10 @@ import * as React from "react";
 import { Flex } from "@radix-ui/themes";
 import { Messages } from "@/components/messages";
 import { TopRow } from "@/components/top-row";
-import { InputSection } from "@/components/input-section";
+import { ContextSection } from "@/components/context-section";
 import { Input } from "@/components/input";
-import { ConfigMenu } from "@/components/config/config-menu";
 import { useChatSync } from "@/hooks/useChatSync";
-import { TokenUsage } from "@/components/token-usage";
+import { EmptyState } from "./empty-state";
 
 export const Container: React.FC = () => {
   useChatSync();
@@ -22,14 +21,10 @@ export const Container: React.FC = () => {
       }}
     >
       <TopRow />
+      <ContextSection />
+      <EmptyState />
       <Messages />
-      <InputSection>
-        <Flex align="center" justify="between" gap="2" pt="3" px="3">
-          <ConfigMenu />
-          <TokenUsage />
-        </Flex>
-        <Input />
-      </InputSection>
+      <Input />
     </Flex>
   );
 };

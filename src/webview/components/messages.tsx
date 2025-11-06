@@ -82,7 +82,8 @@ export const Messages: React.FC = () => {
         ref={messagesRef}
         direction="column"
         gap="4"
-        p="4"
+        px="3"
+        py="4"
         style={{
           height: "100%",
           overflowY: "auto",

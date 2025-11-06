@@ -1,6 +1,6 @@
 import * as React from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { Button, Flex, Box } from "@radix-ui/themes";
+import { IconButton, Flex } from "@radix-ui/themes";
 import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
 import { useChatStore } from "@/store/chat";
 import { useChatActions } from "@/hooks/useChatActions";
@@ -43,49 +43,41 @@ export const Input: React.FC = React.memo(() => {
   );
 
   return (
-    <Flex direction="row" gap="2" p="3" align="end">
-      <Box
+    <Flex direction="row" gap="2" px="3" pb="3" align="end">
+      <Flex
         position="relative"
         flexGrow="1"
+        align="end"
+        gap="2"
         style={{
           background: "var(--color-surface)",
           borderRadius: "var(--radius-3)",
           border: "1px solid var(--gray-7)",
-          padding: "8px",
-          paddingRight: "48px",
+          padding: "12px",
         }}
       >
         <TextareaAutosize
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
+          placeholder="Ask about your code..."
           minRows={3}
           maxRows={30}
           className="chat-textarea"
         />
 
-        <Button
-          variant="ghost"
+        <IconButton
+          variant="soft"
           size="2"
           onClick={isStreaming ? stopStream : onSubmit}
           disabled={
             isStreaming ? false : !inputValue.trim() || !isModelConfigured
           }
           color={isStreaming ? "blue" : "gray"}
-          style={{
-            position: "absolute",
-            right: "8px",
-            bottom: "8px",
-            minWidth: "32px",
-            height: "32px",
-            padding: "0",
-          }}
-          className="no-hover"
         >
           {isStreaming ? <StopIcon /> : <PaperPlaneIcon />}
-        </Button>
-      </Box>
+        </IconButton>
+      </Flex>
     </Flex>
   );
 });
