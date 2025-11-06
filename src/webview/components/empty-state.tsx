@@ -1,15 +1,11 @@
 import { useChatStore } from "@/store/chat";
-import { ChatBubbleIcon } from "@radix-ui/react-icons";
 import { Flex, Text } from "@radix-ui/themes";
 import React from "react";
 
 export const EmptyState: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
 
-  const hasMessages = messages.length > 0;
-
-  // Show empty state when no messages exist
-  if (!hasMessages) {
+  if (messages.length === 0) {
     return (
       <Flex
         direction="column"
@@ -35,4 +31,6 @@ export const EmptyState: React.FC = React.memo(() => {
       </Flex>
     );
   }
+
+  return null;
 });
