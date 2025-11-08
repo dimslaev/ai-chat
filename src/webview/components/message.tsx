@@ -10,10 +10,15 @@ import { Markdown } from "./markdown";
 interface MessageProps {
   message: MessageType;
   isStreaming: Boolean;
+  isReady: Boolean;
   isLast: Boolean;
 }
 
-export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
+export const Message: React.FC<MessageProps> = ({
+  message,
+  isStreaming,
+  isReady,
+}) => {
   const messageRef = React.useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = React.useState(false);
   const [editContent, setEditContent] = React.useState(message.content);
@@ -70,6 +75,7 @@ export const Message: React.FC<MessageProps> = ({ message, isStreaming }) => {
       className={`chat-message chat-message-${message.role} ${
         isStreaming ? "chat-message-streaming" : ""
       }`}
+      style={{ visibility: isReady ? "visible" : "hidden" }}
     >
       {message.role === "user" && !isEditing && (
         <IconButton

@@ -118,17 +118,12 @@ pre:hover .action-button {
   margin-bottom: 16px;
 }
 
-.rt-ScrollAreaViewport > * {
-  width: unset;
+.chat-message-user {
+  margin-bottom: calc(var(--container-height, auto) - 70px);
 }
 
-.rt-TextAreaRoot:where(:focus-within),
-.rt-TextAreaInput:focus {
-  outline: none;
-}
-
-.rt-TextAreaInput {
-  font-size: 0.945rem;
+.chat-message-assistant {
+  margin-top: calc((var(--container-height, auto) - 70px) * -1);
 }
 
 .scroll-to-bottom-button {

@@ -4,6 +4,7 @@ import { ExclamationTriangleIcon, ArrowDownIcon } from "@radix-ui/react-icons";
 import { Message } from "@/components/message";
 import { useChatStore } from "@/store/chat";
 import { Message as MessageType } from "@/lib/types";
+import { waitFrames } from "@/lib/utils";
 // import { simulateStreamingResponse } from "@/components/mockresponse";
 
 export const Messages: React.FC = () => {
@@ -14,6 +15,17 @@ export const Messages: React.FC = () => {
   const messagesRef = React.useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = React.useState(false);
   const previousMessageCountRef = React.useRef(messages.length);
+
+  const [isReady, setIsReady] = React.useState(false);
+
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    if (messagesRef.current) {
+      messagesRef.current.scrollTo({
+        top: messagesRef.current.scrollHeight,
+        behavior: behavior,
+      });
+    }
+  };
 
   // React.useEffect(() => {
   //   const { addMessage, setIsStreaming, appendToLastMessage } =
@@ -26,15 +38,20 @@ export const Messages: React.FC = () => {
   //   });
   // }, []);
 
+  // Scroll to bottom on initial load
+  React.useEffect(() => {
+    waitFrames(() => {
+      scrollToBottom("auto");
+      setIsReady(true);
+    }, 3);
+  }, []);
+
   // Scroll to bottom when user sends a new message
   React.useEffect(() => {
     if (messages.length > previousMessageCountRef.current) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage?.role === "user" && messagesRef.current) {
-        messagesRef.current.scrollTo({
-          top: messagesRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        scrollToBottom();
       }
     }
     previousMessageCountRef.current = messages.length;
@@ -67,15 +84,6 @@ export const Messages: React.FC = () => {
     }
   }, [messages]);
 
-  const scrollToBottom = () => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTo({
-        top: messagesRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  };
-
   return (
     <Box position="relative" flexGrow="1" overflow="hidden">
       <Flex
@@ -87,6 +95,8 @@ export const Messages: React.FC = () => {
         style={{
           height: "100%",
           overflowY: "auto",
+          // @ts-expect-error
+          "--container-height": `${messagesRef.current?.clientHeight}px`,
         }}
       >
         {messages.map((message: MessageType, index: number) => (
@@ -95,6 +105,7 @@ export const Messages: React.FC = () => {
             message={message}
             isStreaming={isStreaming}
             isLast={index === messages.length - 1}
+            isReady={isReady}
           />
         ))}
 
@@ -118,8 +129,13 @@ export const Messages: React.FC = () => {
         )}
       </Flex>
 
-      {showScrollButton && (
-        <button className="scroll-to-bottom-button" onClick={scrollToBottom}>
+      {showScrollButton && isReady && (
+        <button
+          className="scroll-to-bottom-button"
+          onClick={() => {
+            scrollToBottom();
+          }}
+        >
           <ArrowDownIcon />
         </button>
       )}

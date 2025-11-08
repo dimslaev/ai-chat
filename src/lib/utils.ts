@@ -37,3 +37,13 @@ export function getEditorSelection(editor: TextEditor) {
     };
   }
 }
+
+export function waitFrames(cb: () => void, n: number): void {
+  if (n <= 0) {
+    cb();
+    return;
+  }
+  requestAnimationFrame(() => {
+    waitFrames(cb, n - 1);
+  });
+}
