@@ -6,6 +6,7 @@ import { useChatStore } from "@/store/chat";
 
 import "@radix-ui/themes/styles.css";
 import "./styles/global.css";
+import "./styles/atom-one-dark.min.css";
 
 declare global {
   interface Window {

@@ -47,7 +47,7 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
   );
 
   return (
-    <Flex direction="row" gap="2" px="3" pb="3" align="end">
+    <Flex direction="row" gap="2" px="3" py="3" align="end">
       <Flex
         position="relative"
         flexGrow="1"

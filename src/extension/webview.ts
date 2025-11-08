@@ -50,7 +50,6 @@ export namespace Webview {
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>AI Chat</title>
-          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/atom-one-dark.min.css">
       </head>
       <body>
           <div id="root"></div>
