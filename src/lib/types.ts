@@ -72,6 +72,7 @@ export type PostMessageType =
   | "attachFile"
   | "removeAttachedFile"
   | "toggleSuggestedFile"
+  | "focusInput"
   | "apiError"
   | "cleanup"
   | "saveConfigs"
@@ -106,6 +107,7 @@ export type PostMessagePayloadMap = {
   setInputValue: string;
   tokenUsage: TokenUsage;
   toggleSuggestedFile: undefined;
+  focusInput: undefined;
 };
 
 export type PostMessage = {

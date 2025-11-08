@@ -64,6 +64,23 @@ export namespace Extension {
         Webview.post("toggleSuggestedFile");
       })
     );
+
+    State.context.subscriptions.push(
+      vscode.commands.registerCommand("ai-chat.focusInput", async () => {
+        // Focus the AI Chat view (this will open it if closed)
+        await vscode.commands.executeCommand("ai-chat-view.focus");
+        // Wait a bit for the webview to be ready
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Then send the focus command to the webview
+        Webview.post("focusInput");
+      })
+    );
+
+    State.context.subscriptions.push(
+      vscode.commands.registerCommand("ai-chat.clearChat", () => {
+        Webview.post("cleanup");
+      })
+    );
   }
 }
 

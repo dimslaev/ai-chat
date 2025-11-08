@@ -5,7 +5,11 @@ import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
 import { useChatStore } from "@/store/chat";
 import { useChatActions } from "@/hooks/useChatActions";
 
-export const Input: React.FC = React.memo(() => {
+interface InputProps {
+  inputRef?: React.RefObject<HTMLTextAreaElement>;
+}
+
+export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
   const isStreaming = useChatStore((state) => state.isStreaming);
   const configs = useChatStore((state) => state.configs);
   const inputValue = useChatStore((state) => state.inputValue);
@@ -57,6 +61,7 @@ export const Input: React.FC = React.memo(() => {
         }}
       >
         <TextareaAutosize
+          ref={inputRef}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}

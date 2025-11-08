@@ -1,5 +1,5 @@
 import { useChatStore } from "@/store/chat";
-import { Flex, Text } from "@radix-ui/themes";
+import { Flex, Kbd, Text } from "@radix-ui/themes";
 import React from "react";
 
 export const EmptyState: React.FC = React.memo(() => {
@@ -17,17 +17,45 @@ export const EmptyState: React.FC = React.memo(() => {
           padding: "48px 24px",
         }}
       >
-        <Flex direction="column" gap="1" align="center">
-          {/* <Text size="2" style={{ color: "var(--gray-10)" }}>
-            ⌘⇧A — Toggle attach current file
-          </Text> */}
-          <Text size="2" style={{ color: "var(--gray-10)" }}>
-            ⌘K — Toggle attach currently opened file
-          </Text>
-          {/* <Text size="2" style={{ color: "var(--gray-10)" }}>
-            ⌘L — Focus input
-          </Text> */}
-        </Flex>
+        <table
+          style={{
+            borderCollapse: "collapse",
+            border: "none",
+          }}
+        >
+          <tbody>
+            <tr>
+              <td style={{ padding: "4px 12px 4px 0" }}>
+                <Kbd size="3">CMD + L + L</Kbd>
+              </td>
+              <td style={{ padding: "4px 0" }}>
+                <Text size="2" style={{ color: "var(--gray-10)" }}>
+                  Toggle attach current file
+                </Text>
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "4px 12px 4px 0" }}>
+                <Kbd size="3">CMD + L + I</Kbd>
+              </td>
+              <td style={{ padding: "4px 0" }}>
+                <Text size="2" style={{ color: "var(--gray-10)" }}>
+                  Focus input
+                </Text>
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "4px 12px 4px 0" }}>
+                <Kbd size="3">CMD + L + P</Kbd>
+              </td>
+              <td style={{ padding: "4px 0" }}>
+                <Text size="2" style={{ color: "var(--gray-10)" }}>
+                  Clear chat
+                </Text>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </Flex>
     );
   }

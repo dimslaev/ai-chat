@@ -44,14 +44,33 @@
         "command": "ai-chat.toggleSuggestedFile",
         "title": "Toggle Suggested File in Context",
         "category": "AI Chat"
+      },
+      {
+        "command": "ai-chat.focusInput",
+        "title": "Focus Chat Input",
+        "category": "AI Chat"
+      },
+      {
+        "command": "ai-chat.clearChat",
+        "title": "Clear Chat",
+        "category": "AI Chat"
       }
     ],
     "keybindings": [
       {
         "command": "ai-chat.toggleSuggestedFile",
-        "key": "ctrl+k",
-        "mac": "cmd+k",
-        "when": "editorTextFocus"
+        "key": "ctrl+l ctrl+l",
+        "mac": "cmd+l cmd+l"
+      },
+      {
+        "command": "ai-chat.focusInput",
+        "key": "ctrl+l ctrl+i",
+        "mac": "cmd+l cmd+i"
+      },
+      {
+        "command": "ai-chat.clearChat",
+        "key": "ctrl+l ctrl+p",
+        "mac": "cmd+l cmd+p"
       }
     ]
   },
