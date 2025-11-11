@@ -45,10 +45,10 @@ export const TopRow: React.FC = React.memo(() => {
                 activeConfig.model}
             </Text>
           )}
-          {activeConfig?.maxTokens && (
+          {activeConfig?.maxCompletionTokens && (
             <>
               <Text size="2">·</Text>
-              <Text size="1">Max: {activeConfig.maxTokens}</Text>
+              <Text size="1">Max: {activeConfig.maxCompletionTokens}</Text>
             </>
           )}
 

@@ -1,35 +1,16 @@
 import * as React from "react";
-import {
-  Dialog,
-  Button,
-  Flex,
-  Text,
-  TextField,
-  Select,
-  Separator,
-} from "@radix-ui/themes";
-import TextareaAutosize from "react-textarea-autosize";
+import { Dialog, Button, Flex } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Configuration } from "@/lib/types";
-import { DEFAULT_BASE_URL, DEFAULT_CONFIG, MODELS } from "@/lib/config";
-
-const FormField: React.FC<{
-  label: string;
-  children: React.ReactNode;
-}> = ({ label, children }) => (
-  <label>
-    <Text as="div" size="2" mb="1" weight="bold">
-      {label}
-    </Text>
-    {children}
-  </label>
-);
+import { useConfigForm } from "@/hooks/useConfigForm";
+import { ConfigForm } from "./config-form";
 
 interface ConfigDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingConfig: Configuration | null;
   onSave: (config: Configuration) => void;
+  onExport: (config: Configuration) => void;
 }
 
 export const ConfigDialog: React.FC<ConfigDialogProps> = ({
@@ -37,70 +18,14 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
   onOpenChange,
   editingConfig,
   onSave,
+  onExport,
 }) => {
-  const [formData, setFormData] = React.useState<Configuration>({
-    ...DEFAULT_CONFIG,
-  });
-  const [customModel, setCustomModel] = React.useState("");
+  const { formData, field, updateField, toConfig, isValid } =
+    useConfigForm(editingConfig);
 
-  React.useEffect(() => {
-    const config = editingConfig || {
-      ...DEFAULT_CONFIG,
-      id: Date.now().toString(),
-    };
-    setFormData(config);
-
-    // Check if the model is a custom one (not in the predefined list)
-    const isCustomModel = !MODELS.slice(0, -1).some(
-      (m) => m.value === config.model
-    );
-    if (isCustomModel && config.model !== "custom") {
-      setCustomModel(config.model);
-    } else {
-      setCustomModel("");
-    }
-  }, [editingConfig]);
-
-  const updateFormData = <K extends keyof Configuration>(
-    field: K,
-    value: Configuration[K]
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleAction = (action: (config: Configuration) => void) => () => {
+    action(toConfig());
   };
-
-  const handleInputChange =
-    (field: keyof Configuration) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      const parsedValue =
-        field === "maxTokens" || field === "historyLimit"
-          ? parseInt(value) || 0
-          : field === "temperature"
-          ? parseFloat(value) || 0
-          : value;
-      updateFormData(field, parsedValue as Configuration[typeof field]);
-    };
-
-  const handleSave = () => {
-    // Use custom model if "custom" is selected and customModel is provided
-    const finalFormData = {
-      ...formData,
-      model:
-        formData.model === "custom" && customModel
-          ? customModel
-          : formData.model,
-    };
-    onSave(finalFormData);
-  };
-
-  // Validation
-  const finalModel =
-    formData.model === "custom" && customModel ? customModel : formData.model;
-  const isValid =
-    formData.name.trim() !== "" &&
-    formData.baseUrl.trim() !== "" &&
-    finalModel !== "" &&
-    finalModel !== "custom";
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -132,7 +57,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           }}
         >
           <Dialog.Title mb="0">
-            {editingConfig ? "Edit config" : "Add config"}
+            {editingConfig ? "Edit config" : "New config"}
           </Dialog.Title>
           <Dialog.Close>
             <Button variant="ghost" color="gray" size="1" tabIndex={-1}>
@@ -141,133 +66,28 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           </Dialog.Close>
         </Flex>
 
-        <Flex
-          direction="column"
-          gap="3"
-          p="4"
-          flexGrow="1"
-          style={{
-            maxWidth: 500,
-            overflowY: "auto",
-          }}
-        >
-          <FormField label="Name">
-            <TextField.Root
-              placeholder="Display Name"
-              value={formData.name}
-              onChange={handleInputChange("name")}
-            />
-          </FormField>
-
-          <FormField label="API Key">
-            <TextField.Root
-              type="password"
-              placeholder="Enter API key"
-              value={formData.apiKey}
-              onChange={handleInputChange("apiKey")}
-            />
-          </FormField>
-
-          <FormField label="Base URL">
-            <TextField.Root
-              placeholder={DEFAULT_BASE_URL}
-              value={formData.baseUrl}
-              onChange={handleInputChange("baseUrl")}
-            />
-          </FormField>
-
-          <FormField label="Model">
-            <Select.Root
-              value={
-                MODELS.some((m) => m.value === formData.model)
-                  ? formData.model
-                  : "custom"
-              }
-              onValueChange={(value) => {
-                updateFormData("model", value);
-                if (value !== "custom") {
-                  setCustomModel("");
-                }
-              }}
-            >
-              <Select.Trigger placeholder="Select a model" />
-              <Select.Content>
-                {MODELS.map((model) => (
-                  <Select.Item key={model.value} value={model.value}>
-                    {model.label}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
-          </FormField>
-
-          {(formData.model === "custom" ||
-            !MODELS.some((m) => m.value === formData.model)) && (
-            <FormField label="Custom Model Name">
-              <TextField.Root
-                value={customModel}
-                onChange={(e) => setCustomModel(e.target.value)}
-              />
-            </FormField>
-          )}
-
-          <Separator size="4" my="2" />
-
-          <FormField label="System Prompt">
-            <TextareaAutosize
-              placeholder="Use this field to set a custom system prompt"
-              value={formData.systemPrompt || ""}
-              onChange={(e) => updateFormData("systemPrompt", e.target.value)}
-              minRows={3}
-              className="chat-textarea chat-textarea-settings"
-            />
-          </FormField>
-
-          <FormField label="Max Tokens">
-            <TextField.Root
-              type="number"
-              placeholder="8000"
-              value={formData.maxTokens.toString()}
-              onChange={handleInputChange("maxTokens")}
-            />
-          </FormField>
-
-          <FormField label="Temperature">
-            <TextField.Root
-              type="number"
-              step="0.1"
-              min="0"
-              max="2"
-              placeholder="0.1"
-              value={formData.temperature.toString()}
-              onChange={handleInputChange("temperature")}
-            />
-          </FormField>
-
-          <FormField label="History Limit">
-            <TextField.Root
-              type="number"
-              placeholder="10"
-              value={formData.historyLimit.toString()}
-              onChange={handleInputChange("historyLimit")}
-            />
-          </FormField>
-        </Flex>
+        <ConfigForm formData={formData} field={field} updateField={updateField} />
 
         <Flex
           gap="3"
           p="4"
-          justify="end"
+          justify={editingConfig ? "between" : "end"}
           style={{
             borderTop: "1px solid var(--gray-6)",
           }}
         >
-          <Dialog.Close>
-            <Button variant="soft" color="gray">
-              Cancel
+          {editingConfig && (
+            <Button
+              variant="soft"
+              color="gray"
+              onClick={handleAction(onExport)}
+              disabled={!isValid}
+            >
+              Export
             </Button>
-          </Dialog.Close>
-          <Button onClick={handleSave} disabled={!isValid}>
+          )}
+
+          <Button onClick={handleAction(onSave)} disabled={!isValid}>
             {editingConfig ? "Update" : "Add"}
           </Button>
         </Flex>

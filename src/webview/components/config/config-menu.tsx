@@ -5,9 +5,9 @@ import {
   TrashIcon,
   CaretDownIcon,
 } from "@radix-ui/react-icons";
-import { useChatStore } from "@/store/chat";
 import { useChatConfig } from "@/hooks/useChatConfig";
 import { Configuration } from "@/lib/types";
+import { parseImportConfig, validateConfigStrict } from "@/lib/schema";
 import { ConfigDialog } from "./config-dialog";
 import { DeleteConfigDialog } from "./delete-config-dialog";
 import "./config.css";
@@ -20,16 +20,19 @@ export const ConfigMenu: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
   const [configToDelete, setConfigToDelete] =
     React.useState<Configuration | null>(null);
-  const configs = useChatStore((state) => state.configs);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const { saveConfigs } = useChatConfig();
-
-  const activeConfig = configs.find((c) => c.active);
+  const { configs, activeConfig, saveConfigs, exportConfig } = useChatConfig();
 
   const handleConfigChange = (value: string) => {
     if (value === "add-new") {
       setEditingConfig(null);
       setDialogOpen(true);
+      return;
+    }
+
+    if (value === "import-config") {
+      fileInputRef.current?.click();
       return;
     }
 
@@ -64,20 +67,70 @@ export const ConfigMenu: React.FC = () => {
   };
 
   const handleSave = (finalFormData: Configuration) => {
-    if (editingConfig) {
-      // Update existing config
-      const updatedConfigs = configs.map((c) =>
-        c.id === finalFormData.id ? finalFormData : c
-      );
-      saveConfigs(updatedConfigs);
-    } else {
-      // Add new config
-      const updatedConfigs = configs.map((c) => ({ ...c, active: false }));
-      updatedConfigs.push({ ...finalFormData, active: true });
-      saveConfigs(updatedConfigs);
+    try {
+      const validatedConfig = validateConfigStrict(finalFormData);
+
+      if (editingConfig) {
+        // Update existing config
+        const updatedConfigs = configs.map((c) =>
+          c.id === validatedConfig.id ? validatedConfig : c
+        );
+        saveConfigs(updatedConfigs);
+      } else {
+        // Add new config
+        const updatedConfigs = configs.map((c) => ({ ...c, active: false }));
+        updatedConfigs.push({ ...validatedConfig, active: true });
+        saveConfigs(updatedConfigs);
+      }
+      setDialogOpen(false);
+      setEditingConfig(null);
+    } catch (error) {
+      console.error("Validation failed:", error);
     }
-    setDialogOpen(false);
-    setEditingConfig(null);
+  };
+
+  const handleExport = (config: Configuration) => {
+    exportConfig(config);
+  };
+
+  const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const rawConfig = JSON.parse(content);
+        const result = parseImportConfig(rawConfig);
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        // Create new config and set as active
+        const newConfig: Configuration = {
+          ...result.data!,
+          id: Date.now().toString(),
+          active: true,
+        };
+
+        // Deactivate other configs
+        const updatedConfigs = configs.map((c) => ({ ...c, active: false }));
+        updatedConfigs.push(newConfig);
+        saveConfigs(updatedConfigs);
+      } catch (error) {
+        alert(
+          `Failed to import config: ${
+            error instanceof Error ? error.message : "invalid JSON file"
+          }`
+        );
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset input so same file can be imported again
+    event.target.value = "";
   };
 
   return (
@@ -97,7 +150,7 @@ export const ConfigMenu: React.FC = () => {
             <Button variant="soft" color="gray" size="1">
               <CaretDownIcon />
               <div className="config-name">
-                {activeConfig?.name || "Select model"}
+                {activeConfig?.name || "Select config"}
               </div>
             </Button>
           </DropdownMenu.Trigger>
@@ -152,18 +205,35 @@ export const ConfigMenu: React.FC = () => {
               color="gray"
             >
               <Flex align="center" width="100%" gap="2">
-                Add config
+                New config
+              </Flex>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onClick={() => handleConfigChange("import-config")}
+              color="gray"
+            >
+              <Flex align="center" width="100%" gap="2">
+                Import
               </Flex>
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       )}
 
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: "none" }}
+        onChange={handleImportConfig}
+      />
+
       <ConfigDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editingConfig={editingConfig}
         onSave={handleSave}
+        onExport={handleExport}
       />
 
       <DeleteConfigDialog

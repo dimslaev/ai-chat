@@ -9,6 +9,7 @@ import { Configuration } from "@/lib/types";
  */
 export const useChatConfig = () => {
   const vscode = useChatStore((state) => state.vscode);
+  const configs = useChatStore((state) => state.configs);
   const setConfigs = useChatStore((state) => state.setConfigs);
 
   const saveConfigs = useCallback(
@@ -21,7 +22,19 @@ export const useChatConfig = () => {
     [vscode, setConfigs]
   );
 
+  const exportConfig = useCallback(
+    (config: Configuration) => {
+      if (!vscode) return;
+
+      postMessage(vscode, "exportConfig", config);
+    },
+    [vscode]
+  );
+
   return {
+    configs,
+    activeConfig: configs.find((c) => c.active),
     saveConfigs,
+    exportConfig,
   };
 };

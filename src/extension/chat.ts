@@ -101,7 +101,10 @@ export namespace Chat {
           messages,
           model: config.model,
           temperature: config.temperature,
-          max_completion_tokens: config.maxTokens,
+          max_completion_tokens: config.maxCompletionTokens,
+          frequency_penalty: config.frequencyPenalty,
+          presence_penalty: config.presencePenalty,
+          top_p: config.topP,
           stream: true,
           stream_options: {
             include_usage: true,

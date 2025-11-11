@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { Stream } from "openai/streaming";
 import * as vscode from "vscode";
+import { z } from "zod";
+import { ConfigurationSchema } from "./schema";
 
 /* VSCode */
 export type vscodeApi = {
@@ -11,18 +13,8 @@ export type vscodeApi = {
 export type OpenAIMessage = OpenAI.ChatCompletionMessageParam;
 export type OpenAIStream = Stream<OpenAI.ChatCompletionChunk>;
 
-export type Configuration = {
-  id: string;
-  name: string;
-  active: boolean;
-  apiKey: string;
-  baseUrl: string;
-  model: string;
-  maxTokens: number;
-  temperature: number;
-  historyLimit: number;
-  systemPrompt: string;
-};
+/* Config */
+export type Configuration = z.infer<typeof ConfigurationSchema>;
 
 export type FileInfo = {
   name: string;
@@ -78,6 +70,7 @@ export type PostMessageType =
   | "saveConfigs"
   | "getConfigs"
   | "saveChat"
+  | "exportConfig"
   | "setInputValue"
   | "tokenUsage";
 
@@ -104,6 +97,7 @@ export type PostMessagePayloadMap = {
   saveConfigs: Configuration[];
   getConfigs: Configuration[];
   saveChat: string;
+  exportConfig: Configuration;
   setInputValue: string;
   tokenUsage: TokenUsage;
   toggleSuggestedFile: undefined;

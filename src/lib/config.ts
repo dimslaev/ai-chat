@@ -40,8 +40,11 @@ export const DEFAULT_CONFIG: Configuration = {
   apiKey: "",
   baseUrl: DEFAULT_BASE_URL,
   model: MODELS[0].value,
-  maxTokens: 8000,
+  maxCompletionTokens: 8000,
   temperature: 0.1,
   historyLimit: 10,
   systemPrompt: "",
+  frequencyPenalty: 0,
+  presencePenalty: 0,
+  topP: 1,
 };

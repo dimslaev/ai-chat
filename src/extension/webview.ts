@@ -10,6 +10,7 @@ import { State } from "@/extension/state";
 import { Chat } from "@/extension/chat";
 import { Config } from "@/extension/config";
 import { postMessage, getFileName, getEditorSelection } from "@/lib/utils";
+import { cleanExportConfig } from "@/lib/schema";
 
 export namespace Webview {
   export function setup(webviewView: vscode.WebviewView) {
@@ -91,6 +92,9 @@ export namespace Webview {
           break;
         case "saveChat":
           saveChatToFile(data.payload);
+          break;
+        case "exportConfig":
+          exportConfigToFile(data.payload);
           break;
         case "setInputValue":
           State.inputValue = data.payload;
@@ -200,33 +204,81 @@ export namespace Webview {
     State.resetTokenUsage();
   }
 
+  async function saveFileToWorkspace(
+    fileName: string,
+    content: string,
+    fileType: string
+  ): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+
+    if (workspaceFolder) {
+      // Save directly to workspace
+      const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
+      await vscode.workspace.fs.writeFile(
+        fileUri,
+        Buffer.from(content, "utf8")
+      );
+
+      // Open the saved file
+      const document = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(document);
+    } else {
+      // No workspace: show save dialog
+      const filters: Record<string, string[]> = {};
+      const filterLabel =
+        fileType === "md"
+          ? "Markdown Files"
+          : fileType === "json"
+          ? "JSON Files"
+          : "All Files";
+      filters[filterLabel] = [fileType];
+
+      const saveUri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file(fileName),
+        filters,
+      });
+
+      if (saveUri) {
+        await vscode.workspace.fs.writeFile(
+          saveUri,
+          Buffer.from(content, "utf8")
+        );
+
+        // Open the saved file
+        const document = await vscode.workspace.openTextDocument(saveUri);
+        await vscode.window.showTextDocument(document);
+      }
+    }
+  }
+
   async function saveChatToFile(markdownContent: string) {
     try {
       const title = await generateChatTitle();
       const fileName = `${title}.md`;
 
-      // Save directly to workspace with the generated filename
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-      if (workspaceFolder) {
-        const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
-        await vscode.workspace.fs.writeFile(
-          fileUri,
-          Buffer.from(markdownContent, "utf8")
-        );
-
-        // Open the saved file
-        const document = await vscode.workspace.openTextDocument(fileUri);
-        await vscode.window.showTextDocument(document);
-      } else {
-        // Fallback: open as untitled document if no workspace
-        const document = await vscode.workspace.openTextDocument({
-          content: markdownContent,
-          language: "markdown",
-        });
-        await vscode.window.showTextDocument(document);
-      }
+      await saveFileToWorkspace(fileName, markdownContent, "md");
     } catch (error) {
       console.error("Failed to save chat:", error);
+      handleError(error);
+    }
+  }
+
+  async function exportConfigToFile(config: any) {
+    try {
+      const cleanedConfig = cleanExportConfig(config);
+
+      const baseFileName = cleanedConfig.name
+        ? cleanedConfig.name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, "")
+            .replace(/\s+/g, "_")
+        : "config";
+      const fileName = `${baseFileName}.json`;
+      const jsonContent = JSON.stringify(cleanedConfig, null, 2);
+
+      await saveFileToWorkspace(fileName, jsonContent, "json");
+    } catch (error) {
+      console.error("Failed to export config:", error);
       handleError(error);
     }
   }
