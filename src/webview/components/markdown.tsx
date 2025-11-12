@@ -9,11 +9,13 @@ interface MarkdownProps {
   content: string;
 }
 
-const CopyButton: React.FC<{ content: string }> = ({ content }) => {
+const CopyButton: React.FC<{ codeRef: React.RefObject<HTMLElement> }> = ({
+  codeRef,
+}) => {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(content);
+    navigator.clipboard.writeText(codeRef.current?.textContent ?? "");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -33,14 +35,12 @@ const CopyButton: React.FC<{ content: string }> = ({ content }) => {
 
 const CodeBlock: React.FC<{
   children: React.ReactNode;
-  content: string;
   className?: string;
-}> = ({ children, className, content }) => {
+}> = ({ children, className }) => {
   const codeRef = React.useRef<HTMLElement>(null);
-
   return (
     <div style={{ position: "relative" }}>
-      <CopyButton content={content} />
+      <CopyButton codeRef={codeRef} />
       <code ref={codeRef} className={className}>
         {children}
       </code>
@@ -66,11 +66,7 @@ export const RawMarkdown: React.FC<MarkdownProps> = ({ content }) => {
             );
           }
 
-          return (
-            <CodeBlock className={className} content={content}>
-              {children}
-            </CodeBlock>
-          );
+          return <CodeBlock className={className}>{children}</CodeBlock>;
         },
       }}
     >
