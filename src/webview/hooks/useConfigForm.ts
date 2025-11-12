@@ -3,7 +3,6 @@ import { Configuration } from "@/lib/types";
 import { DEFAULT_CONFIG, MODELS } from "@/lib/config";
 import { ConfigurationSchema } from "@/lib/schema";
 
-// Convert numeric fields to strings for form editing
 type StringifyNumbers<T> = {
   [K in keyof T]: T[K] extends number ? string | number : T[K];
 };
@@ -29,7 +28,6 @@ function serializeConfig(config: Configuration): FormData {
   };
 }
 
-// Deserialize FormData to Configuration (strings to numbers)
 function deserializeFormData(formData: FormData): Configuration {
   const maxCompletionTokens = parseInt(String(formData.maxCompletionTokens));
   const temperature = parseFloat(String(formData.temperature));
