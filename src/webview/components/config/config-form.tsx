@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Flex, Text, TextField, Select, Separator } from "@radix-ui/themes";
 import TextareaAutosize from "react-textarea-autosize";
-import { Configuration } from "@/lib/types";
 import { DEFAULT_BASE_URL, MODELS } from "@/lib/config";
+import { FormData } from "@/hooks/useConfigForm";
 
 const FormField: React.FC<{
   label: string;
@@ -17,8 +17,6 @@ const FormField: React.FC<{
   </label>
 );
 
-type FormData = Configuration & { customModel?: string };
-
 interface ConfigFormProps {
   formData: FormData;
   field: (
@@ -30,7 +28,7 @@ interface ConfigFormProps {
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => void;
   };
-  updateField: <K extends keyof FormData>(field: K, value: FormData[K]) => void;
+  updateField: (field: string, value: string) => void;
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({
@@ -113,10 +111,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             max="100000"
             step="1000"
             placeholder="8000"
-            {...field("maxCompletionTokens", (v) => {
-              const parsed = parseInt(v);
-              return isNaN(parsed) ? 0 : parsed;
-            })}
+            {...field("maxCompletionTokens")}
           />
         </FormField>
 
@@ -127,10 +122,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             min="0"
             max="2"
             placeholder="0.1"
-            {...field("temperature", (v) => {
-              const parsed = parseFloat(v);
-              return isNaN(parsed) ? 0 : parsed;
-            })}
+            {...field("temperature")}
           />
         </FormField>
       </Flex>
@@ -143,10 +135,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             max="40"
             step="1"
             placeholder="10"
-            {...field("historyLimit", (v) => {
-              const parsed = parseInt(v);
-              return isNaN(parsed) ? 0 : parsed;
-            })}
+            {...field("historyLimit")}
           />
         </FormField>
 
@@ -157,10 +146,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             min="-2"
             max="2"
             placeholder="0"
-            {...field("frequencyPenalty", (v) => {
-              const parsed = parseFloat(v);
-              return isNaN(parsed) ? 0 : parsed;
-            })}
+            {...field("frequencyPenalty")}
           />
         </FormField>
       </Flex>
@@ -173,10 +159,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             min="-2"
             max="2"
             placeholder="0"
-            {...field("presencePenalty", (v) => {
-              const parsed = parseFloat(v);
-              return isNaN(parsed) ? 0 : parsed;
-            })}
+            {...field("presencePenalty")}
           />
         </FormField>
 
@@ -187,10 +170,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             min="0"
             max="1"
             placeholder="1"
-            {...field("topP", (v) => {
-              const parsed = parseFloat(v);
-              return isNaN(parsed) ? 0 : parsed;
-            })}
+            {...field("topP")}
           />
         </FormField>
       </Flex>
