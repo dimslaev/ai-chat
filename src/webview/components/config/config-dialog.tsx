@@ -3,7 +3,7 @@ import { Dialog, Button, Flex } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Configuration } from "@/lib/types";
 import { useConfigForm } from "@/hooks/useConfigForm";
-import { ConfigForm } from "./config-form";
+import { ConfigForm } from "@/components/config/config-form";
 
 interface ConfigDialogProps {
   open: boolean;
@@ -66,7 +66,11 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           </Dialog.Close>
         </Flex>
 
-        <ConfigForm formData={formData} field={field} updateField={updateField} />
+        <ConfigForm
+          formData={formData}
+          field={field}
+          updateField={updateField}
+        />
 
         <Flex
           gap="3"

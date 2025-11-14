@@ -6,10 +6,9 @@ import { ConfigMenu } from "@/components/config/config-menu";
 import { DownloadIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { MODELS } from "@/lib/config";
 
-export const TopRow: React.FC = React.memo(() => {
+export const Config: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
   const configs = useChatStore((state) => state.configs);
-  // const isStreaming = useChatStore((state) => state.isStreaming);
 
   const { cleanup, saveChat } = useChatActions();
 

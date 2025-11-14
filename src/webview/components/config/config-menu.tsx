@@ -8,9 +8,9 @@ import {
 import { useChatConfig } from "@/hooks/useChatConfig";
 import { Configuration } from "@/lib/types";
 import { parseImportConfig, validateConfigStrict } from "@/lib/schema";
-import { ConfigDialog } from "./config-dialog";
-import { DeleteConfigDialog } from "./delete-config-dialog";
-import "./config.css";
+import { ConfigDialog } from "@/components/config/config-dialog";
+import { DeleteConfigDialog } from "@/components/config/delete-config-dialog";
+import { TextEllipsis } from "@/components/ui/text-ellipsis";
 
 export const ConfigMenu: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -149,9 +149,9 @@ export const ConfigMenu: React.FC = () => {
           <DropdownMenu.Trigger>
             <Button variant="soft" color="gray" size="1">
               <CaretDownIcon />
-              <div className="config-name">
+              <TextEllipsis maxWidth="120px" style={{ flexGrow: 1 }}>
                 {activeConfig?.name || "Select config"}
-              </div>
+              </TextEllipsis>
             </Button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Content

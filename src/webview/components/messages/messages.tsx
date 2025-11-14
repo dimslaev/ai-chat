@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Box, Callout, Spinner, Flex } from "@radix-ui/themes";
 import { ExclamationTriangleIcon, ArrowDownIcon } from "@radix-ui/react-icons";
-import { Message } from "@/components/message";
+import { Message } from "@/components/messages/message";
 import { useChatStore } from "@/store/chat";
 import { Message as MessageType } from "@/lib/types";
 import { waitFrames } from "@/lib/utils";

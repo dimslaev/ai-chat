@@ -1,13 +1,13 @@
 import * as React from "react";
 import { Flex } from "@radix-ui/themes";
-import { Messages } from "@/components/messages";
-import { TopRow } from "@/components/top-row";
-import { ContextSection } from "@/components/context-section";
-import { Input } from "@/components/input";
+import { Messages } from "@/components/messages/messages";
+import { EmptyState } from "@/components/messages/empty-state";
+import { Config } from "@/components/config/config";
+import { Context } from "@/components/context/context";
+import { Input } from "@/components/input/input";
 import { useChatSync } from "@/hooks/useChatSync";
 import { useChatStore } from "@/store/chat";
 import { PostMessage } from "@/lib/types";
-import { EmptyState } from "./empty-state";
 
 export const Container: React.FC = () => {
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
@@ -38,8 +38,8 @@ export const Container: React.FC = () => {
         position: "relative",
       }}
     >
-      <TopRow />
-      <ContextSection />
+      <Config />
+      <Context />
       <EmptyState />
       <Messages />
       <Input inputRef={inputRef} />

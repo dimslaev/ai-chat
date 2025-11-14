@@ -1,6 +1,6 @@
-import { useChatStore } from "@/store/chat";
-import { Flex, Kbd, Text } from "@radix-ui/themes";
 import React from "react";
+import { Flex, Kbd, Text } from "@radix-ui/themes";
+import { useChatStore } from "@/store/chat";
 
 export const EmptyState: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);

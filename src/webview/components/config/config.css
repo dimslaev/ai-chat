@@ -7,12 +7,3 @@
 .config-menu-item:hover .config-actions {
   opacity: 1;
 }
-
-/* Config name styling */
-.config-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100px;
-}

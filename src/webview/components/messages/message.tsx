@@ -5,7 +5,7 @@ import { Message as MessageType } from "@/lib/types";
 import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useChatActions } from "@/hooks/useChatActions";
 import { useChatStore } from "@/store/chat";
-import { Markdown } from "./markdown";
+import { Markdown } from "@/components/messages//markdown";
 import cn from "classnames";
 
 interface MessageProps {
