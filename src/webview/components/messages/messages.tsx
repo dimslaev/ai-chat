@@ -5,7 +5,6 @@ import { Message } from "@/components/messages/message";
 import { useChatStore } from "@/store/chat";
 import { Message as MessageType } from "@/lib/types";
 import { waitFrames } from "@/lib/utils";
-// import { simulateStreamingResponse } from "@/components/mockresponse";
 
 export const Messages: React.FC = () => {
   const messages = useChatStore((state) => state.messages);
@@ -26,17 +25,6 @@ export const Messages: React.FC = () => {
       });
     }
   };
-
-  // React.useEffect(() => {
-  //   const { addMessage, setIsStreaming, appendToLastMessage } =
-  //     useChatStore.getState();
-
-  //   simulateStreamingResponse({
-  //     addMessage,
-  //     setIsStreaming,
-  //     appendToLastMessage,
-  //   });
-  // }, []);
 
   // Scroll to bottom on initial load
   React.useEffect(() => {
@@ -73,7 +61,6 @@ export const Messages: React.FC = () => {
       checkScroll();
       scrollContainer.addEventListener("scroll", checkScroll);
 
-      // Also check on content changes
       const resizeObserver = new ResizeObserver(checkScroll);
       resizeObserver.observe(scrollContainer);
 
