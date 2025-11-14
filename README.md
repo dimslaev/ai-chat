@@ -1,34 +1,43 @@
-## VS Code AI Chat
-
-[![Privacy First](https://img.shields.io/badge/privacy-first-green?style=flat-square)](https://github.com/Dimslaev/ai-chat-vscode)
+# VS Code AI Chat
 
 **[📦 Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Dimslaev.ai-chat-vscode)**
 
 No telemetry, no database, no third parties - completely private AI coding assistant.
 
-Works with any OpenAI-compatible LLM API, local or hosted.
+```
+You know how most AI assistants just... gesticulate wildly ...try to do everything? They're scanning your entire codebase, making suggestions you didn't ask for, reading large files again and again.
 
-### Features
+This thing? It's the opposite.
 
-- Attach currently opened files to chat
-- Optionally select line ranges from each file to reduce context
-- Create and keep multiple model configurations for different use cases
-- Export chat to markdown
+You explicitly tell it "hey, look at lines 23-45 of utils.ts and lines 100-120 of api.ts" and that's ALL it sees. No agent mode going rogue, no "let me refactor your entire project," just you building the exact context you need.
 
-### Setup
+And because of that, it generates one focused response real quick instead of spinning up tokens like it's mining crypto.
 
-1. Click "Add config" button in the AI Chat panel
-2. Fill in your API details:
-   - API Key: Your provider's API key
-   - Base URL: Your API endpoint (e.g., `https://api.openai.com/v1` or local server)
-   - Model: Choose from available options or enter a custom model name
-3. Save and start chatting
+It's for when you're working on private repos and you need AI help but you also need to, you know, stay in control.
+```
 
-### Example: Infomaniak
+## Features
 
-- Get your API key at https://manager.infomaniak.com/ > Cloud Computing > AI Tools
-- Base URL: `https://api.infomaniak.com/2/ai/[PRODUCT_ID]/openai/v1`
+### Attach files and line ranges to chat
 
-### Demo
+Select code directly in your editor with `CMD + K + K` to add precise context to your prompts without copying/pasting
+
+### Create multiple model configurations
+
+Set up different profiles with custom models, system prompts, and temperatures (e.g., creative writing with high temp, strict code review with detailed instructions) and switch between them with `CMD + K + O`
+
+### Export chat to markdown
+
+Save entire conversations as formatted markdown files for documentation, sharing, or archival
+
+### Keyboard shortcuts
+
+Navigate and control everything without touching your mouse - toggle attachments, switch configs, and focus input seamlessly
+
+### Token usage tracking
+
+Monitor prompt and completion tokens in real-time to stay aware of your consumption
+
+## Demo
 
 https://github.com/user-attachments/assets/edb75c28-a8d8-4b08-9e4c-01667082c4fa
