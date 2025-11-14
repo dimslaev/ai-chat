@@ -18,23 +18,23 @@ It's for when you're working on private repos and you need AI help but you also 
 
 ## Features
 
-### Attach files and line ranges to chat
+#### Attach files and line ranges to chat
 
 Select code directly in your editor with `CMD + K + K` to add precise context to your prompts without copying/pasting
 
-### Create multiple model configurations
+#### Create multiple model configurations
 
 Set up different profiles with custom models, system prompts, and temperatures (e.g., creative writing with high temp, strict code review with detailed instructions) and switch between them with `CMD + K + O`
 
-### Export chat to markdown
+#### Export chat to markdown
 
 Save entire conversations as formatted markdown files for documentation, sharing, or archival
 
-### Keyboard shortcuts
+#### Keyboard shortcuts
 
 Navigate and control everything without touching your mouse - toggle attachments, switch configs, and focus input seamlessly
 
-### Token usage tracking
+#### Token usage tracking
 
 Monitor prompt and completion tokens in real-time to stay aware of your consumption
 
