@@ -11,6 +11,7 @@ interface ConfigDialogProps {
   editingConfig: Configuration | null;
   onSave: (config: Configuration) => void;
   onExport: (config: Configuration) => void;
+  onDelete: (config: Configuration) => void;
 }
 
 export const ConfigDialog: React.FC<ConfigDialogProps> = ({
@@ -19,6 +20,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
   editingConfig,
   onSave,
   onExport,
+  onDelete,
 }) => {
   const { formData, field, updateField, toConfig, isValid } =
     useConfigForm(editingConfig);
@@ -70,27 +72,20 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           formData={formData}
           field={field}
           updateField={updateField}
+          isEditing={!!editingConfig}
+          onExport={editingConfig ? handleAction(onExport) : undefined}
+          onDelete={editingConfig ? handleAction(onDelete) : undefined}
+          isValid={isValid}
         />
 
         <Flex
           gap="3"
           p="4"
-          justify={editingConfig ? "between" : "end"}
+          justify="end"
           style={{
             borderTop: "1px solid var(--gray-6)",
           }}
         >
-          {editingConfig && (
-            <Button
-              variant="soft"
-              color="gray"
-              onClick={handleAction(onExport)}
-              disabled={!isValid}
-            >
-              Export
-            </Button>
-          )}
-
           <Button onClick={handleAction(onSave)} disabled={!isValid}>
             {editingConfig ? "Update" : "Add"}
           </Button>

@@ -1,5 +1,12 @@
 import * as React from "react";
-import { Flex, Text, TextField, Select, Separator } from "@radix-ui/themes";
+import {
+  Flex,
+  Text,
+  TextField,
+  Select,
+  Separator,
+  Button,
+} from "@radix-ui/themes";
 import TextareaAutosize from "react-textarea-autosize";
 import { DEFAULT_BASE_URL, MODELS } from "@/lib/config";
 import { FormData } from "@/hooks/useConfigForm";
@@ -29,12 +36,20 @@ interface ConfigFormProps {
     ) => void;
   };
   updateField: (field: string, value: string) => void;
+  isEditing?: boolean;
+  onExport?: () => void;
+  onDelete?: () => void;
+  isValid?: boolean;
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({
   formData,
   field,
   updateField,
+  isEditing = false,
+  onExport,
+  onDelete,
+  isValid = true,
 }) => {
   return (
     <Flex
@@ -174,6 +189,53 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
           />
         </FormField>
       </Flex>
+
+      {isEditing && (onExport || onDelete) && (
+        <>
+          <Separator size="4" my="2" style={{ flexShrink: 0 }} />
+
+          {onExport && (
+            <Flex direction="column" gap="2">
+              <Text size="2" weight="bold">
+                Export
+              </Text>
+              <Text size="2" color="gray">
+                Export this configuration as a JSON file
+              </Text>
+              <Button
+                variant="surface"
+                color="gray"
+                onClick={onExport}
+                disabled={!isValid}
+                style={{ width: "fit-content" }}
+              >
+                Export Config
+              </Button>
+            </Flex>
+          )}
+
+          <Separator size="4" my="2" style={{ flexShrink: 0 }} />
+
+          {onDelete && (
+            <Flex direction="column" gap="2">
+              <Text size="2" weight="bold">
+                Delete
+              </Text>
+              <Text size="2" color="gray">
+                Permanently delete this configuration
+              </Text>
+              <Button
+                variant="surface"
+                color="gray"
+                onClick={onDelete}
+                style={{ width: "fit-content" }}
+              >
+                Delete Config
+              </Button>
+            </Flex>
+          )}
+        </>
+      )}
     </Flex>
   );
 };

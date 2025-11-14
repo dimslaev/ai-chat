@@ -1,6 +1,7 @@
 import React from "react";
-import { Flex, Kbd, Text } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 import { useChatStore } from "@/store/chat";
+import { ShortcutRow } from "@/components/ui/shortcut-row";
 
 export const EmptyState: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);
@@ -24,36 +25,12 @@ export const EmptyState: React.FC = React.memo(() => {
           }}
         >
           <tbody>
-            <tr>
-              <td style={{ padding: "4px 12px 4px 0" }}>
-                <Kbd size="3">CMD + L + L</Kbd>
-              </td>
-              <td style={{ padding: "4px 0" }}>
-                <Text size="2" style={{ color: "var(--gray-10)" }}>
-                  Toggle attach current file
-                </Text>
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: "4px 12px 4px 0" }}>
-                <Kbd size="3">CMD + L + I</Kbd>
-              </td>
-              <td style={{ padding: "4px 0" }}>
-                <Text size="2" style={{ color: "var(--gray-10)" }}>
-                  Focus input
-                </Text>
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: "4px 12px 4px 0" }}>
-                <Kbd size="3">CMD + L + P</Kbd>
-              </td>
-              <td style={{ padding: "4px 0" }}>
-                <Text size="2" style={{ color: "var(--gray-10)" }}>
-                  Clear chat
-                </Text>
-              </td>
-            </tr>
+            <ShortcutRow keys="CMD + K + K" description="Attach current file" />
+            <ShortcutRow keys="CMD + K + O" description="Change config" />
+            <ShortcutRow
+              keys="CMD + K + I"
+              description="Open chat / Focus input"
+            />
           </tbody>
         </table>
       </Flex>

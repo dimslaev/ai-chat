@@ -1,83 +1,51 @@
 import * as React from "react";
-import { Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 import { useChatStore } from "@/store/chat";
-import { useChatActions } from "@/hooks/useChatActions";
-import { ConfigMenu } from "@/components/config/config-menu";
-import { DownloadIcon, ReloadIcon } from "@radix-ui/react-icons";
-import { MODELS } from "@/lib/config";
+import { ConfigMenu, ConfigMenuRef } from "@/components/config/config-menu";
+import { ConfigInfo } from "@/components/config/config-info";
+import { ChatActions } from "@/components/config/chat-actions";
 
-export const Config: React.FC = React.memo(() => {
-  const messages = useChatStore((state) => state.messages);
-  const configs = useChatStore((state) => state.configs);
+export interface ConfigRef {
+  openConfigMenu: () => void;
+}
 
-  const { cleanup, saveChat } = useChatActions();
+interface ConfigProps {
+  onConfigSelected?: () => void;
+}
 
-  const hasMessages = messages.length > 0;
+export const Config = React.forwardRef<ConfigRef, ConfigProps>(
+  ({ onConfigSelected }, ref) => {
+    const configMenuRef = React.useRef<ConfigMenuRef>(null);
+    const configs = useChatStore((state) => state.configs);
 
-  const activeConfig = configs.find((it) => it.active);
+    React.useImperativeHandle(ref, () => ({
+      openConfigMenu: () => configMenuRef.current?.openDropdown(),
+    }));
 
-  return (
-    <Flex
-      direction="row"
-      align="start"
-      justify="between"
-      gap="3"
-      px="3"
-      py="3"
-      style={{
-        borderBottom: "1px solid var(--gray-6)",
-        background: "var(--color-panel-solid)",
-      }}
-    >
-      <Flex direction="row" align="center" gap="2" wrap="wrap">
-        <ConfigMenu />
+    const activeConfig = configs.find((it) => it.active);
 
-        <Flex
-          direction="row"
-          align="center"
-          style={{ color: "var(--gray-10)" }}
-          gap="1"
-        >
-          {activeConfig?.model && (
-            <Text size="1" className="config-name">
-              {MODELS.find((it) => it.value === activeConfig.model)?.label ||
-                activeConfig.model}
-            </Text>
-          )}
-          {activeConfig?.maxCompletionTokens && (
-            <>
-              <Text size="2">·</Text>
-              <Text size="1">Max: {activeConfig.maxCompletionTokens}</Text>
-            </>
-          )}
-
-          {activeConfig?.temperature && (
-            <>
-              <Text size="2">·</Text>
-              <Text size="1">Temp: {activeConfig.temperature}</Text>
-            </>
-          )}
-        </Flex>
-      </Flex>
-
+    return (
       <Flex
-        align="center"
-        gap="2"
+        direction="row"
+        align="start"
+        justify="between"
+        gap="3"
+        px="3"
+        py="3"
         style={{
-          visibility: hasMessages ? "visible" : "hidden",
+          borderBottom: "1px solid var(--gray-6)",
+          background: "var(--color-panel-solid)",
         }}
       >
-        <Tooltip content="Export chat">
-          <IconButton variant="soft" color="gray" size="1" onClick={saveChat}>
-            <DownloadIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip content="Clear chat">
-          <IconButton variant="soft" color="gray" size="1" onClick={cleanup}>
-            <ReloadIcon />
-          </IconButton>
-        </Tooltip>
+        <Flex direction="row" align="center" gap="2" wrap="wrap">
+          <ConfigMenu ref={configMenuRef} onConfigSelected={onConfigSelected} />
+          <ConfigInfo config={activeConfig} />
+        </Flex>
+
+        <ChatActions />
       </Flex>
-    </Flex>
-  );
-});
+    );
+  }
+);
+
+Config.displayName = "Config";

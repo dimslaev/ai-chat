@@ -222,3 +222,13 @@ pre:hover .action-button {
 .rt-BaseButton:where(.rt-variant-ghost):where(:focus-visible) {
   outline-color: var(--gray-8) !important;
 }
+
+/* Config */
+.config-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.config-menu-item:hover .config-actions {
+  opacity: 1;
+}

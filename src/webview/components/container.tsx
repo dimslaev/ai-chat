@@ -2,7 +2,7 @@ import * as React from "react";
 import { Flex } from "@radix-ui/themes";
 import { Messages } from "@/components/messages/messages";
 import { EmptyState } from "@/components/messages/empty-state";
-import { Config } from "@/components/config/config";
+import { Config, ConfigRef } from "@/components/config/config";
 import { Context } from "@/components/context/context";
 import { Input } from "@/components/input/input";
 import { useChatSync } from "@/hooks/useChatSync";
@@ -11,9 +11,14 @@ import { PostMessage } from "@/lib/types";
 
 export const Container: React.FC = () => {
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
+  const configRef = React.useRef<ConfigRef>(null);
   const vscode = useChatStore((state) => state.vscode);
 
   useChatSync();
+
+  const handleConfigSelected = React.useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
 
   React.useEffect(() => {
     if (!vscode) return;
@@ -21,6 +26,8 @@ export const Container: React.FC = () => {
     const handleMessage = (event: MessageEvent<PostMessage>) => {
       if (event.data.type === "focusInput") {
         inputRef.current?.focus();
+      } else if (event.data.type === "openConfigMenu") {
+        configRef.current?.openConfigMenu();
       }
     };
 
@@ -38,7 +45,7 @@ export const Container: React.FC = () => {
         position: "relative",
       }}
     >
-      <Config />
+      <Config ref={configRef} onConfigSelected={handleConfigSelected} />
       <Context />
       <EmptyState />
       <Messages />

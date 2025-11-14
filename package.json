@@ -51,26 +51,26 @@
         "category": "AI Chat"
       },
       {
-        "command": "ai-chat.clearChat",
-        "title": "Clear Chat",
+        "command": "ai-chat.changeConfig",
+        "title": "Change Config",
         "category": "AI Chat"
       }
     ],
     "keybindings": [
       {
         "command": "ai-chat.toggleSuggestedFile",
-        "key": "ctrl+l ctrl+l",
-        "mac": "cmd+l cmd+l"
+        "key": "ctrl+k ctrl+k",
+        "mac": "cmd+k cmd+k"
       },
       {
         "command": "ai-chat.focusInput",
-        "key": "ctrl+l ctrl+i",
-        "mac": "cmd+l cmd+i"
+        "key": "ctrl+k ctrl+i",
+        "mac": "cmd+k cmd+i"
       },
       {
-        "command": "ai-chat.clearChat",
-        "key": "ctrl+l ctrl+p",
-        "mac": "cmd+l cmd+p"
+        "command": "ai-chat.changeConfig",
+        "key": "ctrl+k ctrl+o",
+        "mac": "cmd+k cmd+o"
       }
     ]
   },

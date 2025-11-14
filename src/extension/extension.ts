@@ -61,7 +61,28 @@ export namespace Extension {
   function registerCommands() {
     State.context.subscriptions.push(
       vscode.commands.registerCommand("ai-chat.toggleSuggestedFile", () => {
-        Webview.post("toggleSuggestedFile");
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          const fileName = getFileName(editor.document.uri.path);
+          const selection = getEditorSelection(editor);
+          const file = {
+            name: fileName,
+            fileUri: editor.document.uri,
+            selection,
+          };
+
+          // Add to backend state
+          State.toggleFile(file);
+
+          // Notify webview to sync state
+          Webview.post("setState", {
+            history: State.history,
+            attachedFiles: State.files,
+            suggestedFile: file,
+            configs: State.configs,
+            inputValue: State.inputValue,
+          });
+        }
       })
     );
 
@@ -77,8 +98,13 @@ export namespace Extension {
     );
 
     State.context.subscriptions.push(
-      vscode.commands.registerCommand("ai-chat.clearChat", () => {
-        Webview.post("cleanup");
+      vscode.commands.registerCommand("ai-chat.changeConfig", async () => {
+        // Focus the AI Chat view (this will open it if closed)
+        await vscode.commands.executeCommand("ai-chat-view.focus");
+        // Wait a bit for the webview to be ready
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        // Then send the command to open config menu
+        Webview.post("openConfigMenu");
       })
     );
   }

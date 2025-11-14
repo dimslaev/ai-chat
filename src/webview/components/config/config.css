@@ -1,9 +1,0 @@
-/* Show actions only on hover */
-.config-actions {
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.config-menu-item:hover .config-actions {
-  opacity: 1;
-}

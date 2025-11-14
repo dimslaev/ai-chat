@@ -1,247 +1,209 @@
 import * as React from "react";
-import { Button, Flex, DropdownMenu, IconButton } from "@radix-ui/themes";
-import {
-  MixerHorizontalIcon,
-  TrashIcon,
-  CaretDownIcon,
-} from "@radix-ui/react-icons";
+import { Button, Flex, DropdownMenu } from "@radix-ui/themes";
+import { CaretDownIcon } from "@radix-ui/react-icons";
 import { useChatConfig } from "@/hooks/useChatConfig";
 import { Configuration } from "@/lib/types";
-import { parseImportConfig, validateConfigStrict } from "@/lib/schema";
 import { ConfigDialog } from "@/components/config/config-dialog";
 import { DeleteConfigDialog } from "@/components/config/delete-config-dialog";
+import { ConfigMenuItem } from "@/components/config/config-menu-item";
 import { TextEllipsis } from "@/components/ui/text-ellipsis";
 
-export const ConfigMenu: React.FC = () => {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [editingConfig, setEditingConfig] =
-    React.useState<Configuration | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
-  const [configToDelete, setConfigToDelete] =
-    React.useState<Configuration | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+export interface ConfigMenuRef {
+  openDropdown: () => void;
+}
 
-  const { configs, activeConfig, saveConfigs, exportConfig } = useChatConfig();
+interface ConfigMenuProps {
+  onConfigSelected?: () => void;
+}
 
-  const handleConfigChange = (value: string) => {
-    if (value === "add-new") {
-      setEditingConfig(null);
-      setDialogOpen(true);
-      return;
-    }
+export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
+  ({ onConfigSelected }, ref) => {
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [dropdownOpen, setDropdownOpen] = React.useState(false);
+    const [editingConfig, setEditingConfig] =
+      React.useState<Configuration | null>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
+    const [configToDelete, setConfigToDelete] =
+      React.useState<Configuration | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-    if (value === "import-config") {
-      fileInputRef.current?.click();
-      return;
-    }
+    const {
+      configs,
+      activeConfig,
+      selectConfig,
+      deleteConfig,
+      createConfig,
+      updateConfig,
+      importConfig,
+      exportConfig,
+    } = useChatConfig();
 
-    const updatedConfigs = configs.map((c) => ({
-      ...c,
-      active: c.id === value,
+    React.useImperativeHandle(ref, () => ({
+      openDropdown: () => setDropdownOpen(true),
     }));
-    saveConfigs(updatedConfigs);
-  };
 
-  const handleEditConfig = (config: Configuration) => {
-    setEditingConfig(config);
-    setDropdownOpen(false);
-    setDialogOpen(true);
-  };
-
-  const handleDeleteConfig = (config: Configuration) => {
-    setConfigToDelete(config);
-    setDeleteConfirmOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (!configToDelete) return;
-
-    const updatedConfigs = configs.filter((c) => c.id !== configToDelete.id);
-    if (updatedConfigs.length > 0 && !updatedConfigs.some((c) => c.active)) {
-      updatedConfigs[0].active = true;
-    }
-    saveConfigs(updatedConfigs);
-    setDeleteConfirmOpen(false);
-    setConfigToDelete(null);
-  };
-
-  const handleSave = (finalFormData: Configuration) => {
-    try {
-      const validatedConfig = validateConfigStrict(finalFormData);
-
-      if (editingConfig) {
-        // Update existing config
-        const updatedConfigs = configs.map((c) =>
-          c.id === validatedConfig.id ? validatedConfig : c
-        );
-        saveConfigs(updatedConfigs);
-      } else {
-        // Add new config
-        const updatedConfigs = configs.map((c) => ({ ...c, active: false }));
-        updatedConfigs.push({ ...validatedConfig, active: true });
-        saveConfigs(updatedConfigs);
+    const handleConfigChange = (value: string) => {
+      if (value === "add-new") {
+        setEditingConfig(null);
+        setDialogOpen(true);
+        return;
       }
-      setDialogOpen(false);
-      setEditingConfig(null);
-    } catch (error) {
-      console.error("Validation failed:", error);
-    }
-  };
 
-  const handleExport = (config: Configuration) => {
-    exportConfig(config);
-  };
+      if (value === "import-config") {
+        fileInputRef.current?.click();
+        return;
+      }
 
-  const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+      selectConfig(value);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
+      setDropdownOpen(false);
+      setTimeout(() => {
+        onConfigSelected?.();
+      }, 100);
+    };
+
+    const handleEditConfig = (config: Configuration) => {
+      setEditingConfig(config);
+      setDropdownOpen(false);
+      setDialogOpen(true);
+    };
+
+    const handleDeleteConfig = (config: Configuration) => {
+      setConfigToDelete(config);
+      setDeleteConfirmOpen(true);
+    };
+
+    const confirmDelete = () => {
+      if (!configToDelete) return;
+
+      deleteConfig(configToDelete.id);
+      setDeleteConfirmOpen(false);
+      setConfigToDelete(null);
+    };
+
+    const handleSave = (finalFormData: Configuration) => {
       try {
-        const content = e.target?.result as string;
-        const rawConfig = JSON.parse(content);
-        const result = parseImportConfig(rawConfig);
-
-        if (result.error) {
-          throw new Error(result.error);
+        if (editingConfig) {
+          updateConfig(finalFormData);
+        } else {
+          createConfig(finalFormData);
         }
-
-        // Create new config and set as active
-        const newConfig: Configuration = {
-          ...result.data!,
-          id: Date.now().toString(),
-          active: true,
-        };
-
-        // Deactivate other configs
-        const updatedConfigs = configs.map((c) => ({ ...c, active: false }));
-        updatedConfigs.push(newConfig);
-        saveConfigs(updatedConfigs);
+        setDialogOpen(false);
+        setEditingConfig(null);
       } catch (error) {
-        alert(
-          `Failed to import config: ${
-            error instanceof Error ? error.message : "invalid JSON file"
-          }`
-        );
+        console.error("Validation failed:", error);
       }
     };
-    reader.readAsText(file);
 
-    // Reset input so same file can be imported again
-    event.target.value = "";
-  };
+    const handleExport = (config: Configuration) => {
+      exportConfig(config);
+    };
 
-  return (
-    <>
-      {configs.length === 0 ? (
-        <Button
-          variant="soft"
-          size="1"
-          onClick={() => handleConfigChange("add-new")}
-        >
-          <CaretDownIcon />
-          Add config
-        </Button>
-      ) : (
-        <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
-          <DropdownMenu.Trigger>
-            <Button variant="soft" color="gray" size="1">
-              <CaretDownIcon />
-              <TextEllipsis maxWidth="120px" style={{ flexGrow: 1 }}>
-                {activeConfig?.name || "Select config"}
-              </TextEllipsis>
-            </Button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content
-            size="2"
+    const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const rawConfig = JSON.parse(content);
+          importConfig(rawConfig);
+        } catch (error) {
+          alert(
+            `Failed to import config: ${
+              error instanceof Error ? error.message : "invalid JSON file"
+            }`
+          );
+        }
+      };
+      reader.readAsText(file);
+
+      // Reset input so same file can be imported again
+      event.target.value = "";
+    };
+
+    return (
+      <>
+        {configs.length === 0 ? (
+          <Button
             variant="soft"
-            color="gray"
-            style={{ width: 180 }}
+            size="1"
+            onClick={() => handleConfigChange("add-new")}
           >
-            {configs.map((config) => (
+            <CaretDownIcon />
+            Add config
+          </Button>
+        ) : (
+          <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
+            <DropdownMenu.Trigger>
+              <Button variant="soft" color="gray" size="1">
+                <CaretDownIcon />
+                <TextEllipsis maxWidth="120px" style={{ flexGrow: 1 }}>
+                  {activeConfig?.name || "Select config"}
+                </TextEllipsis>
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content
+              size="2"
+              variant="soft"
+              color="gray"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+              style={{ width: 180 }}
+            >
+              {configs.map((config) => (
+                <ConfigMenuItem
+                  key={config.id}
+                  config={config}
+                  onSelect={handleConfigChange}
+                  onEdit={handleEditConfig}
+                />
+              ))}
+              <DropdownMenu.Separator />
               <DropdownMenu.Item
-                key={config.id}
-                onClick={() => handleConfigChange(config.id)}
-                className="config-menu-item"
+                onClick={() => handleConfigChange("add-new")}
+                color="gray"
               >
-                <Flex align="center" justify="between" width="100%" gap="2">
-                  <div className="config-name">{config.name}</div>
-                  <Flex mr="-1" gap="2" className="config-actions">
-                    <IconButton
-                      size="1"
-                      variant="ghost"
-                      color="gray"
-                      radius="full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditConfig(config);
-                      }}
-                      aria-label="Edit config"
-                    >
-                      <MixerHorizontalIcon />
-                    </IconButton>
-                    <IconButton
-                      size="1"
-                      variant="ghost"
-                      color="gray"
-                      radius="full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteConfig(config);
-                      }}
-                      aria-label="Delete config"
-                    >
-                      <TrashIcon />
-                    </IconButton>
-                  </Flex>
+                <Flex align="center" width="100%" gap="2">
+                  New config
                 </Flex>
               </DropdownMenu.Item>
-            ))}
-            <DropdownMenu.Separator />
-            <DropdownMenu.Item
-              onClick={() => handleConfigChange("add-new")}
-              color="gray"
-            >
-              <Flex align="center" width="100%" gap="2">
-                New config
-              </Flex>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item
-              onClick={() => handleConfigChange("import-config")}
-              color="gray"
-            >
-              <Flex align="center" width="100%" gap="2">
-                Import
-              </Flex>
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
-      )}
+              <DropdownMenu.Item
+                onClick={() => handleConfigChange("import-config")}
+                color="gray"
+              >
+                <Flex align="center" width="100%" gap="2">
+                  Import
+                </Flex>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        )}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        style={{ display: "none" }}
-        onChange={handleImportConfig}
-      />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: "none" }}
+          onChange={handleImportConfig}
+        />
 
-      <ConfigDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        editingConfig={editingConfig}
-        onSave={handleSave}
-        onExport={handleExport}
-      />
+        <ConfigDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          editingConfig={editingConfig}
+          onSave={handleSave}
+          onExport={handleExport}
+          onDelete={handleDeleteConfig}
+        />
 
-      <DeleteConfigDialog
-        open={deleteConfirmOpen}
-        onOpenChange={setDeleteConfirmOpen}
-        config={configToDelete}
-        onConfirm={confirmDelete}
-      />
-    </>
-  );
-};
+        <DeleteConfigDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+          config={configToDelete}
+          onConfirm={confirmDelete}
+        />
+      </>
+    );
+  }
+);

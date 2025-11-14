@@ -65,6 +65,7 @@ export type PostMessageType =
   | "removeAttachedFile"
   | "toggleSuggestedFile"
   | "focusInput"
+  | "openConfigMenu"
   | "apiError"
   | "cleanup"
   | "saveConfigs"
@@ -102,6 +103,7 @@ export type PostMessagePayloadMap = {
   tokenUsage: TokenUsage;
   toggleSuggestedFile: undefined;
   focusInput: undefined;
+  openConfigMenu: undefined;
 };
 
 export type PostMessage = {

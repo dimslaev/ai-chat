@@ -181,20 +181,11 @@ export namespace Webview {
     const { fileUri, selection } = payload;
     const fileName = getFileName(fileUri.path);
 
-    if (
-      !State.files.some((f: AttachedFile) => f.fileUri.path === fileUri.path)
-    ) {
-      State.files.push({ name: fileName, fileUri, selection });
-    }
+    State.addFile({ name: fileName, fileUri, selection });
   }
 
   function removeFile(payload: AttachedFile) {
-    const index = State.files.findIndex(
-      (file: AttachedFile) => file.fileUri.path === payload.fileUri.path
-    );
-    if (index !== -1) {
-      State.files.splice(index, 1);
-    }
+    State.removeFile(payload.fileUri.path);
   }
 
   function cleanup() {

@@ -65,4 +65,28 @@ export namespace State {
       totalTokens: 0,
     };
   }
+
+  export function addFile(file: AttachedFile) {
+    if (!files.some((f) => f.fileUri.path === file.fileUri.path)) {
+      files.push(file);
+    }
+  }
+
+  export function removeFile(filePath: string) {
+    const index = files.findIndex((f) => f.fileUri.path === filePath);
+    if (index !== -1) {
+      files.splice(index, 1);
+    }
+  }
+
+  export function toggleFile(file: AttachedFile) {
+    const existingIndex = files.findIndex(
+      (f) => f.fileUri.path === file.fileUri.path
+    );
+    if (existingIndex !== -1) {
+      files.splice(existingIndex, 1);
+    } else {
+      files.push(file);
+    }
+  }
 }
