@@ -112,10 +112,11 @@ export namespace Webview {
 
     let suggestedFile = null;
     if (activeTextEditor) {
+      const selections = getEditorSelection(activeTextEditor);
       suggestedFile = {
         name: getFileName(activeTextEditor.document.uri.path),
         fileUri: activeTextEditor.document.uri,
-        selection: getEditorSelection(activeTextEditor),
+        selections,
       };
     }
 
@@ -178,10 +179,10 @@ export namespace Webview {
   }
 
   function attachFile(payload: AttachedFile) {
-    const { fileUri, selection } = payload;
+    const { fileUri, selections } = payload;
     const fileName = getFileName(fileUri.path);
 
-    State.addFile({ name: fileName, fileUri, selection });
+    State.addFile({ name: fileName, fileUri, selections });
   }
 
   function removeFile(payload: AttachedFile) {

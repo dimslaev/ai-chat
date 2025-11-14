@@ -34,10 +34,10 @@ export type Message = {
 export type AttachedFile = {
   name: string;
   fileUri: vscode.Uri;
-  selection?: {
+  selections?: Array<{
     start: number;
     end: number;
-  };
+  }>;
 };
 
 export type ApiError = {

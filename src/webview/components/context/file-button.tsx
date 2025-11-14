@@ -16,9 +16,23 @@ export const FileButton: React.FC<FileButtonProps> = ({
   icon,
   onClick,
 }) => {
-  const displayName = file.selection
-    ? `${file.name} ${file.selection.start + 1}-${file.selection.end + 1}`
-    : file.name;
+  const { fileName, rangeText } = React.useMemo(() => {
+    if (!file.selections || file.selections.length === 0) {
+      return { fileName: file.name, rangeText: null };
+    }
+
+    const firstRange = `${file.selections[0].start + 1}-${
+      file.selections[0].end + 1
+    }`;
+    const hasMore = file.selections.length > 2;
+    const rangeDisplay = hasMore
+      ? `${firstRange}+`
+      : file.selections
+          .map((sel) => `${sel.start + 1}-${sel.end + 1}`)
+          .join(",");
+
+    return { fileName: file.name, rangeText: rangeDisplay };
+  }, [file.name, file.selections]);
 
   return (
     <Button
@@ -26,10 +40,11 @@ export const FileButton: React.FC<FileButtonProps> = ({
       color="gray"
       size="1"
       onClick={onClick}
-      style={{ justifyItems: "flex-start" }}
+      style={{ justifyItems: "flex-start", maxWidth: "200px" }}
     >
       {icon}
-      <TextEllipsis maxWidth="160px">{displayName}</TextEllipsis>
+      <TextEllipsis>{fileName}</TextEllipsis>
+      {rangeText && <span style={{ flexShrink: 0 }}>{rangeText}</span>}
     </Button>
   );
 };

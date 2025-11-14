@@ -56,12 +56,18 @@ export namespace Chat {
 
         let fileContent = fullContent;
 
-        if (file.selection) {
+        if (file.selections && file.selections.length > 0) {
           const lines = fullContent.split("\n");
-          const { start, end } = file.selection;
+          const selectedContent = file.selections
+            .map(({ start, end }) => {
+              const selectedLines = lines.slice(start, end + 1);
+              return `Lines ${start + 1}-${end + 1}:\n${selectedLines.join(
+                "\n"
+              )}`;
+            })
+            .join("\n\n");
 
-          const selectedLines = lines.slice(start, end + 1);
-          fileContent = selectedLines.join("\n");
+          fileContent = selectedContent;
         }
 
         return {
