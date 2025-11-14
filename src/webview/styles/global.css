@@ -118,11 +118,11 @@ pre:hover .action-button {
   margin-bottom: 16px;
 }
 
-.chat-message-user {
+.chat-message-margin {
   margin-bottom: calc(var(--container-height, auto) - 70px);
 }
 
-.chat-message-assistant {
+.chat-message-unmargin {
   margin-top: calc((var(--container-height, auto) - 70px) * -1);
 }
 

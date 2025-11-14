@@ -110,22 +110,26 @@ export const Messages: React.FC = () => {
         ))}
 
         {apiError && (
-          <Callout.Root color="red" variant="soft">
-            <Callout.Icon>
-              <ExclamationTriangleIcon />
-            </Callout.Icon>
-            <Callout.Text>
-              Sorry, there's been a server error.
-              {apiError.code && <Box mt="1">Code: {apiError.code}</Box>}
-              {apiError.message && <Box mt="1">{apiError.message}</Box>}
-            </Callout.Text>
-          </Callout.Root>
+          <div className="chat-message-unmargin">
+            <Callout.Root color="red" variant="soft">
+              <Callout.Icon>
+                <ExclamationTriangleIcon />
+              </Callout.Icon>
+              <Callout.Text>
+                Sorry, there's been a server error.
+                {apiError.code && <Box mt="1">Code: {apiError.code}</Box>}
+                {apiError.message && <Box mt="1">{apiError.message}</Box>}
+              </Callout.Text>
+            </Callout.Root>
+          </div>
         )}
 
         {isStreaming && messages[messages.length - 1].role !== "assistant" && (
-          <Flex justify="center" p="3">
-            <Spinner size="2" />
-          </Flex>
+          <div className="chat-message-unmargin">
+            <Flex justify="center" p="3">
+              <Spinner size="2" />
+            </Flex>
+          </div>
         )}
       </Flex>
 

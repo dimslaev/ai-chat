@@ -6,6 +6,7 @@ import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useChatActions } from "@/hooks/useChatActions";
 import { useChatStore } from "@/store/chat";
 import { Markdown } from "./markdown";
+import cn from "classnames";
 
 interface MessageProps {
   message: MessageType;
@@ -55,16 +56,18 @@ export const Message: React.FC<MessageProps> = ({
 
   if (isEditing && message.role === "user") {
     return (
-      <TextareaAutosize
-        autoFocus
-        value={editContent}
-        onChange={(e) => setEditContent(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={() => setIsEditing(false)}
-        minRows={3}
-        maxRows={10}
-        className="chat-textarea chat-textarea-edit"
-      />
+      <div className="chat-message-margin">
+        <TextareaAutosize
+          autoFocus
+          value={editContent}
+          onChange={(e) => setEditContent(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => setIsEditing(false)}
+          minRows={3}
+          maxRows={10}
+          className="chat-textarea chat-textarea-edit"
+        />
+      </div>
     );
   }
 
@@ -72,9 +75,13 @@ export const Message: React.FC<MessageProps> = ({
     <Box
       ref={messageRef}
       p={message.role === "user" ? "3" : "0"}
-      className={`chat-message chat-message-${message.role} ${
-        isStreaming ? "chat-message-streaming" : ""
-      }`}
+      className={cn(
+        "chat-message",
+        `chat-message-${message.role}`,
+        message.role === "user" && "chat-message-margin",
+        message.role === "assistant" && "chat-message-unmargin",
+        isStreaming && "chat-message-streaming"
+      )}
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >
       {message.role === "user" && !isEditing && (
