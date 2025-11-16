@@ -18,7 +18,7 @@ It's for when you're working on private repos and you need AI help but you also 
 
 ## Demo
 
-https://github.com/user-attachments/assets/9f01c00e-7565-44b1-906c-131a963d3566
+https://github.com/user-attachments/assets/7ce375f6-2a12-4ea7-8d45-ffef16cd7804
 
 ## Features
 
