@@ -40,4 +40,6 @@ Monitor prompt and completion tokens in real-time to stay aware of your consumpt
 
 ## Demo
 
-https://github.com/user-attachments/assets/edb75c28-a8d8-4b08-9e4c-01667082c4fa
+https://github.com/user-attachments/assets/9f01c00e-7565-44b1-906c-131a963d3566
+
+
