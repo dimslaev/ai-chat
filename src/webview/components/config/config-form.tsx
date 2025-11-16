@@ -6,9 +6,11 @@ import {
   Select,
   Separator,
   Button,
+  Link,
 } from "@radix-ui/themes";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import TextareaAutosize from "react-textarea-autosize";
-import { DEFAULT_BASE_URL, MODELS } from "@/lib/config";
+import { CONFIG_TEMPLATES } from "@/lib/templates";
 import { FormData } from "@/hooks/useConfigForm";
 
 const FormField: React.FC<{
@@ -40,16 +42,21 @@ interface ConfigFormProps {
   onExport?: () => void;
   onDelete?: () => void;
   isValid?: boolean;
+  selectedTemplate?: string;
+  onTemplateChange?: (templateId: string) => void;
+  templateInfoUrl?: string;
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({
   formData,
   field,
-  updateField,
   isEditing = false,
   onExport,
   onDelete,
   isValid = true,
+  selectedTemplate = "blank",
+  onTemplateChange,
+  templateInfoUrl,
 }) => {
   return (
     <Flex
@@ -62,6 +69,24 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
         overflowY: "auto",
       }}
     >
+      {!isEditing && onTemplateChange && (
+        <FormField label="Template">
+          <Select.Root
+            value={selectedTemplate}
+            onValueChange={onTemplateChange}
+          >
+            <Select.Trigger placeholder="Choose a starting template" />
+            <Select.Content>
+              {CONFIG_TEMPLATES.map((template) => (
+                <Select.Item key={template.id} value={template.id}>
+                  {template.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </FormField>
+      )}
+
       <FormField label="Name">
         <TextField.Root placeholder="Display Name" {...field("name")} />
       </FormField>
@@ -75,36 +100,36 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
       </FormField>
 
       <FormField label="Base URL">
-        <TextField.Root placeholder={DEFAULT_BASE_URL} {...field("baseUrl")} />
+        <TextField.Root
+          placeholder="e.g., https://api.example.com/v1"
+          {...field("baseUrl")}
+        />
       </FormField>
 
       <FormField label="Model">
-        <Select.Root
-          value={formData.model}
-          onValueChange={(value) => {
-            updateField("model", value);
-            if (value !== "custom") updateField("customModel", "");
-          }}
-        >
-          <Select.Trigger placeholder="Select a model" />
-          <Select.Content>
-            {MODELS.map((model) => (
-              <Select.Item key={model.value} value={model.value}>
-                {model.label}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+        <TextField.Root
+          placeholder="e.g., qwen3, qwen2.5-coder:7b"
+          {...field("model")}
+        />
+        {templateInfoUrl && (
+          <Link
+            href={templateInfoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="1"
+            color="gray"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              marginTop: "4px",
+            }}
+          >
+            <InfoCircledIcon style={{ width: 12, height: 12 }} />
+            More information
+          </Link>
+        )}
       </FormField>
-
-      {formData.model === "custom" && (
-        <FormField label="Custom Model Name">
-          <TextField.Root
-            placeholder="Enter custom model name"
-            {...field("customModel")}
-          />
-        </FormField>
-      )}
 
       <Separator size="4" my="2" style={{ flexShrink: 0 }} />
 
@@ -190,50 +215,43 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
         </FormField>
       </Flex>
 
-      {isEditing && (onExport || onDelete) && (
+      {isEditing && (
         <>
-          <Separator size="4" my="2" style={{ flexShrink: 0 }} />
+          <Separator size="4" mt="2" mb="3" style={{ flexShrink: 0 }} />
+          <Flex direction="column" gap="5">
+            {onExport && (
+              <Flex gap="4" align="center" wrap="wrap">
+                <Button
+                  variant="surface"
+                  color="gray"
+                  onClick={onExport}
+                  disabled={!isValid}
+                  style={{ width: "fit-content" }}
+                >
+                  Export Config
+                </Button>
+                <Text size="2" color="gray">
+                  Export this configuration as a JSON file
+                </Text>
+              </Flex>
+            )}
 
-          {onExport && (
-            <Flex direction="column" gap="2">
-              <Text size="2" weight="bold">
-                Export
-              </Text>
-              <Text size="2" color="gray">
-                Export this configuration as a JSON file
-              </Text>
-              <Button
-                variant="surface"
-                color="gray"
-                onClick={onExport}
-                disabled={!isValid}
-                style={{ width: "fit-content" }}
-              >
-                Export Config
-              </Button>
-            </Flex>
-          )}
-
-          <Separator size="4" my="2" style={{ flexShrink: 0 }} />
-
-          {onDelete && (
-            <Flex direction="column" gap="2">
-              <Text size="2" weight="bold">
-                Delete
-              </Text>
-              <Text size="2" color="gray">
-                Permanently delete this configuration
-              </Text>
-              <Button
-                variant="surface"
-                color="gray"
-                onClick={onDelete}
-                style={{ width: "fit-content" }}
-              >
-                Delete Config
-              </Button>
-            </Flex>
-          )}
+            {onDelete && (
+              <Flex gap="4" align="center" wrap="wrap">
+                <Button
+                  variant="surface"
+                  color="gray"
+                  onClick={onDelete}
+                  style={{ width: "fit-content" }}
+                >
+                  Delete Config
+                </Button>
+                <Text size="2" color="gray">
+                  Permanently delete this configuration
+                </Text>
+              </Flex>
+            )}
+          </Flex>
         </>
       )}
     </Flex>

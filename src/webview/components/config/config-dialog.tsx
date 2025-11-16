@@ -22,8 +22,16 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
   onExport,
   onDelete,
 }) => {
-  const { formData, field, updateField, toConfig, isValid } =
-    useConfigForm(editingConfig);
+  const {
+    formData,
+    field,
+    updateField,
+    toConfig,
+    isValid,
+    selectedTemplate,
+    applyTemplate,
+    templateInfoUrl,
+  } = useConfigForm(editingConfig);
 
   const handleAction = (action: (config: Configuration) => void) => () => {
     action(toConfig());
@@ -76,6 +84,9 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           onExport={editingConfig ? handleAction(onExport) : undefined}
           onDelete={editingConfig ? handleAction(onDelete) : undefined}
           isValid={isValid}
+          selectedTemplate={selectedTemplate}
+          onTemplateChange={applyTemplate}
+          templateInfoUrl={templateInfoUrl}
         />
 
         <Flex

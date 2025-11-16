@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Flex, Text } from "@radix-ui/themes";
 import { Configuration } from "@/lib/types";
-import { MODELS } from "@/lib/config";
 
 interface ConfigInfoProps {
   config: Configuration | undefined;
@@ -19,8 +18,7 @@ export const ConfigInfo: React.FC<ConfigInfoProps> = ({ config }) => {
     >
       {config.model && (
         <Text size="1" className="config-name">
-          {MODELS.find((it) => it.value === config.model)?.label ||
-            config.model}
+          {config.model}
         </Text>
       )}
       {config.maxCompletionTokens && (

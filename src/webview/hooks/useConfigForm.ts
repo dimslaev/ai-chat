@@ -1,20 +1,15 @@
 import * as React from "react";
 import { Configuration } from "@/lib/types";
-import { DEFAULT_CONFIG, MODELS } from "@/lib/config";
+import { DEFAULT_CONFIG } from "@/lib/config";
 import { ConfigurationSchema } from "@/lib/schema";
+import { CONFIG_TEMPLATES } from "@/lib/templates";
 
 type StringifyNumbers<T> = {
   [K in keyof T]: T[K] extends number ? string | number : T[K];
 };
-export type FormData = StringifyNumbers<Configuration> & {
-  customModel?: string;
-};
+export type FormData = StringifyNumbers<Configuration>;
 
 function serializeConfig(config: Configuration): FormData {
-  const isCustomModel = !MODELS.slice(0, -1).some(
-    (m) => m.value === config.model
-  );
-
   return {
     ...config,
     maxCompletionTokens: String(config.maxCompletionTokens),
@@ -23,8 +18,6 @@ function serializeConfig(config: Configuration): FormData {
     frequencyPenalty: String(config.frequencyPenalty),
     presencePenalty: String(config.presencePenalty),
     topP: String(config.topP),
-    customModel: isCustomModel && config.model !== "custom" ? config.model : "",
-    model: isCustomModel && config.model !== "custom" ? "custom" : config.model,
   };
 }
 
@@ -36,12 +29,8 @@ function deserializeFormData(formData: FormData): Configuration {
   const presencePenalty = parseFloat(String(formData.presencePenalty));
   const topP = parseFloat(String(formData.topP));
 
-  const { customModel, ...config } = formData;
-
   return {
-    ...config,
-    model:
-      formData.model === "custom" && customModel ? customModel : formData.model,
+    ...formData,
     maxCompletionTokens: isNaN(maxCompletionTokens) ? 0 : maxCompletionTokens,
     temperature: isNaN(temperature) ? 0 : temperature,
     historyLimit: isNaN(historyLimit) ? 0 : historyLimit,
@@ -55,6 +44,9 @@ export function useConfigForm(editingConfig: Configuration | null) {
   const [formData, setFormData] = React.useState<FormData>({
     ...DEFAULT_CONFIG,
   });
+  const [selectedTemplate, setSelectedTemplate] =
+    React.useState<string>("blank");
+  const [templateInfoUrl, setTemplateInfoUrl] = React.useState<string>("");
 
   React.useEffect(() => {
     const config = editingConfig
@@ -71,6 +63,20 @@ export function useConfigForm(editingConfig: Configuration | null) {
     value: FormData[K]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const applyTemplate = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    const template = CONFIG_TEMPLATES.find((t) => t.id === templateId);
+    if (template) {
+      setTemplateInfoUrl(template.infoUrl || "");
+      setFormData((prev) => ({
+        ...serializeConfig(template.template as Configuration),
+        id: prev.id,
+        name: prev.name,
+        active: prev.active,
+      }));
+    }
   };
 
   const field = (name: keyof FormData) => ({
@@ -99,5 +105,8 @@ export function useConfigForm(editingConfig: Configuration | null) {
     updateField,
     toConfig,
     isValid,
+    selectedTemplate,
+    applyTemplate,
+    templateInfoUrl,
   };
 }
