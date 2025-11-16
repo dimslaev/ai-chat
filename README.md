@@ -16,6 +16,10 @@ And because of that, it generates one focused response real quick instead of spi
 It's for when you're working on private repos and you need AI help but you also need to, you know, stay in control.
 ```
 
+## Demo
+
+https://github.com/user-attachments/assets/9f01c00e-7565-44b1-906c-131a963d3566
+
 ## Features
 
 #### Attach files and line ranges to chat
@@ -37,9 +41,3 @@ Navigate and control everything without touching your mouse - toggle attachments
 #### Token usage tracking
 
 Monitor prompt and completion tokens in real-time to stay aware of your consumption
-
-## Demo
-
-https://github.com/user-attachments/assets/9f01c00e-7565-44b1-906c-131a963d3566
-
-
