@@ -84,6 +84,12 @@ export const Message: React.FC<MessageProps> = ({
       )}
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >
+      {message.role === "user" ? (
+        <span style={{ whiteSpace: "pre-line" }}>{message.content}</span>
+      ) : (
+        <Markdown content={message.content} />
+      )}
+
       {message.role === "user" && !isEditing && (
         <IconButton
           size="2"
@@ -95,7 +101,6 @@ export const Message: React.FC<MessageProps> = ({
           <Pencil1Icon />
         </IconButton>
       )}
-      <Markdown content={message.content} />
     </Box>
   );
 };

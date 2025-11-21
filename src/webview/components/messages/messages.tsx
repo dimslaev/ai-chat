@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Callout, Spinner, Flex } from "@radix-ui/themes";
+import { Box, Callout, Spinner, Flex, IconButton } from "@radix-ui/themes";
 import { ExclamationTriangleIcon, ArrowDownIcon } from "@radix-ui/react-icons";
 import { Message } from "@/components/messages/message";
 import { useChatStore } from "@/store/chat";
@@ -35,10 +35,15 @@ export const Messages: React.FC = () => {
   }, []);
 
   // Scroll to bottom when user sends a new message
+  const isNewMessageScroll = React.useRef(false);
   React.useEffect(() => {
     if (messages.length > previousMessageCountRef.current) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage?.role === "user" && messagesRef.current) {
+        isNewMessageScroll.current = true;
+        setTimeout(() => {
+          isNewMessageScroll.current = false;
+        }, 300);
         scrollToBottom();
       }
     }
@@ -48,7 +53,7 @@ export const Messages: React.FC = () => {
   // Check if content is scrollable
   React.useEffect(() => {
     const checkScroll = () => {
-      if (messagesRef.current) {
+      if (messagesRef.current && !isNewMessageScroll.current) {
         const { scrollTop, scrollHeight, clientHeight } = messagesRef.current;
         const isScrollable = scrollHeight > clientHeight;
         const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
@@ -121,14 +126,18 @@ export const Messages: React.FC = () => {
       </Flex>
 
       {showScrollButton && isReady && (
-        <button
+        <IconButton
           className="scroll-to-bottom-button"
+          size="2"
+          variant="surface"
+          color="gray"
+          radius="full"
           onClick={() => {
             scrollToBottom();
           }}
         >
           <ArrowDownIcon />
-        </button>
+        </IconButton>
       )}
     </Box>
   );

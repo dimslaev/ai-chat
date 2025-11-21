@@ -14,13 +14,7 @@ export const CopyButton: React.FC<{ elRef: React.RefObject<HTMLElement> }> = ({
   };
 
   return (
-    <IconButton
-      size="2"
-      variant="soft"
-      color="gray"
-      className="action-button copy-button"
-      onClick={handleCopy}
-    >
+    <IconButton size="2" variant="ghost" color="gray" onClick={handleCopy}>
       {copied ? <CheckIcon /> : <CopyIcon />}
     </IconButton>
   );
