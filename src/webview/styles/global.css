@@ -25,18 +25,20 @@ body {
 
 .code-block-content {
   position: relative;
-  overflow-x: hidden;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
   transition: max-height 0.3s ease;
 }
 
 .code-block-content code {
   display: block;
   padding: 16px;
-  overflow-x: auto;
   font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.5;
   background: transparent;
+  width: fit-content;
+  min-width: 100%;
 }
 
 .code-block-footer {
