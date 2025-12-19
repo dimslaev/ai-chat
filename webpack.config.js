@@ -40,10 +40,10 @@ module.exports = (_env, argv) => {
     {
       name: "extension",
       target: "node",
-      entry: "./src/extension/extension.ts",
+      entry: "./src/extension/index.ts",
       output: {
         path: path.resolve(__dirname, "out/extension"),
-        filename: "extension.js",
+        filename: "index.js",
         libraryTarget: "commonjs2",
       },
       externals: {

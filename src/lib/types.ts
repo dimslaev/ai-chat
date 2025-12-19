@@ -45,6 +45,12 @@ export type ApiError = {
   message?: string;
 } | null;
 
+export type TokenUsageRaw = {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+};
+
 export type TokenUsage = {
   promptTokens: number;
   completionTokens: number;

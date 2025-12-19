@@ -1,10 +1,12 @@
 import { Webview, TextEditor } from "vscode";
+import OpenAI from "openai";
 import {
   vscodeApi,
   PostMessageType,
   PostMessagePayloadMap,
   Message,
   OpenAIMessage,
+  Configuration,
 } from "./types";
 
 export function postMessage<T extends PostMessageType>(
@@ -65,4 +67,23 @@ export function getImageMimeType(filename: string): string {
 
 export function isPdfFile(filename: string): boolean {
   return filename.toLowerCase().endsWith(".pdf");
+}
+
+export function sanitizeFilename(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9_\s]/g, "")
+      .replace(/\s+/g, "_")
+      .split("_")
+      .slice(0, 5)
+      .join("_") || "untitled"
+  );
+}
+
+export function createOpenAIClient(config: Configuration): OpenAI {
+  return new OpenAI({
+    apiKey: config.apiKey || "no-key",
+    baseURL: config.baseUrl,
+  });
 }

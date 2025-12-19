@@ -1,13 +1,13 @@
-import OpenAI from "openai";
 import { Configuration } from "@/lib/types";
 import { DEFAULT_CONFIG } from "@/lib/config";
-import * as State from "@/extension/state";
+import { createOpenAIClient } from "@/lib/utils";
+import * as State from "@/extension/core/state";
 
 async function load(): Promise<Configuration[]> {
   try {
-    const configs = (await State.get.context.globalState.get("aiChatConfigs")) as
-      | Configuration[]
-      | undefined;
+    const configs = (await State.get.context.globalState.get(
+      "aiChatConfigs"
+    )) as Configuration[] | undefined;
 
     if (!Array.isArray(configs) || configs.length === 0) {
       return [];
@@ -22,7 +22,6 @@ async function load(): Promise<Configuration[]> {
 
 export async function save(configs: Configuration[]): Promise<void> {
   try {
-    // Validate all configurations
     for (const config of configs) {
       const validationErrors = validate(config);
       if (validationErrors.length > 0) {
@@ -34,7 +33,6 @@ export async function save(configs: Configuration[]): Promise<void> {
       }
     }
 
-    // Ensure only one config is marked as active
     const activeConfigs = configs.filter((config) => config.active);
     if (activeConfigs.length !== 1) {
       throw new Error("Exactly one configuration must be marked as active");
@@ -43,15 +41,9 @@ export async function save(configs: Configuration[]): Promise<void> {
     await State.get.context.globalState.update("aiChatConfigs", configs);
     State.setConfigs(configs);
 
-    // Update current active config
     const activeConfig = configs.find((config) => config.active)!;
     State.setConfig(activeConfig);
-    State.setClient(
-      new OpenAI({
-        apiKey: activeConfig.apiKey || "no-key",
-        baseURL: activeConfig.baseUrl,
-      })
-    );
+    State.setClient(createOpenAIClient(activeConfig));
 
     console.log("Configurations saved successfully");
   } catch (error) {
@@ -91,12 +83,7 @@ export async function initialize(): Promise<void> {
 
     State.setConfig(activeConfig);
     State.setConfigs(configs);
-    State.setClient(
-      new OpenAI({
-        apiKey: activeConfig.apiKey || "no-key",
-        baseURL: activeConfig.baseUrl,
-      })
-    );
+    State.setClient(createOpenAIClient(activeConfig));
   } catch (error) {
     console.error("Failed to load configuration:", error);
     State.setConfig({ ...DEFAULT_CONFIG });
