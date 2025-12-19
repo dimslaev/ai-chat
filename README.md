@@ -26,6 +26,12 @@ https://github.com/user-attachments/assets/7ce375f6-2a12-4ea7-8d45-ffef16cd7804
 
 Select code directly in your editor with `CMD + K + K` to add precise context to your prompts without copying/pasting
 
+#### Attach images and PDFs
+
+Images: Sent via OpenAI's vision API (some models may not support this)
+
+PDFs: Text extracted via `pdfreader` and sent as plain text
+
 #### Create multiple model configurations
 
 Set up different profiles with custom models, system prompts, and temperatures (e.g., creative writing with high temp, strict code review with detailed instructions) and switch between them with `CMD + K + O`
