@@ -3,6 +3,11 @@ body {
   padding: 0;
 }
 
+/* Scrollbar styling */
+html {
+  scrollbar-color: var(--vscode-scrollbarSlider-background) #111114;
+}
+
 .no-hover:hover {
   background-color: transparent !important;
   border-color: transparent !important;
@@ -126,11 +131,11 @@ li code,
 }
 
 .chat-message-margin {
-  margin-bottom: calc(var(--container-height, auto) - 70px);
+  margin-bottom: calc(var(--container-height, auto) - 72px);
 }
 
 .chat-message-unmargin {
-  margin-top: calc((var(--container-height, auto) - 70px) * -1);
+  margin-top: calc((var(--container-height, auto) - 72px) * -1);
 }
 
 .scroll-to-bottom-button {
