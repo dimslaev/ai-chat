@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import * as State from "@/extension/state";
 import * as Webview from "@/extension/webview";
 import * as Config from "@/extension/config";
-import { getFileName, getEditorSelection } from "@/lib/utils";
+import { getFileName, getEditorSelection, isImageFile } from "@/lib/utils";
 
 const WEBVIEW_FOCUS_DELAY_MS = 100;
 
@@ -28,6 +28,20 @@ function registerWebviewProvider(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.window.registerWebviewViewProvider("ai-chat-view", provider)
   );
+}
+
+function getActiveTabUri(): vscode.Uri | undefined {
+  const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
+  if (!activeTab) return undefined;
+
+  const input = activeTab.input;
+  if (input instanceof vscode.TabInputText) {
+    return input.uri;
+  }
+  if (input instanceof vscode.TabInputCustom) {
+    return input.uri;
+  }
+  return undefined;
 }
 
 function registerFileChangeListener(ctx: vscode.ExtensionContext) {
@@ -57,21 +71,50 @@ function registerFileChangeListener(ctx: vscode.ExtensionContext) {
       });
     })
   );
+
+  // Listen for tab changes to detect image files
+  ctx.subscriptions.push(
+    vscode.window.tabGroups.onDidChangeTabs(() => {
+      const uri = getActiveTabUri();
+      if (uri && isImageFile(uri.path)) {
+        const fileName = getFileName(uri.path);
+        Webview.post("activeFileChanged", {
+          name: fileName,
+          fileUri: uri,
+          selections: undefined,
+        });
+      }
+    })
+  );
 }
 
 function registerCommands(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand("ai-chat.toggleSuggestedFile", () => {
       const editor = vscode.window.activeTextEditor;
+
+      let file;
       if (editor) {
         const fileName = getFileName(editor.document.uri.path);
         const selections = getEditorSelection(editor);
-        const file = {
+        file = {
           name: fileName,
           fileUri: editor.document.uri,
           selections,
         };
+      } else {
+        // Check for non-text files (like images) via active tab
+        const uri = getActiveTabUri();
+        if (uri) {
+          file = {
+            name: getFileName(uri.path),
+            fileUri: uri,
+            selections: undefined,
+          };
+        }
+      }
 
+      if (file) {
         State.toggleFile(file);
 
         Webview.post("setState", {
@@ -89,7 +132,9 @@ function registerCommands(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("ai-chat.focusInput", async () => {
       // Focus the AI Chat view (this will open it if closed)
       await vscode.commands.executeCommand("ai-chat-view.focus");
-      await new Promise((resolve) => setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS));
+      await new Promise((resolve) =>
+        setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS)
+      );
       Webview.post("focusInput");
     })
   );
@@ -98,7 +143,9 @@ function registerCommands(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("ai-chat.changeConfig", async () => {
       // Focus the AI Chat view (this will open it if closed)
       await vscode.commands.executeCommand("ai-chat-view.focus");
-      await new Promise((resolve) => setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS));
+      await new Promise((resolve) =>
+        setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS)
+      );
       Webview.post("openConfigMenu");
     })
   );

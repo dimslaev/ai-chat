@@ -49,3 +49,16 @@ export function waitFrames(cb: () => void, n: number): void {
     waitFrames(cb, n - 1);
   });
 }
+
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
+
+export function isImageFile(filename: string): boolean {
+  const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
+  return IMAGE_EXTENSIONS.includes(ext);
+}
+
+export function getImageMimeType(filename: string): string {
+  const ext = filename.toLowerCase().slice(filename.lastIndexOf(".") + 1);
+  if (ext === "jpg") return "jpeg";
+  return ext;
+}

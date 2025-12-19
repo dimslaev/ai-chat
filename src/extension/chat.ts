@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/config";
 import { OpenAIMessage, AttachedFile, OpenAIStream } from "@/lib/types";
-import { toOpenAIMessage } from "@/lib/utils";
+import { toOpenAIMessage, isImageFile, getImageMimeType } from "@/lib/utils";
 import * as State from "@/extension/state";
 
 export type CompletionHandlers = {
@@ -51,8 +51,27 @@ export async function readFiles(
   const results = await Promise.allSettled(
     files.map(async (file) => {
       const fileData = await vscode.workspace.fs.readFile(file.fileUri);
-      const fullContent = Buffer.from(fileData).toString("utf8");
 
+      // Handle image files
+      if (isImageFile(file.name)) {
+        const base64Data = Buffer.from(fileData).toString("base64");
+        const mimeType = getImageMimeType(file.name);
+        return {
+          role: "user" as const,
+          content: [
+            { type: "text" as const, text: `Image: ${file.name}` },
+            {
+              type: "image_url" as const,
+              image_url: {
+                url: `data:image/${mimeType};base64,${base64Data}`,
+              },
+            },
+          ],
+        };
+      }
+
+      // Handle text files
+      const fullContent = Buffer.from(fileData).toString("utf8");
       let fileContent = fullContent;
 
       if (file.selections && file.selections.length > 0) {
