@@ -1,7 +1,13 @@
 import * as vscode from "vscode";
+import { PdfReader } from "pdfreader";
 import { DEFAULT_SYSTEM_PROMPT } from "@/lib/config";
 import { OpenAIMessage, AttachedFile, OpenAIStream } from "@/lib/types";
-import { toOpenAIMessage, isImageFile, getImageMimeType } from "@/lib/utils";
+import {
+  toOpenAIMessage,
+  isImageFile,
+  getImageMimeType,
+  isPdfFile,
+} from "@/lib/utils";
 import * as State from "@/extension/state";
 
 export type CompletionHandlers = {
@@ -29,9 +35,7 @@ export async function prepareMessages(): Promise<OpenAIMessage[]> {
   // Add file contents as context
   if (files.length > 0) {
     const fileContents = await readFiles(files);
-    fileContents.forEach((content: OpenAIMessage) =>
-      messages.unshift(content)
-    );
+    fileContents.forEach((content: OpenAIMessage) => messages.unshift(content));
   }
 
   // Add system prompt
@@ -43,70 +47,88 @@ export async function prepareMessages(): Promise<OpenAIMessage[]> {
   return messages;
 }
 
-export async function readFiles(
-  files: AttachedFile[]
-): Promise<OpenAIMessage[]> {
-  const fileMessages: OpenAIMessage[] = [];
+function readImageFile(name: string, data: Uint8Array): OpenAIMessage {
+  const base64Data = Buffer.from(data).toString("base64");
+  const mimeType = getImageMimeType(name);
+  return {
+    role: "user",
+    content: [
+      { type: "text", text: `Image: ${name}` },
+      {
+        type: "image_url",
+        image_url: { url: `data:image/${mimeType};base64,${base64Data}` },
+      },
+    ],
+  };
+}
 
-  const results = await Promise.allSettled(
-    files.map(async (file) => {
-      const fileData = await vscode.workspace.fs.readFile(file.fileUri);
-
-      // Handle image files
-      if (isImageFile(file.name)) {
-        const base64Data = Buffer.from(fileData).toString("base64");
-        const mimeType = getImageMimeType(file.name);
-        return {
-          role: "user" as const,
-          content: [
-            { type: "text" as const, text: `Image: ${file.name}` },
-            {
-              type: "image_url" as const,
-              image_url: {
-                url: `data:image/${mimeType};base64,${base64Data}`,
-              },
-            },
-          ],
-        };
+async function readPdfFile(name: string, data: Uint8Array): Promise<OpenAIMessage> {
+  const text = await new Promise<string>((resolve, reject) => {
+    const textParts: string[] = [];
+    new PdfReader().parseBuffer(
+      Buffer.from(data),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (err: any, item: any) => {
+        if (err) {
+          reject(err);
+        } else if (!item) {
+          resolve(textParts.join(" "));
+        } else if (item.text) {
+          textParts.push(item.text);
+        }
       }
-
-      // Handle text files
-      const fullContent = Buffer.from(fileData).toString("utf8");
-      let fileContent = fullContent;
-
-      if (file.selections && file.selections.length > 0) {
-        const lines = fullContent.split("\n");
-        const selectedContent = file.selections
-          .map(({ start, end }) => {
-            const selectedLines = lines.slice(start, end + 1);
-            return `Lines ${start + 1}-${end + 1}:\n${selectedLines.join(
-              "\n"
-            )}`;
-          })
-          .join("\n\n");
-
-        fileContent = selectedContent;
-      }
-
-      return {
-        role: "user" as const,
-        content: `Context: Using file ${file.name}\n${fileContent}`,
-      };
-    })
-  );
-
-  results.forEach((result, index) => {
-    if (result.status === "fulfilled") {
-      fileMessages.push(result.value);
-    } else {
-      console.error(
-        `Failed to read file ${files[index].name}:`,
-        result.reason
-      );
-    }
+    );
   });
+  return {
+    role: "user",
+    content: `Context: PDF file ${name}\n${text}`,
+  };
+}
 
-  return fileMessages;
+function readTextFile(file: AttachedFile, data: Uint8Array): OpenAIMessage {
+  const fullContent = Buffer.from(data).toString("utf8");
+  let fileContent = fullContent;
+
+  if (file.selections && file.selections.length > 0) {
+    const lines = fullContent.split("\n");
+    fileContent = file.selections
+      .map(({ start, end }) => {
+        const selectedLines = lines.slice(start, end + 1);
+        return `Lines ${start + 1}-${end + 1}:\n${selectedLines.join("\n")}`;
+      })
+      .join("\n\n");
+  }
+
+  return {
+    role: "user",
+    content: `Context: Using file ${file.name}\n${fileContent}`,
+  };
+}
+
+async function readFile(file: AttachedFile): Promise<OpenAIMessage> {
+  const data = await vscode.workspace.fs.readFile(file.fileUri);
+
+  if (isImageFile(file.name)) {
+    return readImageFile(file.name, data);
+  }
+  if (isPdfFile(file.name)) {
+    return readPdfFile(file.name, data);
+  }
+  return readTextFile(file, data);
+}
+
+export async function readFiles(files: AttachedFile[]): Promise<OpenAIMessage[]> {
+  const results = await Promise.allSettled(files.map(readFile));
+
+  return results
+    .map((result, index) => {
+      if (result.status === "fulfilled") {
+        return result.value;
+      }
+      console.error(`Failed to read file ${files[index].name}:`, result.reason);
+      return null;
+    })
+    .filter((msg): msg is OpenAIMessage => msg !== null);
 }
 
 export async function createCompletion(

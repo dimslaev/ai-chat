@@ -62,3 +62,7 @@ export function getImageMimeType(filename: string): string {
   if (ext === "jpg") return "jpeg";
   return ext;
 }
+
+export function isPdfFile(filename: string): boolean {
+  return filename.toLowerCase().endsWith(".pdf");
+}

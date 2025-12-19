@@ -4,7 +4,12 @@ import * as vscode from "vscode";
 import * as State from "@/extension/state";
 import * as Webview from "@/extension/webview";
 import * as Config from "@/extension/config";
-import { getFileName, getEditorSelection, isImageFile } from "@/lib/utils";
+import {
+  getFileName,
+  getEditorSelection,
+  isImageFile,
+  isPdfFile,
+} from "@/lib/utils";
 
 const WEBVIEW_FOCUS_DELAY_MS = 100;
 
@@ -72,11 +77,11 @@ function registerFileChangeListener(ctx: vscode.ExtensionContext) {
     })
   );
 
-  // Listen for tab changes to detect image files
+  // Listen for tab changes to detect image and PDF files
   ctx.subscriptions.push(
     vscode.window.tabGroups.onDidChangeTabs(() => {
       const uri = getActiveTabUri();
-      if (uri && isImageFile(uri.path)) {
+      if (uri && (isImageFile(uri.path) || isPdfFile(uri.path))) {
         const fileName = getFileName(uri.path);
         Webview.post("activeFileChanged", {
           name: fileName,
