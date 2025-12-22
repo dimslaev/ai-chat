@@ -20,6 +20,7 @@ export interface ChatStore {
   configs: Configuration[];
   tokenUsage: TokenUsage;
   inputValue: string;
+  agentMode: boolean;
 
   // Pure setters
   setVscode: (vscode: vscodeApi) => void;
@@ -31,6 +32,7 @@ export interface ChatStore {
   setConfigs: (configs: Configuration[]) => void;
   setTokenUsage: (usage: TokenUsage) => void;
   setInputValue: (value: string) => void;
+  setAgentMode: (enabled: boolean) => void;
 
   // Simple state operations (no side effects)
   addMessage: (message: Message) => void;
@@ -65,6 +67,7 @@ export const useChatStore = create<ChatStore>()(
       totalTokens: 0,
     },
     inputValue: "",
+    agentMode: true,
 
     // Pure setters
     setVscode: (vscode) => set({ vscode }),
@@ -76,6 +79,7 @@ export const useChatStore = create<ChatStore>()(
     setConfigs: (configs) => set({ configs }),
     setTokenUsage: (tokenUsage) => set({ tokenUsage }),
     setInputValue: (inputValue) => set({ inputValue }),
+    setAgentMode: (agentMode) => set({ agentMode }),
 
     // Simple state operations
     addMessage: (message) =>

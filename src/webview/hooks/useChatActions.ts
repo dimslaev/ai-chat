@@ -18,6 +18,8 @@ export const useChatActions = () => {
   const addAttachedFile = useChatStore((state) => state.addAttachedFile);
   const removeAttachedFile = useChatStore((state) => state.removeAttachedFile);
   const clearChat = useChatStore((state) => state.clearChat);
+  const agentMode = useChatStore((state) => state.agentMode);
+  const setAgentMode = useChatStore((state) => state.setAgentMode);
 
   const submitMessage = useCallback(
     (content: string) => {
@@ -105,6 +107,14 @@ export const useChatActions = () => {
     postMessage(vscode, "saveChat", markdownContent);
   }, [vscode]);
 
+  const toggleAgentMode = useCallback(() => {
+    if (!vscode) return;
+
+    const newValue = !agentMode;
+    setAgentMode(newValue);
+    postMessage(vscode, "setAgentMode", newValue);
+  }, [vscode, agentMode, setAgentMode]);
+
   return {
     submitMessage,
     editMessage,
@@ -114,5 +124,7 @@ export const useChatActions = () => {
     cleanup,
     clearFiles,
     saveChat,
+    agentMode,
+    toggleAgentMode,
   };
 };

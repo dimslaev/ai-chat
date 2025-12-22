@@ -38,6 +38,7 @@ export const useChatSync = () => {
           break;
 
         case "startAssistantMessage":
+          setIsStreaming(true);
           addMessage({
             id: Date.now().toString(),
             role: "assistant",
@@ -81,7 +82,8 @@ export const useChatSync = () => {
 
             if (isAttached) {
               const fileToRemove = currentAttachedFiles.find(
-                (file) => file.fileUri.path === currentSuggestedFile.fileUri.path
+                (file) =>
+                  file.fileUri.path === currentSuggestedFile.fileUri.path
               );
               if (fileToRemove) {
                 removeAttachedFile(fileToRemove);

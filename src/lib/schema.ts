@@ -16,6 +16,10 @@ export const ConfigurationSchema = z
     frequencyPenalty: z.number().min(-2).max(2).default(0),
     presencePenalty: z.number().min(-2).max(2).default(0),
     topP: z.number().min(0).max(1).default(1),
+    toolReadFile: z.boolean().default(true),
+    toolListDirectory: z.boolean().default(true),
+    toolSearchFiles: z.boolean().default(true),
+    toolMaxRounds: z.number().int().min(1).max(10).default(5),
   })
   .loose(); // Allow extra fields for forward compatibility
 

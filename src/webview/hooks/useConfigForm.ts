@@ -18,6 +18,7 @@ function serializeConfig(config: Configuration): FormData {
     frequencyPenalty: String(config.frequencyPenalty),
     presencePenalty: String(config.presencePenalty),
     topP: String(config.topP),
+    toolMaxRounds: String(config.toolMaxRounds),
   };
 }
 
@@ -28,6 +29,7 @@ function deserializeFormData(formData: FormData): Configuration {
   const frequencyPenalty = parseFloat(String(formData.frequencyPenalty));
   const presencePenalty = parseFloat(String(formData.presencePenalty));
   const topP = parseFloat(String(formData.topP));
+  const toolMaxRounds = parseInt(String(formData.toolMaxRounds));
 
   return {
     ...formData,
@@ -37,6 +39,7 @@ function deserializeFormData(formData: FormData): Configuration {
     frequencyPenalty: isNaN(frequencyPenalty) ? 0 : frequencyPenalty,
     presencePenalty: isNaN(presencePenalty) ? 0 : presencePenalty,
     topP: isNaN(topP) ? 1 : topP,
+    toolMaxRounds: isNaN(toolMaxRounds) ? 5 : toolMaxRounds,
   };
 }
 

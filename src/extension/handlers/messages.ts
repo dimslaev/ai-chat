@@ -55,6 +55,9 @@ export function handleMessage(data: PostMessage): void {
       case "setInputValue":
         State.setInputValue(data.payload);
         break;
+      case "setAgentMode":
+        State.setAgentMode(data.payload);
+        break;
       default:
         console.warn(`Unknown message type: ${data.type}`);
     }

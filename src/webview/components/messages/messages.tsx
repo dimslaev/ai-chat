@@ -91,15 +91,17 @@ export const Messages: React.FC = () => {
           "--container-height": `${messagesRef.current?.clientHeight}px`,
         }}
       >
-        {messages.map((message: MessageType, index: number) => (
-          <Message
-            key={message.id}
-            message={message}
-            isStreaming={isStreaming}
-            isLast={index === messages.length - 1}
-            isReady={isReady}
-          />
-        ))}
+        {messages
+          .filter((message: MessageType) => !message.hidden)
+          .map((message: MessageType, index: number, visibleMessages) => (
+            <Message
+              key={message.id}
+              message={message}
+              isStreaming={isStreaming}
+              isLast={index === visibleMessages.length - 1}
+              isReady={isReady}
+            />
+          ))}
 
         {apiError && (
           <div className="chat-message-unmargin">

@@ -7,6 +7,7 @@ import {
   Separator,
   Button,
   Link,
+  Checkbox,
 } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import TextareaAutosize from "react-textarea-autosize";
@@ -37,7 +38,7 @@ interface ConfigFormProps {
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => void;
   };
-  updateField: (field: string, value: string) => void;
+  updateField: (field: string, value: any) => void;
   isEditing?: boolean;
   onExport?: () => void;
   onDelete?: () => void;
@@ -50,6 +51,7 @@ interface ConfigFormProps {
 export const ConfigForm: React.FC<ConfigFormProps> = ({
   formData,
   field,
+  updateField,
   isEditing = false,
   onExport,
   onDelete,
@@ -137,11 +139,76 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
         <TextareaAutosize
           placeholder="Use this field to set a custom system prompt"
           minRows={3}
-          maxRows={15}
+          maxRows={5}
           className="chat-textarea chat-textarea-settings"
           {...field("systemPrompt")}
         />
       </FormField>
+
+      <Flex direction="column" gap="3">
+        <Text as="div" size="2" mb="1" weight="bold">
+          Tools
+        </Text>
+        <Flex
+          gap="3"
+          wrap="wrap"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+          }}
+        >
+          <Text as="label" size="2">
+            <Flex gap="2" align="center">
+              <Checkbox
+                color="gray"
+                checked={formData.toolSearchFiles}
+                onCheckedChange={(checked) =>
+                  updateField("toolSearchFiles", checked)
+                }
+              />
+              Search files
+            </Flex>
+          </Text>
+
+          <Text as="label" size="2">
+            <Flex gap="2" align="center">
+              <Checkbox
+                color="gray"
+                checked={formData.toolReadFile}
+                onCheckedChange={(checked) =>
+                  updateField("toolReadFile", checked)
+                }
+              />
+              Read file
+            </Flex>
+          </Text>
+
+          <Text as="label" size="2">
+            <Flex gap="2" align="center">
+              <Checkbox
+                color="gray"
+                checked={formData.toolListDirectory}
+                onCheckedChange={(checked) =>
+                  updateField("toolListDirectory", checked)
+                }
+              />
+              List directory
+            </Flex>
+          </Text>
+
+          <Flex direction="row" gap="3" align="center">
+            <TextField.Root
+              type="number"
+              min="1"
+              {...field("toolMaxRounds")}
+              style={{ width: 40 }}
+            />
+            <Text as="label" size="2">
+              Max rounds
+            </Text>
+          </Flex>
+        </Flex>
+      </Flex>
 
       <Flex direction="row" gap="3">
         <FormField label="Max Completion Tokens" grow>

@@ -27,8 +27,11 @@ export type FileInfo = {
 
 export type Message = {
   id: string;
-  role: "user" | "assistant" | "system";
+  role: "user" | "assistant" | "system" | "tool";
   content: string;
+  hidden?: boolean;
+  toolCallId?: string; // For tool role messages
+  toolCalls?: Array<{ id: string; name: string; arguments: string }>; // For assistant messages with tool calls
 };
 
 export type AttachedFile = {
@@ -76,8 +79,9 @@ export type PostMessageType =
   | "cleanup"
   | "saveConfigs"
   | "getConfigs"
-  | "saveChat"
   | "exportConfig"
+  | "saveChat"
+  | "setAgentMode"
   | "setInputValue"
   | "tokenUsage";
 
@@ -105,6 +109,7 @@ export type PostMessagePayloadMap = {
   getConfigs: Configuration[];
   saveChat: string;
   exportConfig: Configuration;
+  setAgentMode: boolean;
   setInputValue: string;
   tokenUsage: TokenUsage;
   toggleSuggestedFile: undefined;

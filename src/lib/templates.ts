@@ -1,5 +1,5 @@
 import { Configuration } from "./types";
-import { DEFAULT_SYSTEM_PROMPT } from "./config";
+import { DEFAULT_SYSTEM_PROMPT } from "./prompts";
 
 export type ConfigTemplate = Omit<Configuration, "id" | "name" | "active">;
 

@@ -18,8 +18,34 @@ export function postMessage<T extends PostMessageType>(
 }
 
 export function toOpenAIMessage(message: Message): OpenAIMessage {
-  const { id, ...rest } = message;
-  return rest;
+  if (message.role === "tool" && message.toolCallId) {
+    return {
+      role: "tool",
+      tool_call_id: message.toolCallId,
+      content: message.content,
+    };
+  }
+
+  if (
+    message.role === "assistant" &&
+    message.toolCalls &&
+    message.toolCalls.length > 0
+  ) {
+    return {
+      role: "assistant",
+      content: message.content || "",
+      tool_calls: message.toolCalls.map((tc) => ({
+        id: tc.id,
+        type: "function" as const,
+        function: { name: tc.name, arguments: tc.arguments },
+      })),
+    };
+  }
+
+  return {
+    role: message.role as "user" | "assistant" | "system",
+    content: message.content,
+  };
 }
 
 export function getFileName(path: string): string {
