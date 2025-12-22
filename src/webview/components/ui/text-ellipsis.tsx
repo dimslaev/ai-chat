@@ -1,5 +1,5 @@
-import * as React from "react";
 import { Text } from "@radix-ui/themes";
+import * as React from "react";
 
 type TextEllipsisProps = React.ComponentProps<typeof Text> & {
   maxWidth?: string | number;

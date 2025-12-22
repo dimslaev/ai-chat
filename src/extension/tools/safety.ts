@@ -1,17 +1,17 @@
 // Patterns for sensitive files that should never be read
 const SENSITIVE_PATTERNS = [
-  /\.env($|\.)/i,           // .env, .env.local, .env.production, etc.
-  /\.pem$/i,                // SSL certificates
-  /\.key$/i,                // Private keys
-  /\.p12$/i,                // PKCS12 files
-  /\.pfx$/i,                // PFX certificates
-  /credentials/i,           // credentials.json, etc.
-  /secrets?\.json$/i,       // secrets.json, secret.json
-  /\.npmrc$/i,              // NPM auth tokens
-  /\.netrc$/i,              // Network credentials
-  /id_rsa/i,                // SSH keys
-  /id_ed25519/i,            // SSH keys
-  /\.ssh\//i,               // SSH directory
+  /\.env($|\.)/i, // .env, .env.local, .env.production, etc.
+  /\.pem$/i, // SSL certificates
+  /\.key$/i, // Private keys
+  /\.p12$/i, // PKCS12 files
+  /\.pfx$/i, // PFX certificates
+  /credentials/i, // credentials.json, etc.
+  /secrets?\.json$/i, // secrets.json, secret.json
+  /\.npmrc$/i, // NPM auth tokens
+  /\.netrc$/i, // Network credentials
+  /id_rsa/i, // SSH keys
+  /id_ed25519/i, // SSH keys
+  /\.ssh\//i, // SSH directory
 ];
 
 // Directories to ignore
@@ -31,7 +31,7 @@ const IGNORED_DIRS = [
   "venv",
   ".venv",
   "vendor",
-  "target",           // Rust
+  "target", // Rust
   ".gradle",
   ".idea",
   ".vscode",
@@ -50,7 +50,7 @@ export function isIgnoredPath(filePath: string): boolean {
 }
 
 export function filterEntries(
-  entries: Array<{ name: string; type: "file" | "directory" }>
+  entries: Array<{ name: string; type: "file" | "directory" }>,
 ): Array<{ name: string; type: "file" | "directory" }> {
   return entries.filter(({ name, type }) => {
     if (type === "directory" && IGNORED_DIRS.includes(name)) return false;

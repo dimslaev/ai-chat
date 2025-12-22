@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { Stream } from "openai/streaming";
 import * as vscode from "vscode";
 import { z } from "zod";
+
 import { ConfigurationSchema } from "./schema";
 
 /* VSCode */

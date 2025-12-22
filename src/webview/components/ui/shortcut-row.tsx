@@ -1,5 +1,5 @@
-import * as React from "react";
 import { Kbd, Text } from "@radix-ui/themes";
+import * as React from "react";
 
 interface ShortcutRowProps {
   keys: string;

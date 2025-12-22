@@ -1,7 +1,8 @@
 import { useCallback } from "react";
-import { useChatStore } from "@/store/chat";
-import { postMessage } from "@/lib/utils";
+
 import { AttachedFile, Message } from "@/lib/types";
+import { postMessage } from "@/lib/utils";
+import { useChatStore } from "@/store/chat";
 
 /**
  * Hook for user-triggered chat actions with side effects
@@ -36,7 +37,7 @@ export const useChatActions = () => {
       addMessage(newMessage);
       postMessage(vscode, "sendMessage", newMessage);
     },
-    [vscode, isStreaming, setIsStreaming, addMessage]
+    [vscode, isStreaming, setIsStreaming, addMessage],
   );
 
   const editMessage = useCallback(
@@ -47,7 +48,7 @@ export const useChatActions = () => {
       updateMessage(id, content);
       postMessage(vscode, "editMessage", { id, content: content.trim() });
     },
-    [vscode, isStreaming, setIsStreaming, updateMessage]
+    [vscode, isStreaming, setIsStreaming, updateMessage],
   );
 
   const stopStream = useCallback(() => {
@@ -71,7 +72,7 @@ export const useChatActions = () => {
       removeAttachedFile(file);
       postMessage(vscode, "removeAttachedFile", file);
     },
-    [vscode, removeAttachedFile]
+    [vscode, removeAttachedFile],
   );
 
   const cleanup = useCallback(() => {

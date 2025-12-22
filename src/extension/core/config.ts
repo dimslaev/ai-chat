@@ -1,12 +1,12 @@
-import { Configuration } from "@/lib/types";
-import { DEFAULT_CONFIG } from "@/lib/config";
-import { createOpenAIClient } from "@/lib/utils";
 import * as State from "@/extension/core/state";
+import { DEFAULT_CONFIG } from "@/lib/config";
+import { Configuration } from "@/lib/types";
+import { createOpenAIClient } from "@/lib/utils";
 
 async function load(): Promise<Configuration[]> {
   try {
     const configs = (await State.get.context.globalState.get(
-      "aiChatConfigs"
+      "aiChatConfigs",
     )) as Configuration[] | undefined;
 
     if (!Array.isArray(configs) || configs.length === 0) {
@@ -27,8 +27,8 @@ export async function save(configs: Configuration[]): Promise<void> {
       if (validationErrors.length > 0) {
         throw new Error(
           `Invalid configuration "${config.name}": ${validationErrors.join(
-            ", "
-          )}`
+            ", ",
+          )}`,
         );
       }
     }

@@ -17,7 +17,7 @@ For refactoring requests, provide the refactored code and a very short summary o
 Always deliver clear, concise and efficient answers.`;
 
 export function formatToolResultsForPrompt(
-  toolResults: Array<{ name: string; result: unknown; error?: string }>
+  toolResults: Array<{ name: string; result: unknown; error?: string }>,
 ): string {
   if (toolResults.length === 0) {
     return "";

@@ -1,7 +1,8 @@
-import * as React from "react";
 import { Button } from "@radix-ui/themes";
-import { AttachedFile } from "@/lib/types";
+import * as React from "react";
+
 import { TextEllipsis } from "@/components/ui/text-ellipsis";
+import { AttachedFile } from "@/lib/types";
 
 interface FileButtonProps {
   file: AttachedFile;

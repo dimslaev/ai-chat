@@ -1,13 +1,14 @@
-import * as React from "react";
 import { Flex } from "@radix-ui/themes";
-import { Messages } from "@/components/messages/messages";
-import { EmptyState } from "@/components/messages/empty-state";
+import * as React from "react";
+
 import { Config, ConfigRef } from "@/components/config/config";
 import { Context } from "@/components/context/context";
 import { Input } from "@/components/input/input";
-import { useChatSync } from "@/hooks/useChatSync";
-import { useChatStore } from "@/store/chat";
+import { EmptyState } from "@/components/messages/empty-state";
+import { Messages } from "@/components/messages/messages";
+import { useChatSync } from "@/hooks/use-chat-sync";
 import { PostMessage } from "@/lib/types";
+import { useChatStore } from "@/store/chat";
 
 export const Container: React.FC = () => {
   const inputRef = React.useRef<HTMLTextAreaElement>(null);

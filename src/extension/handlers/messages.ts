@@ -1,20 +1,21 @@
 import * as vscode from "vscode";
-import {
-  PostMessage,
-  AttachedFile,
-  Message,
-  PostMessageType,
-  PostMessagePayloadMap,
-  TokenUsageRaw,
-} from "@/lib/types";
-import * as State from "@/extension/core/state";
+
 import * as Config from "@/extension/core/config";
+import * as State from "@/extension/core/state";
 import { createCompletion } from "@/extension/services/completion";
 import {
-  saveChatToFile,
   exportConfigToFile,
-} from "@/extension/services/fileWriter";
-import { postMessage, getFileName, getEditorSelection } from "@/lib/utils";
+  saveChatToFile,
+} from "@/extension/services/file-writer";
+import {
+  AttachedFile,
+  Message,
+  PostMessage,
+  PostMessagePayloadMap,
+  PostMessageType,
+  TokenUsageRaw,
+} from "@/lib/types";
+import { getEditorSelection, getFileName, postMessage } from "@/lib/utils";
 
 export function handleMessage(data: PostMessage): void {
   try {
@@ -109,7 +110,7 @@ async function handleEditMessage(payload: {
   content: string;
 }): Promise<void> {
   const messageIndex = State.get.history.findIndex(
-    (msg: Message) => msg.id === payload.id
+    (msg: Message) => msg.id === payload.id,
   );
 
   if (messageIndex === -1) return;
@@ -159,7 +160,7 @@ function cleanup(): void {
 
 export function post<T extends PostMessageType>(
   type: T,
-  payload?: PostMessagePayloadMap[T]
+  payload?: PostMessagePayloadMap[T],
 ): void {
   postMessage(State.get.webview, type, payload);
 }

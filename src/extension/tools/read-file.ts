@@ -1,7 +1,8 @@
-import * as vscode from "vscode";
 import * as path from "path";
+import * as vscode from "vscode";
+
+import { isIgnoredPath,isSensitivePath } from "./safety";
 import { defineTool } from "./tool";
-import { isSensitivePath, isIgnoredPath } from "./safety";
 
 type Args = { path: string };
 
@@ -33,7 +34,9 @@ export const readFileTool = defineTool<Args>({
       throw new Error("Cannot read sensitive files (env, credentials, keys)");
     }
     if (isIgnoredPath(inputPath)) {
-      throw new Error("Cannot read files in ignored directories (node_modules, dist, etc.)");
+      throw new Error(
+        "Cannot read files in ignored directories (node_modules, dist, etc.)",
+      );
     }
 
     const resolvedPath = resolveWorkspacePath(inputPath);

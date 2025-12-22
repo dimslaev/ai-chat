@@ -1,10 +1,11 @@
-import * as vscode from "vscode";
 import OpenAI from "openai";
+import * as vscode from "vscode";
+
 import { DEFAULT_CONFIG } from "@/lib/config";
 import {
-  Message,
   AttachedFile,
   Configuration,
+  Message,
   TokenUsageRaw,
 } from "@/lib/types";
 
@@ -129,7 +130,7 @@ export function removeFile(filePath: string): void {
 
 export function toggleFile(file: AttachedFile): void {
   const existingIndex = _files.findIndex(
-    (f) => f.fileUri.path === file.fileUri.path
+    (f) => f.fileUri.path === file.fileUri.path,
   );
   if (existingIndex !== -1) {
     _files.splice(existingIndex, 1);

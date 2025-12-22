@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+
 import {
-  Message,
-  AttachedFile,
   ApiError,
-  vscodeApi,
+  AttachedFile,
   Configuration,
+  Message,
   TokenUsage,
+  vscodeApi,
 } from "@/lib/types";
 
 export interface ChatStore {
@@ -116,7 +117,7 @@ export const useChatStore = create<ChatStore>()(
     removeAttachedFile: (fileToRemove) =>
       set((state) => ({
         attachedFiles: state.attachedFiles.filter(
-          (file) => file.fileUri.path !== fileToRemove.fileUri.path
+          (file) => file.fileUri.path !== fileToRemove.fileUri.path,
         ),
       })),
 
@@ -142,5 +143,5 @@ export const useChatStore = create<ChatStore>()(
         inputValue: state.inputValue || "",
         apiError: null,
       }),
-  }))
+  })),
 );

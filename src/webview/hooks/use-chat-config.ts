@@ -1,8 +1,9 @@
 import { useCallback } from "react";
-import { useChatStore } from "@/store/chat";
-import { postMessage } from "@/lib/utils";
+
+import { parseImportConfig,validateConfigStrict } from "@/lib/schema";
 import { Configuration } from "@/lib/types";
-import { validateConfigStrict, parseImportConfig } from "@/lib/schema";
+import { postMessage } from "@/lib/utils";
+import { useChatStore } from "@/store/chat";
 
 export const useChatConfig = () => {
   const vscode = useChatStore((state) => state.vscode);
@@ -16,7 +17,7 @@ export const useChatConfig = () => {
       setConfigs(configs);
       postMessage(vscode, "saveConfigs", configs);
     },
-    [vscode, setConfigs]
+    [vscode, setConfigs],
   );
 
   const selectConfig = useCallback(
@@ -27,7 +28,7 @@ export const useChatConfig = () => {
       }));
       saveConfigs(updatedConfigs);
     },
-    [configs, saveConfigs]
+    [configs, saveConfigs],
   );
 
   const deleteConfig = useCallback(
@@ -39,7 +40,7 @@ export const useChatConfig = () => {
       }
       saveConfigs(updatedConfigs);
     },
-    [configs, saveConfigs]
+    [configs, saveConfigs],
   );
 
   const createConfig = useCallback(
@@ -50,18 +51,18 @@ export const useChatConfig = () => {
       updatedConfigs.push({ ...validatedConfig, active: true });
       saveConfigs(updatedConfigs);
     },
-    [configs, saveConfigs]
+    [configs, saveConfigs],
   );
 
   const updateConfig = useCallback(
     (config: Configuration) => {
       const validatedConfig = validateConfigStrict(config);
       const updatedConfigs = configs.map((c) =>
-        c.id === validatedConfig.id ? validatedConfig : c
+        c.id === validatedConfig.id ? validatedConfig : c,
       );
       saveConfigs(updatedConfigs);
     },
-    [configs, saveConfigs]
+    [configs, saveConfigs],
   );
 
   const importConfig = useCallback(
@@ -84,7 +85,7 @@ export const useChatConfig = () => {
       updatedConfigs.push(newConfig);
       saveConfigs(updatedConfigs);
     },
-    [configs, saveConfigs]
+    [configs, saveConfigs],
   );
 
   const exportConfig = useCallback(
@@ -93,7 +94,7 @@ export const useChatConfig = () => {
 
       postMessage(vscode, "exportConfig", config);
     },
-    [vscode]
+    [vscode],
   );
 
   return {

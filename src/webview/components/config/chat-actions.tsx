@@ -1,12 +1,13 @@
-import * as React from "react";
-import { Flex, IconButton, Tooltip } from "@radix-ui/themes";
 import {
   DownloadIcon,
-  ReloadIcon,
   LightningBoltIcon,
+  ReloadIcon,
 } from "@radix-ui/react-icons";
+import { Flex, IconButton, Tooltip } from "@radix-ui/themes";
+import * as React from "react";
+
+import { useChatActions } from "@/hooks/use-chat-actions";
 import { useChatStore } from "@/store/chat";
-import { useChatActions } from "@/hooks/useChatActions";
 
 export const ChatActions: React.FC = () => {
   const messages = useChatStore((state) => state.messages);

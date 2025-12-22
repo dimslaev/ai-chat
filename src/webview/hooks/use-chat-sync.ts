@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { useChatStore } from "@/store/chat";
-import { postMessage } from "@/lib/utils";
+
 import { PostMessage } from "@/lib/types";
+import { postMessage } from "@/lib/utils";
+import { useChatStore } from "@/store/chat";
 
 /**
  * Hook for VSCode message synchronization
@@ -17,7 +18,7 @@ export const useChatSync = () => {
   const setTokenUsage = useChatStore((state) => state.setTokenUsage);
   const addMessage = useChatStore((state) => state.addMessage);
   const appendToLastMessage = useChatStore(
-    (state) => state.appendToLastMessage
+    (state) => state.appendToLastMessage,
   );
   const restoreState = useChatStore((state) => state.restoreState);
   const addAttachedFile = useChatStore((state) => state.addAttachedFile);
@@ -71,19 +72,19 @@ export const useChatSync = () => {
           setTokenUsage(payload);
           break;
 
-        case "toggleSuggestedFile":
+        case "toggleSuggestedFile": {
           const currentSuggestedFile = useChatStore.getState().suggestedFile;
           const currentAttachedFiles = useChatStore.getState().attachedFiles;
 
           if (currentSuggestedFile) {
             const isAttached = currentAttachedFiles.some(
-              (file) => file.fileUri.path === currentSuggestedFile.fileUri.path
+              (file) => file.fileUri.path === currentSuggestedFile.fileUri.path,
             );
 
             if (isAttached) {
               const fileToRemove = currentAttachedFiles.find(
                 (file) =>
-                  file.fileUri.path === currentSuggestedFile.fileUri.path
+                  file.fileUri.path === currentSuggestedFile.fileUri.path,
               );
               if (fileToRemove) {
                 removeAttachedFile(fileToRemove);
@@ -95,6 +96,7 @@ export const useChatSync = () => {
             }
           }
           break;
+        }
       }
     };
 

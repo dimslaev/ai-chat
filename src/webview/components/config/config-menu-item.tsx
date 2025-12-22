@@ -1,6 +1,7 @@
-import * as React from "react";
-import { Flex, DropdownMenu, IconButton } from "@radix-ui/themes";
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
+import { DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
+import * as React from "react";
+
 import { Configuration } from "@/lib/types";
 
 interface ConfigMenuItemProps {

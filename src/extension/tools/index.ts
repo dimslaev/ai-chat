@@ -1,8 +1,9 @@
 import OpenAI from "openai";
-import { BaseTool } from "./tool";
+
 import { listDirectoryTool } from "./list-directory";
 import { readFileTool } from "./read-file";
 import { searchFilesTool } from "./search";
+import { BaseTool } from "./tool";
 
 export type ToolResult = { name: string; result: unknown; error?: string };
 
@@ -21,7 +22,7 @@ const toolRegistry = new Map<string, BaseTool>([
 
 // Get enabled tools based on config
 export function getEnabledTools(
-  config: ToolConfig
+  config: ToolConfig,
 ): OpenAI.ChatCompletionTool[] {
   const enabled: BaseTool[] = [];
 
@@ -62,7 +63,7 @@ export async function executeToolCall(call: {
 }
 
 // Re-export for external use
-export { BaseTool, defineTool } from "./tool";
 export { listDirectoryTool } from "./list-directory";
 export { readFileTool } from "./read-file";
 export { searchFilesTool } from "./search";
+export { BaseTool, defineTool } from "./tool";

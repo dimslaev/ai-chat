@@ -1,10 +1,11 @@
+import { ArrowDownIcon,ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { Box, Callout, Flex, IconButton,Spinner } from "@radix-ui/themes";
 import * as React from "react";
-import { Box, Callout, Spinner, Flex, IconButton } from "@radix-ui/themes";
-import { ExclamationTriangleIcon, ArrowDownIcon } from "@radix-ui/react-icons";
+
 import { Message } from "@/components/messages/message";
-import { useChatStore } from "@/store/chat";
 import { Message as MessageType } from "@/lib/types";
 import { waitFrames } from "@/lib/utils";
+import { useChatStore } from "@/store/chat";
 
 export const Messages: React.FC = () => {
   const messages = useChatStore((state) => state.messages);
@@ -87,7 +88,7 @@ export const Messages: React.FC = () => {
         style={{
           height: "100%",
           overflowY: "auto",
-          // @ts-expect-error
+          // @ts-expect-error unknown property
           "--container-height": `${messagesRef.current?.clientHeight}px`,
         }}
       >

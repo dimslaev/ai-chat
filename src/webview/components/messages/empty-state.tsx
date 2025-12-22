@@ -1,7 +1,8 @@
-import React from "react";
 import { Flex } from "@radix-ui/themes";
-import { useChatStore } from "@/store/chat";
+import React from "react";
+
 import { ShortcutRow } from "@/components/ui/shortcut-row";
+import { useChatStore } from "@/store/chat";
 
 export const EmptyState: React.FC = React.memo(() => {
   const messages = useChatStore((state) => state.messages);

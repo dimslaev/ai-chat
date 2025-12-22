@@ -30,7 +30,7 @@ export function migrateConfig(raw: any): any {
   if (migrated.maxTokens && !migrated.maxCompletionTokens) {
     migrated.maxCompletionTokens = migrated.maxTokens;
     console.log(
-      `[Config Migration] Migrated maxTokens (${migrated.maxTokens}) to maxCompletionTokens`
+      `[Config Migration] Migrated maxTokens (${migrated.maxTokens}) to maxCompletionTokens`,
     );
   }
 
@@ -84,7 +84,7 @@ export function cleanExportConfig(config: z.infer<typeof ConfigurationSchema>) {
 }
 
 export function validateConfigStrict(
-  config: unknown
+  config: unknown,
 ): z.infer<typeof ConfigurationSchema> {
   return ConfigurationSchema.parse(config);
 }

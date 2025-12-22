@@ -33,7 +33,9 @@ export function defineTool<T extends Record<string, unknown>>(config: {
     name: config.name,
     description: config.description,
     parameters: config.parameters,
-    execute: config.execute as (args: Record<string, unknown>) => Promise<unknown>,
+    execute: config.execute as (
+      args: Record<string, unknown>,
+    ) => Promise<unknown>,
     toOpenAI: () => ({
       type: "function",
       function: {

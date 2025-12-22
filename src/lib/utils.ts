@@ -1,18 +1,19 @@
-import { Webview, TextEditor } from "vscode";
 import OpenAI from "openai";
+import { TextEditor,Webview } from "vscode";
+
 import {
-  vscodeApi,
-  PostMessageType,
-  PostMessagePayloadMap,
+  Configuration,
   Message,
   OpenAIMessage,
-  Configuration,
+  PostMessagePayloadMap,
+  PostMessageType,
+  vscodeApi,
 } from "./types";
 
 export function postMessage<T extends PostMessageType>(
   target: vscodeApi | Webview,
   type: T,
-  payload?: PostMessagePayloadMap[T]
+  payload?: PostMessagePayloadMap[T],
 ) {
   target.postMessage({ type, payload });
 }
@@ -58,7 +59,7 @@ export function getEditorSelection(editor: TextEditor) {
       (selection) =>
         !selection.isEmpty &&
         (selection.start.line !== selection.end.line ||
-          selection.end.character - selection.start.character > 0)
+          selection.end.character - selection.start.character > 0),
     )
     .map((selection) => ({
       start: selection.start.line,

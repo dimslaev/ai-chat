@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+
 import * as State from "@/extension/core/state";
 import { handleMessage } from "@/extension/handlers/messages";
 
@@ -22,7 +23,7 @@ export function setup(webviewView: vscode.WebviewView): void {
       State.get.abort.abort();
     },
     null,
-    context.subscriptions
+    context.subscriptions,
   );
 
   State.setWebview(webview);
@@ -30,12 +31,12 @@ export function setup(webviewView: vscode.WebviewView): void {
 
 function getHtml(
   webview: vscode.Webview,
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ): string {
   const webviewUri = vscode.Uri.joinPath(
     context.extensionUri,
     "out",
-    "webview.js"
+    "webview.js",
   );
   const scriptUri = webview.asWebviewUri(webviewUri);
 

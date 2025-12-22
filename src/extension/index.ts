@@ -1,13 +1,14 @@
 "use strict";
 
 import * as vscode from "vscode";
-import * as State from "@/extension/core/state";
+
 import * as Config from "@/extension/core/config";
-import { setup as setupWebview } from "@/extension/webview/provider";
+import * as State from "@/extension/core/state";
 import {
   registerCommands,
   registerFileChangeListener,
 } from "@/extension/handlers/commands";
+import { setup as setupWebview } from "@/extension/webview/provider";
 
 async function init(ctx: vscode.ExtensionContext): Promise<void> {
   State.setContext(ctx);
@@ -27,7 +28,7 @@ async function init(ctx: vscode.ExtensionContext): Promise<void> {
 function registerWebviewProvider(ctx: vscode.ExtensionContext): void {
   const provider = { resolveWebviewView: setupWebview };
   ctx.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("ai-chat-view", provider)
+    vscode.window.registerWebviewViewProvider("ai-chat-view", provider),
   );
 }
 

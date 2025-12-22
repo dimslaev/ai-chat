@@ -1,5 +1,6 @@
-import * as React from "react";
 import { Flex, Text } from "@radix-ui/themes";
+import * as React from "react";
+
 import { Configuration } from "@/lib/types";
 
 interface ConfigInfoProps {

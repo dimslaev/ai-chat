@@ -1,9 +1,10 @@
-import * as React from "react";
-import { Dialog, Button, Flex } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import { Configuration } from "@/lib/types";
-import { useConfigForm } from "@/hooks/useConfigForm";
+import { Button, Dialog, Flex } from "@radix-ui/themes";
+import * as React from "react";
+
 import { ConfigForm } from "@/components/config/config-form";
+import { useConfigForm } from "@/hooks/use-config-form";
+import { Configuration } from "@/lib/types";
 
 interface ConfigDialogProps {
   open: boolean;

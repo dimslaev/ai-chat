@@ -1,8 +1,9 @@
 import * as React from "react";
-import { Configuration } from "@/lib/types";
+
 import { DEFAULT_CONFIG } from "@/lib/config";
 import { ConfigurationSchema } from "@/lib/schema";
 import { CONFIG_TEMPLATES } from "@/lib/templates";
+import { Configuration } from "@/lib/types";
 
 type StringifyNumbers<T> = {
   [K in keyof T]: T[K] extends number ? string | number : T[K];
@@ -63,7 +64,7 @@ export function useConfigForm(editingConfig: Configuration | null) {
 
   const updateField = <K extends keyof FormData>(
     field: K,
-    value: FormData[K]
+    value: FormData[K],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -85,7 +86,7 @@ export function useConfigForm(editingConfig: Configuration | null) {
   const field = (name: keyof FormData) => ({
     value: formData[name] ?? "",
     onChange: (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
       updateField(name, e.target.value as FormData[typeof name]);
     },

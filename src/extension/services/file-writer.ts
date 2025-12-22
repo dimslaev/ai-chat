@@ -1,13 +1,14 @@
 import * as vscode from "vscode";
-import { Configuration } from "@/lib/types";
+
+import { generateChatTitle } from "@/extension/services/title-generator";
 import { cleanExportConfig } from "@/lib/schema";
+import { Configuration } from "@/lib/types";
 import { sanitizeFilename } from "@/lib/utils";
-import { generateChatTitle } from "@/extension/services/titleGenerator";
 
 async function saveFileToWorkspace(
   fileName: string,
   content: string,
-  fileType: string
+  fileType: string,
 ): Promise<void> {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 
@@ -23,8 +24,8 @@ async function saveFileToWorkspace(
       fileType === "md"
         ? "Markdown Files"
         : fileType === "json"
-        ? "JSON Files"
-        : "All Files";
+          ? "JSON Files"
+          : "All Files";
     filters[filterLabel] = [fileType];
 
     const saveUri = await vscode.window.showSaveDialog({
@@ -35,7 +36,7 @@ async function saveFileToWorkspace(
     if (saveUri) {
       await vscode.workspace.fs.writeFile(
         saveUri,
-        Buffer.from(content, "utf8")
+        Buffer.from(content, "utf8"),
       );
 
       const document = await vscode.workspace.openTextDocument(saveUri);
@@ -46,7 +47,7 @@ async function saveFileToWorkspace(
 
 export async function saveChatToFile(
   markdownContent: string,
-  onError: (error: unknown) => void
+  onError: (error: unknown) => void,
 ): Promise<void> {
   try {
     const title = await generateChatTitle();
@@ -60,7 +61,7 @@ export async function saveChatToFile(
 
 export async function exportConfigToFile(
   config: Configuration,
-  onError: (error: unknown) => void
+  onError: (error: unknown) => void,
 ): Promise<void> {
   try {
     const cleanedConfig = cleanExportConfig(config);

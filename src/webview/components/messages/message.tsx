@@ -1,18 +1,19 @@
+import { Pencil1Icon } from "@radix-ui/react-icons";
+import { Box, IconButton } from "@radix-ui/themes";
+import cn from "classnames";
 import * as React from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { Box, IconButton } from "@radix-ui/themes";
-import { Message as MessageType } from "@/lib/types";
-import { Pencil1Icon } from "@radix-ui/react-icons";
-import { useChatActions } from "@/hooks/useChatActions";
-import { useChatStore } from "@/store/chat";
+
 import { Markdown } from "@/components/messages//markdown";
-import cn from "classnames";
+import { useChatActions } from "@/hooks/use-chat-actions";
+import { Message as MessageType } from "@/lib/types";
+import { useChatStore } from "@/store/chat";
 
 interface MessageProps {
   message: MessageType;
-  isStreaming: Boolean;
-  isReady: Boolean;
-  isLast: Boolean;
+  isStreaming: boolean;
+  isReady: boolean;
+  isLast: boolean;
 }
 
 export const Message: React.FC<MessageProps> = ({
@@ -80,7 +81,7 @@ export const Message: React.FC<MessageProps> = ({
         `chat-message-${message.role}`,
         message.role === "user" && "chat-message-margin",
         message.role === "assistant" && "chat-message-unmargin",
-        isStreaming && "chat-message-streaming"
+        isStreaming && "chat-message-streaming",
       )}
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >

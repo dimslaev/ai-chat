@@ -1,9 +1,10 @@
+import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
+import { Flex,IconButton } from "@radix-ui/themes";
 import * as React from "react";
 import TextareaAutosize from "react-textarea-autosize";
-import { IconButton, Flex } from "@radix-ui/themes";
-import { PaperPlaneIcon, StopIcon } from "@radix-ui/react-icons";
+
+import { useChatActions } from "@/hooks/use-chat-actions";
 import { useChatStore } from "@/store/chat";
-import { useChatActions } from "@/hooks/useChatActions";
 
 interface InputProps {
   inputRef?: React.RefObject<HTMLTextAreaElement>;
@@ -20,7 +21,7 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
 
   const activeConfig = configs.find((it) => it.active);
   const isModelConfigured = Boolean(
-    activeConfig?.model && activeConfig?.baseUrl
+    activeConfig?.model && activeConfig?.baseUrl,
   );
 
   const onSubmit = React.useCallback(() => {
@@ -43,7 +44,7 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
         onSubmit();
       }
     },
-    [onSubmit]
+    [onSubmit],
   );
 
   return (

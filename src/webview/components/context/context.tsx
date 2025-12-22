@@ -1,11 +1,12 @@
-import * as React from "react";
-import { Flex } from "@radix-ui/themes";
 import { Cross2Icon, PlusIcon } from "@radix-ui/react-icons";
-import { useChatStore } from "@/store/chat";
-import { useChatActions } from "@/hooks/useChatActions";
-import { AttachedFile } from "@/lib/types";
-import { TokenUsage } from "@/components/context/token-usage";
+import { Flex } from "@radix-ui/themes";
+import * as React from "react";
+
 import { FileButton } from "@/components/context/file-button";
+import { TokenUsage } from "@/components/context/token-usage";
+import { useChatActions } from "@/hooks/use-chat-actions";
+import { AttachedFile } from "@/lib/types";
+import { useChatStore } from "@/store/chat";
 
 export const Context: React.FC = React.memo(() => {
   const attachedFiles = useChatStore((state) => state.attachedFiles);
@@ -40,7 +41,7 @@ export const Context: React.FC = React.memo(() => {
         {suggestedFile &&
           !attachedFiles.some(
             (file: AttachedFile) =>
-              file.fileUri.path === suggestedFile.fileUri.path
+              file.fileUri.path === suggestedFile.fileUri.path,
           ) && (
             <FileButton
               file={suggestedFile}

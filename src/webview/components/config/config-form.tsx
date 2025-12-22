@@ -1,18 +1,19 @@
-import * as React from "react";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import {
+  Button,
+  Checkbox,
   Flex,
-  Text,
-  TextField,
+  Link,
   Select,
   Separator,
-  Button,
-  Link,
-  Checkbox,
+  Text,
+  TextField,
 } from "@radix-ui/themes";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import * as React from "react";
 import TextareaAutosize from "react-textarea-autosize";
+
+import { FormData } from "@/hooks/use-config-form";
 import { CONFIG_TEMPLATES } from "@/lib/templates";
-import { FormData } from "@/hooks/useConfigForm";
 
 const FormField: React.FC<{
   label: string;
@@ -31,11 +32,11 @@ interface ConfigFormProps {
   formData: FormData;
   field: (
     name: keyof FormData,
-    parser?: (v: string) => any
+    parser?: (v: string) => any,
   ) => {
     value: any;
     onChange: (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => void;
   };
   updateField: (field: string, value: any) => void;

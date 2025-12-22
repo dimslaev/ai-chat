@@ -1,6 +1,7 @@
-import * as React from "react";
-import { CopyButton } from "@/components/ui/copy-button";
 import { Badge, Box, Flex } from "@radix-ui/themes";
+import * as React from "react";
+
+import { CopyButton } from "@/components/ui/copy-button";
 
 export const CodeBlock: React.FC<{
   children: React.ReactNode;

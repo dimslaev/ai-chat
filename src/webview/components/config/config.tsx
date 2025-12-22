@@ -1,9 +1,10 @@
-import * as React from "react";
 import { Flex } from "@radix-ui/themes";
-import { useChatStore } from "@/store/chat";
-import { ConfigMenu, ConfigMenuRef } from "@/components/config/config-menu";
-import { ConfigInfo } from "@/components/config/config-info";
+import * as React from "react";
+
 import { ChatActions } from "@/components/config/chat-actions";
+import { ConfigInfo } from "@/components/config/config-info";
+import { ConfigMenu, ConfigMenuRef } from "@/components/config/config-menu";
+import { useChatStore } from "@/store/chat";
 
 export interface ConfigRef {
   openConfigMenu: () => void;
@@ -45,7 +46,7 @@ export const Config = React.forwardRef<ConfigRef, ConfigProps>(
         <ChatActions />
       </Flex>
     );
-  }
+  },
 );
 
 Config.displayName = "Config";

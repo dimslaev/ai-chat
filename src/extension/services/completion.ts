@@ -1,15 +1,15 @@
-import { OpenAIMessage, Message } from "@/lib/types";
-import { toOpenAIMessage } from "@/lib/utils";
 import * as State from "@/extension/core/state";
-import { readFiles } from "@/extension/services/fileReader";
+import { readFiles } from "@/extension/services/file-reader";
 import { handleStream, StreamHandlers } from "@/extension/services/stream";
-import { getEnabledTools, executeToolCall } from "@/extension/tools";
+import { executeToolCall,getEnabledTools } from "@/extension/tools";
 import { TOOL_SELECTION_PROMPT } from "@/lib/prompts";
+import { Message,OpenAIMessage } from "@/lib/types";
+import { toOpenAIMessage } from "@/lib/utils";
 
 export type CompletionHandlers = StreamHandlers;
 
 export async function prepareMessages(
-  systemPrompt: string
+  systemPrompt: string,
 ): Promise<OpenAIMessage[]> {
   const { config, history, files } = State.get;
   const toolMessages = history.filter((it) => it.role === "tool");
@@ -49,7 +49,7 @@ async function executeTools(): Promise<void> {
         tools: enabledTools,
         tool_choice: "auto",
       },
-      { signal: abort.signal }
+      { signal: abort.signal },
     );
 
     const choice = response.choices[0];
@@ -121,14 +121,14 @@ async function executeStream(handlers: StreamHandlers): Promise<void> {
       stream: true,
       stream_options: { include_usage: true },
     },
-    { signal: abort.signal }
+    { signal: abort.signal },
   );
 
   await handleStream(response, handlers);
 }
 
 export async function createCompletion(
-  handlers: CompletionHandlers
+  handlers: CompletionHandlers,
 ): Promise<void> {
   try {
     const { config, agentMode, history } = State.get;

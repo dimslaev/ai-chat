@@ -1,12 +1,13 @@
-import * as React from "react";
-import { Button, Flex, DropdownMenu } from "@radix-ui/themes";
 import { CaretDownIcon } from "@radix-ui/react-icons";
-import { useChatConfig } from "@/hooks/useChatConfig";
-import { Configuration } from "@/lib/types";
+import { Button, DropdownMenu,Flex } from "@radix-ui/themes";
+import * as React from "react";
+
 import { ConfigDialog } from "@/components/config/config-dialog";
-import { DeleteConfigDialog } from "@/components/config/delete-config-dialog";
 import { ConfigMenuItem } from "@/components/config/config-menu-item";
+import { DeleteConfigDialog } from "@/components/config/delete-config-dialog";
 import { TextEllipsis } from "@/components/ui/text-ellipsis";
+import { useChatConfig } from "@/hooks/use-chat-config";
+import { Configuration } from "@/lib/types";
 
 export interface ConfigMenuRef {
   openDropdown: () => void;
@@ -113,7 +114,7 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
           alert(
             `Failed to import config: ${
               error instanceof Error ? error.message : "invalid JSON file"
-            }`
+            }`,
           );
         }
       };
@@ -205,5 +206,5 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
         />
       </>
     );
-  }
+  },
 );

@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
+
 import * as State from "@/extension/core/state";
 import { post } from "@/extension/handlers/messages";
 import {
-  getFileName,
   getEditorSelection,
+  getFileName,
   isImageFile,
   isPdfFile,
 } from "@/lib/utils";
@@ -26,7 +27,7 @@ export function getActiveTabUri(): vscode.Uri | undefined {
 
 export function postActiveFileChanged(
   editor: vscode.TextEditor | undefined,
-  uri?: vscode.Uri
+  uri?: vscode.Uri,
 ): void {
   if (editor) {
     const fileName = getFileName(editor.document.uri.path);
@@ -81,27 +82,27 @@ export function registerCommands(ctx: vscode.ExtensionContext): void {
           inputValue: State.get.inputValue,
         });
       }
-    })
+    }),
   );
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand("ai-chat.focusInput", async () => {
       await vscode.commands.executeCommand("ai-chat-view.focus");
       await new Promise((resolve) =>
-        setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS)
+        setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS),
       );
       post("focusInput");
-    })
+    }),
   );
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand("ai-chat.changeConfig", async () => {
       await vscode.commands.executeCommand("ai-chat-view.focus");
       await new Promise((resolve) =>
-        setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS)
+        setTimeout(resolve, WEBVIEW_FOCUS_DELAY_MS),
       );
       post("openConfigMenu");
-    })
+    }),
   );
 }
 
@@ -111,13 +112,13 @@ export function registerFileChangeListener(ctx: vscode.ExtensionContext): void {
       if (editor) {
         postActiveFileChanged(editor);
       }
-    })
+    }),
   );
 
   ctx.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((event) => {
       postActiveFileChanged(event.textEditor);
-    })
+    }),
   );
 
   ctx.subscriptions.push(
@@ -126,6 +127,6 @@ export function registerFileChangeListener(ctx: vscode.ExtensionContext): void {
       if (uri && (isImageFile(uri.path) || isPdfFile(uri.path))) {
         postActiveFileChanged(undefined, uri);
       }
-    })
+    }),
   );
 }

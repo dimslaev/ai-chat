@@ -1,14 +1,17 @@
-import * as vscode from "vscode";
 import * as path from "path";
+import * as vscode from "vscode";
+
+import { filterEntries,isIgnoredPath } from "./safety";
 import { defineTool } from "./tool";
-import { isIgnoredPath, filterEntries } from "./safety";
 
 type Args = { path: string };
 
 function resolveWorkspacePath(inputPath: string): string {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (!workspaceRoot) throw new Error("No workspace folder open");
-  return path.isAbsolute(inputPath) ? inputPath : path.join(workspaceRoot, inputPath);
+  return path.isAbsolute(inputPath)
+    ? inputPath
+    : path.join(workspaceRoot, inputPath);
 }
 
 export const listDirectoryTool = defineTool<Args>({
@@ -28,7 +31,9 @@ export const listDirectoryTool = defineTool<Args>({
   },
   execute: async ({ path: inputPath }) => {
     if (isIgnoredPath(inputPath)) {
-      throw new Error("Cannot list ignored directories (node_modules, dist, etc.)");
+      throw new Error(
+        "Cannot list ignored directories (node_modules, dist, etc.)",
+      );
     }
 
     const resolvedPath = resolveWorkspacePath(inputPath);
@@ -37,7 +42,9 @@ export const listDirectoryTool = defineTool<Args>({
 
     const mapped = entries.map(([name, type]) => ({
       name,
-      type: (type === vscode.FileType.Directory ? "directory" : "file") as "file" | "directory",
+      type: (type === vscode.FileType.Directory ? "directory" : "file") as
+        | "file"
+        | "directory",
     }));
 
     return {

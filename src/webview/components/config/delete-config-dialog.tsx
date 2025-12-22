@@ -1,5 +1,6 @@
+import { Button, Dialog, Flex, Text } from "@radix-ui/themes";
 import * as React from "react";
-import { Dialog, Button, Flex, Text } from "@radix-ui/themes";
+
 import { Configuration } from "@/lib/types";
 
 interface DeleteConfigDialogProps {

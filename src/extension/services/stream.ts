@@ -1,5 +1,5 @@
-import { OpenAIStream, Message } from "@/lib/types";
 import * as State from "@/extension/core/state";
+import { Message,OpenAIStream } from "@/lib/types";
 
 export type StreamHandlers = {
   onStart: () => void;
@@ -25,7 +25,7 @@ function finalizeResponse(reply: string, history: Message[]): void {
 
 export async function handleStream(
   stream: OpenAIStream,
-  handlers: StreamHandlers
+  handlers: StreamHandlers,
 ): Promise<void> {
   const { history, abort } = State.get;
   let reply = "";

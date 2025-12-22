@@ -1,7 +1,8 @@
-import * as vscode from "vscode";
 import { PdfReader } from "pdfreader";
-import { OpenAIMessage, AttachedFile } from "@/lib/types";
-import { isImageFile, getImageMimeType, isPdfFile } from "@/lib/utils";
+import * as vscode from "vscode";
+
+import { AttachedFile,OpenAIMessage } from "@/lib/types";
+import { getImageMimeType, isImageFile, isPdfFile } from "@/lib/utils";
 
 function readImageFile(name: string, data: Uint8Array): OpenAIMessage {
   const base64Data = Buffer.from(data).toString("base64");
@@ -20,23 +21,19 @@ function readImageFile(name: string, data: Uint8Array): OpenAIMessage {
 
 async function readPdfFile(
   name: string,
-  data: Uint8Array
+  data: Uint8Array,
 ): Promise<OpenAIMessage> {
   const text = await new Promise<string>((resolve, reject) => {
     const textParts: string[] = [];
-    new PdfReader().parseBuffer(
-      Buffer.from(data),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err: any, item: any) => {
-        if (err) {
-          reject(err);
-        } else if (!item) {
-          resolve(textParts.join(" "));
-        } else if (item.text) {
-          textParts.push(item.text);
-        }
+    new PdfReader().parseBuffer(Buffer.from(data), (err: any, item: any) => {
+      if (err) {
+        reject(err);
+      } else if (!item) {
+        resolve(textParts.join(" "));
+      } else if (item.text) {
+        textParts.push(item.text);
       }
-    );
+    });
   });
   return {
     role: "user",
@@ -77,7 +74,7 @@ async function readFile(file: AttachedFile): Promise<OpenAIMessage> {
 }
 
 export async function readFiles(
-  files: AttachedFile[]
+  files: AttachedFile[],
 ): Promise<OpenAIMessage[]> {
   const results = await Promise.allSettled(files.map(readFile));
 

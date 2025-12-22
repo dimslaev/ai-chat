@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { defineTool } from "./tool";
+
 import { EXCLUDE_PATTERN, isSensitivePath } from "./safety";
+import { defineTool } from "./tool";
 
 type Args = { query: string; file_pattern?: string };
 
@@ -31,7 +32,11 @@ export const searchFilesTool = defineTool<Args>({
     const MAX_RESULTS = 50;
 
     const pattern = file_pattern || "**/*";
-    const files = await vscode.workspace.findFiles(pattern, EXCLUDE_PATTERN, 100);
+    const files = await vscode.workspace.findFiles(
+      pattern,
+      EXCLUDE_PATTERN,
+      100,
+    );
 
     for (const file of files) {
       if (matches.length >= MAX_RESULTS) break;
