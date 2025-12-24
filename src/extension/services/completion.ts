@@ -1,9 +1,9 @@
 import * as State from "@/extension/core/state";
 import { readFiles } from "@/extension/services/file-reader";
 import { handleStream, StreamHandlers } from "@/extension/services/stream";
-import { executeToolCall,getEnabledTools } from "@/extension/tools";
+import { executeToolCall, getEnabledTools } from "@/extension/tools";
 import { TOOL_SELECTION_PROMPT } from "@/lib/prompts";
-import { Message,OpenAIMessage } from "@/lib/types";
+import { Message, OpenAIMessage } from "@/lib/types";
 import { toOpenAIMessage } from "@/lib/utils";
 
 export type CompletionHandlers = StreamHandlers;
@@ -30,7 +30,9 @@ export async function prepareMessages(
   return messages;
 }
 
-async function executeTools(): Promise<void> {
+async function executeTools(
+  onToolMessage?: (message: Message) => void,
+): Promise<void> {
   const { client, config, abort, history } = State.get;
   const maxRounds = config.toolMaxRounds || 5;
   const enabledTools = getEnabledTools(config);
@@ -88,15 +90,20 @@ async function executeTools(): Promise<void> {
         arguments: args,
       });
 
-      // Store tool result in history (hidden)
+      // Store tool result in history
       const toolResultMessage: Message = {
         id: `tool-result-${Date.now()}-${toolCall.id}`,
         role: "tool",
         content: JSON.stringify(result.error || result.result),
-        hidden: true,
         toolCallId: toolCall.id,
+        toolName: toolCall.function.name,
+        toolArgs: toolCall.function.arguments,
       };
       history.push(toolResultMessage);
+
+      if (onToolMessage) {
+        onToolMessage(toolResultMessage);
+      }
     }
   }
 
@@ -140,7 +147,7 @@ export async function createCompletion(
     if (agentMode) {
       const enabledTools = getEnabledTools(config);
       if (enabledTools.length > 0) {
-        await executeTools();
+        await executeTools(handlers.onToolMessage);
         console.log("[Completion] Tools complete");
       }
     }

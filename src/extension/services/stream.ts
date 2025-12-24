@@ -1,11 +1,12 @@
 import * as State from "@/extension/core/state";
-import { Message,OpenAIStream } from "@/lib/types";
+import { Message, OpenAIStream } from "@/lib/types";
 
 export type StreamHandlers = {
   onStart: () => void;
   onChunk: (content: string) => void;
   onEnd: () => void;
   onError: (error: unknown) => void;
+  onToolMessage?: (message: Message) => void;
   onTokenUsage?: (usage: {
     prompt_tokens?: number;
     completion_tokens?: number;

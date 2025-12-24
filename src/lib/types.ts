@@ -31,8 +31,10 @@ export type Message = {
   role: "user" | "assistant" | "system" | "tool";
   content: string;
   hidden?: boolean;
-  toolCallId?: string; // For tool role messages
-  toolCalls?: Array<{ id: string; name: string; arguments: string }>; // For assistant messages with tool calls
+  toolCallId?: string;
+  toolName?: string;
+  toolArgs?: string;
+  toolCalls?: Array<{ id: string; name: string; arguments: string }>;
 };
 
 export type AttachedFile = {
@@ -69,6 +71,7 @@ export type PostMessageType =
   | "startAssistantMessage"
   | "appendChunk"
   | "endAssistantMessage"
+  | "addToolMessage"
   | "stopStream"
   | "activeFileChanged"
   | "attachFile"
@@ -100,6 +103,7 @@ export type PostMessagePayloadMap = {
   startAssistantMessage: undefined;
   appendChunk: string;
   endAssistantMessage: undefined;
+  addToolMessage: Message;
   activeFileChanged: AttachedFile;
   stopStream: undefined;
   attachFile: AttachedFile;

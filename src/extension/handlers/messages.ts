@@ -98,6 +98,7 @@ async function handleUserMessage(payload: Message): Promise<void> {
     onChunk: (content: string) => post("appendChunk", content),
     onEnd: () => post("endAssistantMessage"),
     onError: (error: unknown) => handleError(error),
+    onToolMessage: (message: Message) => post("addToolMessage", message),
     onTokenUsage: (usage) => {
       State.updateTokenUsage(usage);
       post("tokenUsage", State.get.tokenUsage);
@@ -129,6 +130,7 @@ async function handleEditMessage(payload: {
     onChunk: (content: string) => post("appendChunk", content),
     onEnd: () => post("endAssistantMessage"),
     onError: (error: unknown) => handleError(error),
+    onToolMessage: (message: Message) => post("addToolMessage", message),
     onTokenUsage: (usage: TokenUsageRaw) => {
       State.updateTokenUsage(usage);
       post("tokenUsage", State.get.tokenUsage);

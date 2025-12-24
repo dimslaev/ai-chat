@@ -4,7 +4,8 @@ import cn from "classnames";
 import * as React from "react";
 import TextareaAutosize from "react-textarea-autosize";
 
-import { Markdown } from "@/components/messages//markdown";
+import { Markdown } from "@/components/messages/markdown";
+import { ToolMessage } from "@/components/messages/tool-message";
 import { useChatActions } from "@/hooks/use-chat-actions";
 import { Message as MessageType } from "@/lib/types";
 import { useChatStore } from "@/store/chat";
@@ -72,36 +73,42 @@ export const Message: React.FC<MessageProps> = ({
     );
   }
 
+  const renderContent = () => {
+    if (message.role === "user") {
+      return <span style={{ whiteSpace: "pre-line" }}>{message.content}</span>;
+    }
+
+    if (message.role === "tool") {
+      return <ToolMessage message={message} />;
+    }
+
+    return <Markdown content={message.content} />;
+  };
+
   return (
-    <Box
+    <div
       ref={messageRef}
-      p={message.role === "user" ? "3" : "0"}
       className={cn(
-        "chat-message",
         `chat-message-${message.role}`,
         message.role === "user" && "chat-message-margin",
-        message.role === "assistant" && "chat-message-unmargin",
-        isStreaming && "chat-message-streaming",
       )}
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >
-      {message.role === "user" ? (
-        <span style={{ whiteSpace: "pre-line" }}>{message.content}</span>
-      ) : (
-        <Markdown content={message.content} />
-      )}
+      <Box p={message.role === "user" ? "3" : "0"} className="chat-message">
+        {renderContent()}
 
-      {message.role === "user" && !isEditing && (
-        <IconButton
-          size="2"
-          variant="soft"
-          color="gray"
-          className="action-button"
-          onClick={handleEditClick}
-        >
-          <Pencil1Icon />
-        </IconButton>
-      )}
-    </Box>
+        {message.role === "user" && !isEditing && (
+          <IconButton
+            size="2"
+            variant="soft"
+            color="gray"
+            className="action-button"
+            onClick={handleEditClick}
+          >
+            <Pencil1Icon />
+          </IconButton>
+        )}
+      </Box>
+    </div>
   );
 };

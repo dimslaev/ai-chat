@@ -55,6 +55,10 @@ export const useChatSync = () => {
           setIsStreaming(false);
           break;
 
+        case "addToolMessage":
+          addMessage(payload);
+          break;
+
         case "activeFileChanged":
           setSuggestedFile(payload);
           break;

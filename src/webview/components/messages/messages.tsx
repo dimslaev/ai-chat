@@ -82,7 +82,6 @@ export const Messages: React.FC = () => {
       <Flex
         ref={messagesRef}
         direction="column"
-        gap="4"
         px="3"
         py="4"
         style={{
