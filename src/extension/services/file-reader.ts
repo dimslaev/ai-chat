@@ -1,7 +1,7 @@
 import { PdfReader } from "pdfreader";
 import * as vscode from "vscode";
 
-import { AttachedFile,OpenAIMessage } from "@/lib/types";
+import { AttachedFile, OpenAIMessage } from "@/lib/types";
 import { getImageMimeType, isImageFile, isPdfFile } from "@/lib/utils";
 
 function readImageFile(name: string, data: Uint8Array): OpenAIMessage {

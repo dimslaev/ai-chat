@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { parseImportConfig,validateConfigStrict } from "@/lib/schema";
+import { parseImportConfig, validateConfigStrict } from "@/lib/schema";
 import { Configuration } from "@/lib/types";
 import { postMessage } from "@/lib/utils";
 import { useChatStore } from "@/store/chat";

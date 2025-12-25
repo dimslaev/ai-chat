@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 
-import { filterEntries,isIgnoredPath } from "./safety";
+import { filterEntries, isIgnoredPath } from "./safety";
 import { defineTool } from "./tool";
 
 type Args = { path: string };

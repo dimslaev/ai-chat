@@ -12,7 +12,7 @@ import {
 let _context: vscode.ExtensionContext;
 let _webview: vscode.Webview;
 let _client: OpenAI;
-let _agentMode = true;
+let _agentMode = false;
 let _abort = new AbortController();
 let _configs: Configuration[] = [];
 let _config: Configuration = { ...DEFAULT_CONFIG };

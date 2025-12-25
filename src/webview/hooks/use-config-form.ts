@@ -40,7 +40,7 @@ function deserializeFormData(formData: FormData): Configuration {
     frequencyPenalty: isNaN(frequencyPenalty) ? 0 : frequencyPenalty,
     presencePenalty: isNaN(presencePenalty) ? 0 : presencePenalty,
     topP: isNaN(topP) ? 1 : topP,
-    toolMaxRounds: isNaN(toolMaxRounds) ? 5 : toolMaxRounds,
+    toolMaxRounds: isNaN(toolMaxRounds) ? 10 : toolMaxRounds,
   };
 }
 

@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { TextEditor,Webview } from "vscode";
+import { TextEditor, Webview } from "vscode";
 
 import {
   Configuration,

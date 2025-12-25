@@ -17,5 +17,5 @@ export const DEFAULT_CONFIG: Configuration = {
   toolReadFile: true,
   toolListDirectory: true,
   toolSearchFiles: true,
-  toolMaxRounds: 5,
+  toolMaxRounds: 10,
 };

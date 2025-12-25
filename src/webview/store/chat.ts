@@ -68,7 +68,7 @@ export const useChatStore = create<ChatStore>()(
       totalTokens: 0,
     },
     inputValue: "",
-    agentMode: true,
+    agentMode: false,
 
     // Pure setters
     setVscode: (vscode) => set({ vscode }),

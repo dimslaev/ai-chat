@@ -17,7 +17,7 @@ export const ChatActions: React.FC = () => {
 
   return (
     <Flex align="center" gap="2">
-      <Tooltip content={agentMode ? "Tools enabled" : "Tools disabled"}>
+      <Tooltip content={agentMode ? "Disable tools" : "Enable tools"}>
         <IconButton
           variant={agentMode ? "solid" : "soft"}
           color="gray"

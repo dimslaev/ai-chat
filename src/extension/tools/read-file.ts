@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 
-import { isIgnoredPath,isSensitivePath } from "./safety";
+import { isIgnoredPath, isSensitivePath } from "./safety";
 import { defineTool } from "./tool";
 
 type Args = { path: string };

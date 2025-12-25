@@ -1,5 +1,5 @@
 import { CaretDownIcon } from "@radix-ui/react-icons";
-import { Button, DropdownMenu,Flex } from "@radix-ui/themes";
+import { Button, DropdownMenu, Flex } from "@radix-ui/themes";
 import * as React from "react";
 
 import { ConfigDialog } from "@/components/config/config-dialog";

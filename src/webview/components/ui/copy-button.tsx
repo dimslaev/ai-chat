@@ -1,4 +1,4 @@
-import { CheckIcon,CopyIcon } from "@radix-ui/react-icons";
+import { CheckIcon, CopyIcon } from "@radix-ui/react-icons";
 import { IconButton } from "@radix-ui/themes";
 import * as React from "react";
 

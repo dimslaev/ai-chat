@@ -4,10 +4,16 @@ import * as React from "react";
 
 import { Message } from "@/lib/types";
 
-const TOOL_CONFIG: Record<string, { name: string; argKey: string }> = {
+type ToolConfig = {
+  name: string;
+  argKey: string;
+};
+
+const TOOL_CONFIG: Record<string, ToolConfig> = {
   read_file: { name: "read", argKey: "path" },
   list_directory: { name: "list", argKey: "path" },
   search_files: { name: "search", argKey: "query" },
+  think: { name: "thinking", argKey: "" },
 };
 
 interface ToolMessageProps {
@@ -15,12 +21,11 @@ interface ToolMessageProps {
 }
 
 export const ToolMessage: React.FC<ToolMessageProps> = ({ message }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-
   const config = TOOL_CONFIG[message.toolName || ""] || {
     name: message.toolName,
     argKey: "path",
   };
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   const args = React.useMemo(() => {
     if (!message.toolArgs) return null;
@@ -53,12 +58,21 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ message }) => {
         >
           <CaretRightIcon />
         </Text>
-        <Text size="1" color="gray" style={{ width: 42, flexShrink: 0 }}>
+        <Text
+          size="1"
+          color="gray"
+          style={{
+            width: displayValue ? 42 : undefined,
+            flexShrink: 0,
+          }}
+        >
           {config.name}
         </Text>
-        <Text size="1" color="gray" style={{ opacity: 0.7 }}>
-          {displayValue}
-        </Text>
+        {displayValue && (
+          <Text size="1" color="gray" style={{ opacity: 0.7 }}>
+            {displayValue}
+          </Text>
+        )}
       </Flex>
       {isExpanded && message.content && (
         <Box
@@ -67,13 +81,13 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ message }) => {
           p="2"
           style={{
             fontSize: "12px",
-            fontFamily: "var(--font-mono)",
-            background: "var(--gray-a2)",
-            borderRadius: "var(--radius-2)",
+            fontFamily:
+              config.name === "think" ? undefined : "var(--font-mono)",
+            color: "var(--gray-11)",
             maxHeight: 200,
             overflow: "auto",
             whiteSpace: "pre-wrap",
-            wordBreak: "break-all",
+            wordBreak: config.name === "think" ? undefined : "break-all",
           }}
         >
           {message.content}

@@ -34,13 +34,24 @@ async function executeTools(
   onToolMessage?: (message: Message) => void,
 ): Promise<void> {
   const { client, config, abort, history } = State.get;
-  const maxRounds = config.toolMaxRounds || 5;
+  const maxRounds = config.toolMaxRounds || 10;
   const enabledTools = getEnabledTools(config);
 
   if (enabledTools.length === 0) return;
 
+  console.log(
+    "[Tool Phase] Enabled tools:",
+    enabledTools.map((t) => (t.type === "function" ? t.function.name : t.type)),
+  );
+
   for (let round = 0; round < maxRounds; round++) {
     const messages = await prepareMessages(TOOL_SELECTION_PROMPT);
+
+    // Force think tool on first round, then auto
+    const toolChoice =
+      round === 0
+        ? { type: "function" as const, function: { name: "think" } }
+        : ("auto" as const);
 
     const response = await client.chat.completions.create(
       {
@@ -49,7 +60,7 @@ async function executeTools(
         temperature: config.temperature,
         max_completion_tokens: config.maxCompletionTokens,
         tools: enabledTools,
-        tool_choice: "auto",
+        tool_choice: toolChoice,
       },
       { signal: abort.signal },
     );
@@ -81,8 +92,34 @@ async function executeTools(
     history.push(toolMessage);
 
     // Execute all tool calls
+    let taskCompleted = false;
     for (const toolCall of message.tool_calls) {
       if (toolCall.type !== "function") continue;
+
+      // Handle think tool - send to UI and continue
+      if (toolCall.function.name === "think") {
+        const args = JSON.parse(toolCall.function.arguments || "{}");
+        console.log("[Tool Phase] Thinking:", args.thought);
+
+        if (onToolMessage) {
+          onToolMessage({
+            id: `think-${Date.now()}-${toolCall.id}`,
+            role: "tool",
+            content: args.thought,
+            toolCallId: toolCall.id,
+            toolName: "think",
+          });
+        }
+        continue;
+      }
+
+      // Check if this is the task_complete signal
+      if (toolCall.function.name === "task_complete") {
+        const args = JSON.parse(toolCall.function.arguments || "{}");
+        console.log("[Tool Phase] Task complete:", args.summary);
+        taskCompleted = true;
+        continue;
+      }
 
       const args = JSON.parse(toolCall.function.arguments || "{}");
       const result = await executeToolCall({
@@ -105,6 +142,14 @@ async function executeTools(
         onToolMessage(toolResultMessage);
       }
     }
+
+    // Exit loop if task_complete was called
+    if (taskCompleted) {
+      console.log("[Tool Phase] Exiting - task marked complete");
+      return;
+    }
+
+    await new Promise((r) => setTimeout(r, 1000));
   }
 
   console.log("[Tool Phase] Max rounds reached");

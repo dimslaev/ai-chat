@@ -19,7 +19,7 @@ export const ConfigurationSchema = z
     toolReadFile: z.boolean().default(true),
     toolListDirectory: z.boolean().default(true),
     toolSearchFiles: z.boolean().default(true),
-    toolMaxRounds: z.number().int().min(1).max(10).default(5),
+    toolMaxRounds: z.number().int().min(1).max(100).default(10),
   })
   .loose(); // Allow extra fields for forward compatibility
 
