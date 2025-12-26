@@ -1,3 +1,6 @@
+import { generateText } from "ai";
+
+import { createModel } from "@/extension/core/providers";
 import * as State from "@/extension/core/state";
 import { sanitizeFilename } from "@/lib/utils";
 
@@ -12,8 +15,11 @@ export async function generateChatTitle(): Promise<string> {
       .map((msg) => `${msg.role}: ${msg.content.slice(0, 200)}`)
       .join("\n");
 
-    const { client, config } = State.get;
-    const response = await client.chat.completions.create({
+    const { config } = State.get;
+    const model = createModel(config);
+
+    const response = await generateText({
+      model,
       messages: [
         {
           role: "system",
@@ -25,13 +31,11 @@ export async function generateChatTitle(): Promise<string> {
           content: `Summarize this chat in 5 words or less using snake_case:\n\n${contextMessages}`,
         },
       ],
-      model: config.model,
       temperature: 0.3,
-      max_completion_tokens: 20,
+      maxOutputTokens: 20,
     });
 
-    const title =
-      response.choices?.[0]?.message?.content?.trim() || "chat_summary";
+    const title = response.text?.trim() || "chat_summary";
     return sanitizeFilename(title) || "chat_summary";
   } catch (error) {
     console.error("Failed to generate chat title:", error);

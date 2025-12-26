@@ -1,5 +1,5 @@
 import * as State from "@/extension/core/state";
-import { Message, OpenAIStream } from "@/lib/types";
+import { Message } from "@/lib/types";
 
 export type StreamHandlers = {
   onStart: () => void;
@@ -24,8 +24,17 @@ function finalizeResponse(reply: string, history: Message[]): void {
   }
 }
 
+type StreamResult = {
+  textStream: AsyncIterable<string>;
+  usage: PromiseLike<{
+    inputTokens: number | undefined;
+    outputTokens: number | undefined;
+    totalTokens: number | undefined;
+  }>;
+};
+
 export async function handleStream(
-  stream: OpenAIStream,
+  streamResult: StreamResult,
   handlers: StreamHandlers,
 ): Promise<void> {
   const { history, abort } = State.get;
@@ -34,24 +43,24 @@ export async function handleStream(
   handlers.onStart();
 
   try {
-    for await (const chunk of stream) {
+    for await (const chunk of streamResult.textStream) {
       if (abort.signal.aborted) {
         throw new Error("Request aborted");
       }
 
-      const content = chunk.choices?.[0]?.delta?.content;
-      if (content) {
-        reply += content;
-        handlers.onChunk(content);
+      if (chunk) {
+        reply += chunk;
+        handlers.onChunk(chunk);
       }
+    }
 
-      if (chunk.usage && handlers.onTokenUsage) {
-        handlers.onTokenUsage({
-          prompt_tokens: chunk.usage.prompt_tokens,
-          completion_tokens: chunk.usage.completion_tokens,
-          total_tokens: chunk.usage.total_tokens,
-        });
-      }
+    const usage = await streamResult.usage;
+    if (usage && handlers.onTokenUsage) {
+      handlers.onTokenUsage({
+        prompt_tokens: usage.inputTokens,
+        completion_tokens: usage.outputTokens,
+        total_tokens: usage.totalTokens,
+      });
     }
 
     finalizeResponse(reply, history);

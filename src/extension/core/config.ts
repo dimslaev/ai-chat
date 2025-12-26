@@ -1,7 +1,6 @@
 import * as State from "@/extension/core/state";
 import { DEFAULT_CONFIG } from "@/lib/config";
 import { Configuration } from "@/lib/types";
-import { createOpenAIClient } from "@/lib/utils";
 
 async function load(): Promise<Configuration[]> {
   try {
@@ -43,7 +42,6 @@ export async function save(configs: Configuration[]): Promise<void> {
 
     const activeConfig = configs.find((config) => config.active)!;
     State.setConfig(activeConfig);
-    State.setClient(createOpenAIClient(activeConfig));
 
     console.log("Configurations saved successfully");
   } catch (error) {
@@ -83,7 +81,6 @@ export async function initialize(): Promise<void> {
 
     State.setConfig(activeConfig);
     State.setConfigs(configs);
-    State.setClient(createOpenAIClient(activeConfig));
   } catch (error) {
     console.error("Failed to load configuration:", error);
     State.setConfig({ ...DEFAULT_CONFIG });

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 import * as Config from "@/extension/core/config";
 import * as State from "@/extension/core/state";
+import { getEditorSelection } from "@/extension/handlers/commands";
 import { createCompletion } from "@/extension/services/completion";
 import {
   exportConfigToFile,
@@ -15,7 +16,7 @@ import {
   PostMessageType,
   TokenUsageRaw,
 } from "@/lib/types";
-import { getEditorSelection, getFileName, postMessage } from "@/lib/utils";
+import { getFileName, postMessage } from "@/lib/utils";
 
 export function handleMessage(data: PostMessage): void {
   try {
@@ -90,7 +91,12 @@ function sendState(): void {
 }
 
 async function handleUserMessage(payload: Message): Promise<void> {
-  State.setHistory([...State.get.history, payload]);
+  const message: Message = {
+    ...payload,
+    files: State.get.files.length > 0 ? [...State.get.files] : undefined,
+  };
+  State.setHistory([...State.get.history, message]);
+  State.setFiles([]);
   State.resetAbort();
 
   await createCompletion({

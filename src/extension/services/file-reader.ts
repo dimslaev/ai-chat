@@ -1,28 +1,25 @@
 import { PdfReader } from "pdfreader";
 import * as vscode from "vscode";
 
-import { AttachedFile, OpenAIMessage } from "@/lib/types";
+import { AttachedFile, FileContentPart } from "@/lib/types";
 import { getImageMimeType, isImageFile, isPdfFile } from "@/lib/utils";
 
-function readImageFile(name: string, data: Uint8Array): OpenAIMessage {
+function readImageFile(name: string, data: Uint8Array): FileContentPart[] {
   const base64Data = Buffer.from(data).toString("base64");
   const mimeType = getImageMimeType(name);
-  return {
-    role: "user",
-    content: [
-      { type: "text", text: `Image: ${name}` },
-      {
-        type: "image_url",
-        image_url: { url: `data:image/${mimeType};base64,${base64Data}` },
-      },
-    ],
-  };
+  return [
+    { type: "text", text: `Image: ${name}` },
+    {
+      type: "image",
+      image: `data:image/${mimeType};base64,${base64Data}`,
+    },
+  ];
 }
 
 async function readPdfFile(
   name: string,
   data: Uint8Array,
-): Promise<OpenAIMessage> {
+): Promise<FileContentPart[]> {
   const text = await new Promise<string>((resolve, reject) => {
     const textParts: string[] = [];
     new PdfReader().parseBuffer(Buffer.from(data), (err: any, item: any) => {
@@ -35,13 +32,10 @@ async function readPdfFile(
       }
     });
   });
-  return {
-    role: "user",
-    content: `Context: PDF file ${name}\n${text}`,
-  };
+  return [{ type: "text", text: `Context: PDF file ${name}\n${text}` }];
 }
 
-function readTextFile(file: AttachedFile, data: Uint8Array): OpenAIMessage {
+function readTextFile(file: AttachedFile, data: Uint8Array): FileContentPart[] {
   const fullContent = Buffer.from(data).toString("utf8");
   let fileContent = fullContent;
 
@@ -55,13 +49,12 @@ function readTextFile(file: AttachedFile, data: Uint8Array): OpenAIMessage {
       .join("\n\n");
   }
 
-  return {
-    role: "user",
-    content: `Context: Using file ${file.name}\n${fileContent}`,
-  };
+  return [
+    { type: "text", text: `Context: Using file ${file.name}\n${fileContent}` },
+  ];
 }
 
-async function readFile(file: AttachedFile): Promise<OpenAIMessage> {
+async function readFile(file: AttachedFile): Promise<FileContentPart[]> {
   const data = await vscode.workspace.fs.readFile(file.fileUri);
 
   if (isImageFile(file.name)) {
@@ -73,18 +66,16 @@ async function readFile(file: AttachedFile): Promise<OpenAIMessage> {
   return readTextFile(file, data);
 }
 
-export async function readFiles(
+export async function readFilesAsContent(
   files: AttachedFile[],
-): Promise<OpenAIMessage[]> {
+): Promise<FileContentPart[]> {
   const results = await Promise.allSettled(files.map(readFile));
 
-  return results
-    .map((result, index) => {
-      if (result.status === "fulfilled") {
-        return result.value;
-      }
-      console.error(`Failed to read file ${files[index].name}:`, result.reason);
-      return null;
-    })
-    .filter((msg): msg is OpenAIMessage => msg !== null);
+  return results.flatMap((result, index) => {
+    if (result.status === "fulfilled") {
+      return result.value;
+    }
+    console.error(`Failed to read file ${files[index].name}:`, result.reason);
+    return [];
+  });
 }

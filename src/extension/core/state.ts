@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import * as vscode from "vscode";
 
 import { DEFAULT_CONFIG } from "@/lib/config";
@@ -11,7 +10,6 @@ import {
 
 let _context: vscode.ExtensionContext;
 let _webview: vscode.Webview;
-let _client: OpenAI;
 let _agentMode = false;
 let _abort = new AbortController();
 let _configs: Configuration[] = [];
@@ -31,9 +29,6 @@ export const get = {
   },
   get webview() {
     return _webview;
-  },
-  get client() {
-    return _client;
   },
   get agentMode() {
     return _agentMode;
@@ -67,10 +62,6 @@ export function setContext(ctx: vscode.ExtensionContext): void {
 
 export function setWebview(wv: vscode.Webview): void {
   _webview = wv;
-}
-
-export function setClient(newClient: OpenAI): void {
-  _client = newClient;
 }
 
 export function setAgentMode(enabled: boolean): void {

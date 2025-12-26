@@ -2,14 +2,25 @@ import * as vscode from "vscode";
 
 import * as State from "@/extension/core/state";
 import { post } from "@/extension/handlers/messages";
-import {
-  getEditorSelection,
-  getFileName,
-  isImageFile,
-  isPdfFile,
-} from "@/lib/utils";
+import { getFileName, isImageFile, isPdfFile } from "@/lib/utils";
 
 const WEBVIEW_FOCUS_DELAY_MS = 100;
+
+export function getEditorSelection(editor: vscode.TextEditor) {
+  const selections = editor.selections
+    .filter(
+      (selection) =>
+        !selection.isEmpty &&
+        (selection.start.line !== selection.end.line ||
+          selection.end.character - selection.start.character > 0),
+    )
+    .map((selection) => ({
+      start: selection.start.line,
+      end: selection.end.line,
+    }));
+
+  return selections.length > 0 ? selections : undefined;
+}
 
 export function getActiveTabUri(): vscode.Uri | undefined {
   const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;

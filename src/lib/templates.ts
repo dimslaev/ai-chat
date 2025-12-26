@@ -1,4 +1,4 @@
-import { DEFAULT_SYSTEM_PROMPT } from "./prompts";
+import { SYSTEM_PROMPT } from "./prompts";
 import { Configuration } from "./types";
 
 export type ConfigTemplate = Omit<Configuration, "id" | "name" | "active">;
@@ -39,7 +39,7 @@ export const CONFIG_TEMPLATES: {
       maxCompletionTokens: 8000,
       temperature: 0.1,
       historyLimit: 10,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
       frequencyPenalty: 0,
       presencePenalty: 0,
       topP: 1,
@@ -58,7 +58,7 @@ export const CONFIG_TEMPLATES: {
       maxCompletionTokens: 8000,
       temperature: 0.1,
       historyLimit: 10,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
       frequencyPenalty: 0,
       presencePenalty: 0,
       topP: 1,
@@ -76,7 +76,7 @@ export const CONFIG_TEMPLATES: {
       maxCompletionTokens: 4096,
       temperature: 0.2,
       historyLimit: 8,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
       frequencyPenalty: 0,
       presencePenalty: 0,
       topP: 1,
@@ -94,7 +94,7 @@ export const CONFIG_TEMPLATES: {
       maxCompletionTokens: 4096,
       temperature: 0.2,
       historyLimit: 8,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
       frequencyPenalty: 0,
       presencePenalty: 0,
       topP: 1,
@@ -112,7 +112,7 @@ export const CONFIG_TEMPLATES: {
       maxCompletionTokens: 4096,
       temperature: 0.2,
       historyLimit: 8,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
       frequencyPenalty: 0,
       presencePenalty: 0,
       topP: 1,

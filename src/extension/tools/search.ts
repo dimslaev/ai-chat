@@ -1,54 +1,43 @@
+import { tool } from "ai";
 import * as vscode from "vscode";
+import { z } from "zod";
 
 import { EXCLUDE_PATTERN, isSensitivePath } from "./safety";
-import { defineTool } from "./tool";
 
-type Args = {
-  query: string | string[];
-  file_pattern?: string | string[];
-  match_mode?: "any" | "all";
-};
+const inputSchema = z.object({
+  query: z
+    .string()
+    .describe(
+      "Search term(s). Use comma-separated values for multiple queries (e.g. 'useState,useEffect' or 'handleSubmit,onSubmit')",
+    ),
+  file_pattern: z
+    .string()
+    .optional()
+    .describe(
+      "Glob pattern(s) to filter files. Use comma-separated for multiple (e.g. '**/*.ts,**/*.tsx' or 'src/components/**/*,src/hooks/**/*')",
+    ),
+  match_mode: z
+    .enum(["any", "all"])
+    .optional()
+    .describe(
+      "When using multiple queries: 'any' matches lines with at least one query, 'all' matches lines containing all queries. Default: 'any'",
+    ),
+});
 
-export const searchFilesTool = defineTool<Args>({
-  name: "search_files",
+export const searchFilesTool = tool({
   description:
     "Searches for text content across files in the workspace. Supports multiple queries and file patterns. Automatically excludes node_modules, dist, .git, and sensitive files.",
-  parameters: {
-    type: "object",
-    properties: {
-      query: {
-        type: "string",
-        description:
-          "Search term(s). Use comma-separated values for multiple queries (e.g. 'useState,useEffect' or 'handleSubmit,onSubmit')",
-      },
-      file_pattern: {
-        type: "string",
-        description:
-          "Glob pattern(s) to filter files. Use comma-separated for multiple (e.g. '**/*.ts,**/*.tsx' or 'src/components/**/*,src/hooks/**/*')",
-      },
-      match_mode: {
-        type: "string",
-        enum: ["any", "all"],
-        description:
-          "When using multiple queries: 'any' matches lines with at least one query, 'all' matches lines containing all queries. Default: 'any'",
-      },
-    },
-    required: ["query"],
-  },
+  inputSchema,
   execute: async ({ query, file_pattern, match_mode = "any" }) => {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!workspaceRoot) throw new Error("No workspace folder open");
 
     // Parse queries (support both array and comma-separated string)
-    const queries = Array.isArray(query)
-      ? query
-      : query.split(",").map((q) => q.trim().toLowerCase());
+    const queries = query.split(",").map((q: string) => q.trim().toLowerCase());
 
     // Parse file patterns
     const patterns = file_pattern
-      ? Array.isArray(file_pattern)
-        ? file_pattern
-        : file_pattern.split(",").map((p) => p.trim())
+      ? file_pattern.split(",").map((p: string) => p.trim())
       : ["**/*"];
 
     const fileMatches: Map<
@@ -86,7 +75,9 @@ export const searchFilesTool = defineTool<Args>({
 
           for (let i = 0; i < lines.length; i++) {
             const lineLower = lines[i].toLowerCase();
-            const matchedQueries = queries.filter((q) => lineLower.includes(q));
+            const matchedQueries = queries.filter((q: string) =>
+              lineLower.includes(q),
+            );
 
             const isMatch =
               match_mode === "all"

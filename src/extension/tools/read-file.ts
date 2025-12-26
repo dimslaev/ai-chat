@@ -1,10 +1,9 @@
+import { tool } from "ai";
 import * as path from "path";
 import * as vscode from "vscode";
+import { z } from "zod";
 
 import { isIgnoredPath, isSensitivePath } from "./safety";
-import { defineTool } from "./tool";
-
-type Args = { path: string };
 
 function resolveWorkspacePath(inputPath: string): string {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -14,21 +13,18 @@ function resolveWorkspacePath(inputPath: string): string {
     : path.join(workspaceRoot, inputPath);
 }
 
-export const readFileTool = defineTool<Args>({
-  name: "read_file",
+const inputSchema = z.object({
+  path: z
+    .string()
+    .describe(
+      "The file path to read (relative to workspace root, e.g. 'src/index.ts')",
+    ),
+});
+
+export const readFileTool = tool({
   description:
     "Reads the contents of a file. Relative paths are resolved from the workspace root. Cannot read sensitive files (.env, credentials, keys).",
-  parameters: {
-    type: "object",
-    properties: {
-      path: {
-        type: "string",
-        description:
-          "The file path to read (relative to workspace root, e.g. 'src/index.ts')",
-      },
-    },
-    required: ["path"],
-  },
+  inputSchema,
   execute: async ({ path: inputPath }) => {
     if (isSensitivePath(inputPath)) {
       throw new Error("Cannot read sensitive files (env, credentials, keys)");

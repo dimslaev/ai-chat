@@ -1,10 +1,9 @@
+import { tool } from "ai";
 import * as path from "path";
 import * as vscode from "vscode";
+import { z } from "zod";
 
 import { filterEntries, isIgnoredPath } from "./safety";
-import { defineTool } from "./tool";
-
-type Args = { path: string };
 
 function resolveWorkspacePath(inputPath: string): string {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -14,21 +13,18 @@ function resolveWorkspacePath(inputPath: string): string {
     : path.join(workspaceRoot, inputPath);
 }
 
-export const listDirectoryTool = defineTool<Args>({
-  name: "list_directory",
+const inputSchema = z.object({
+  path: z
+    .string()
+    .describe(
+      "The directory path to list (relative to workspace root, e.g. 'src' or 'src/components')",
+    ),
+});
+
+export const listDirectoryTool = tool({
   description:
     "Lists files and directories at the specified path. Automatically filters out node_modules, dist, .git, and other build directories.",
-  parameters: {
-    type: "object",
-    properties: {
-      path: {
-        type: "string",
-        description:
-          "The directory path to list (relative to workspace root, e.g. 'src' or 'src/components')",
-      },
-    },
-    required: ["path"],
-  },
+  inputSchema,
   execute: async ({ path: inputPath }) => {
     if (isIgnoredPath(inputPath)) {
       throw new Error(

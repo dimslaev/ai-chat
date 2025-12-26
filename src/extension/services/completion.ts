@@ -1,180 +1,164 @@
+import { generateText, ModelMessage, stepCountIs, streamText } from "ai";
+
+import { createModel } from "@/extension/core/providers";
 import * as State from "@/extension/core/state";
-import { readFiles } from "@/extension/services/file-reader";
+import { readFilesAsContent } from "@/extension/services/file-reader";
 import { handleStream, StreamHandlers } from "@/extension/services/stream";
-import { executeToolCall, getEnabledTools } from "@/extension/tools";
-import { TOOL_SELECTION_PROMPT } from "@/lib/prompts";
-import { Message, OpenAIMessage } from "@/lib/types";
-import { toOpenAIMessage } from "@/lib/utils";
+import { getEnabledTools } from "@/extension/tools";
+import { SYSTEM_PROMPT } from "@/lib/prompts";
+import { FileContentPart, Message } from "@/lib/types";
 
 export type CompletionHandlers = StreamHandlers;
 
-export async function prepareMessages(
-  systemPrompt: string,
-): Promise<OpenAIMessage[]> {
-  const { config, history, files } = State.get;
-  const toolMessages = history.filter((it) => it.role === "tool");
-  const messages: OpenAIMessage[] = history
-    .slice(-(config.historyLimit + toolMessages.length))
-    .map(toOpenAIMessage);
-
-  if (files.length > 0) {
-    const fileContents = await readFiles(files);
-    fileContents.forEach((content: OpenAIMessage) => messages.unshift(content));
+function toModelMessage(message: Message): ModelMessage {
+  // Tool result messages
+  if (message.role === "tool" && message.toolCallId) {
+    return {
+      role: "tool",
+      content: [
+        {
+          type: "tool-result",
+          toolCallId: message.toolCallId,
+          toolName: message.toolName || "",
+          output: { type: "text", value: message.content },
+        },
+      ],
+    };
   }
 
-  messages.unshift({
-    role: "system",
-    content: systemPrompt,
-  });
+  // Assistant messages with tool calls
+  if (message.role === "assistant" && message.toolCalls?.length) {
+    return {
+      role: "assistant",
+      content: [
+        ...(message.content
+          ? [{ type: "text" as const, text: message.content }]
+          : []),
+        ...message.toolCalls.map((tc) => ({
+          type: "tool-call" as const,
+          toolCallId: tc.id,
+          toolName: tc.name,
+          input: JSON.parse(tc.arguments),
+        })),
+      ],
+    };
+  }
 
-  return messages;
+  // User, assistant, system messages
+  return {
+    role: message.role as "user" | "assistant" | "system",
+    content: message.content,
+  };
+}
+
+async function toModelMessageWithFiles(
+  message: Message,
+): Promise<ModelMessage> {
+  if (message.role === "user" && message.files?.length) {
+    const fileParts = await readFilesAsContent(message.files);
+    const contentParts: FileContentPart[] = [
+      { type: "text", text: message.content },
+      ...fileParts,
+    ];
+    return { role: "user", content: contentParts };
+  }
+
+  // All other messages use sync conversion
+  return toModelMessage(message);
+}
+
+export async function prepareMessages(): Promise<ModelMessage[]> {
+  const { history, config } = State.get;
+
+  const systemPrompt = config.systemPrompt || SYSTEM_PROMPT;
+
+  // Convert all messages, handling files async
+  const conversationMessages = await Promise.all(
+    history.map(toModelMessageWithFiles),
+  );
+
+  return [{ role: "system", content: systemPrompt }, ...conversationMessages];
 }
 
 async function executeTools(
   onToolMessage?: (message: Message) => void,
 ): Promise<void> {
-  const { client, config, abort, history } = State.get;
-  const maxRounds = config.toolMaxRounds || 10;
+  const { config, abort, history } = State.get;
   const enabledTools = getEnabledTools(config);
 
-  if (enabledTools.length === 0) return;
+  if (Object.keys(enabledTools).length === 0) return;
 
-  console.log(
-    "[Tool Phase] Enabled tools:",
-    enabledTools.map((t) => (t.type === "function" ? t.function.name : t.type)),
-  );
+  console.log("[Tool Phase] Enabled tools:", Object.keys(enabledTools));
 
-  for (let round = 0; round < maxRounds; round++) {
-    const messages = await prepareMessages(TOOL_SELECTION_PROMPT);
+  const messages = await prepareMessages();
+  const model = createModel(config);
 
-    // Force think tool on first round, then auto
-    const toolChoice =
-      round === 0
-        ? { type: "function" as const, function: { name: "think" } }
-        : ("auto" as const);
+  await generateText({
+    model,
+    messages,
+    tools: enabledTools,
+    stopWhen: stepCountIs(config.toolMaxRounds || 10),
+    maxOutputTokens: config.maxCompletionTokens,
+    temperature: config.temperature,
+    abortSignal: abort.signal,
+    onStepFinish: ({ toolCalls, toolResults }) => {
+      if (!toolCalls || toolCalls.length === 0) return;
 
-    const response = await client.chat.completions.create(
-      {
-        messages,
-        model: config.model,
-        temperature: config.temperature,
-        max_completion_tokens: config.maxCompletionTokens,
-        tools: enabledTools,
-        tool_choice: toolChoice,
-      },
-      { signal: abort.signal },
-    );
+      // Add assistant message with tool calls
+      const assistantMessage: Message = {
+        id: `assistant-tools-${Date.now()}`,
+        role: "assistant",
+        content: "",
+        toolCalls: toolCalls.map((tc) => ({
+          id: tc.toolCallId,
+          name: tc.toolName,
+          arguments: JSON.stringify(tc.input),
+        })),
+      };
+      history.push(assistantMessage);
 
-    const choice = response.choices[0];
-    const message = choice?.message;
+      // Add tool result messages
+      for (let i = 0; i < toolCalls.length; i++) {
+        const toolCall = toolCalls[i];
+        const toolResult = toolResults[i];
 
-    if (!message?.tool_calls || message.tool_calls.length === 0) {
-      return;
-    }
-
-    // Store assistant message with tool calls in history (hidden)
-    const toolCalls = message.tool_calls
-      .filter((tc) => tc.type === "function")
-      .map((tc) => ({
-        id: tc.id,
-        name: tc.function.name,
-        arguments: tc.function.arguments,
-      }));
-
-    // Store tool message in history (hidden)
-    const toolMessage: Message = {
-      id: `tool-assistant-${Date.now()}`,
-      role: "assistant",
-      content: message.content || "",
-      hidden: true,
-      toolCalls,
-    };
-    history.push(toolMessage);
-
-    // Execute all tool calls
-    let taskCompleted = false;
-    for (const toolCall of message.tool_calls) {
-      if (toolCall.type !== "function") continue;
-
-      // Handle think tool - send to UI and continue
-      if (toolCall.function.name === "think") {
-        const args = JSON.parse(toolCall.function.arguments || "{}");
-        console.log("[Tool Phase] Thinking:", args.thought);
+        const toolResultMessage: Message = {
+          id: `tool-${Date.now()}-${toolCall.toolCallId}`,
+          role: "tool",
+          content: JSON.stringify(toolResult?.output),
+          toolCallId: toolCall.toolCallId,
+          toolName: toolCall.toolName,
+          toolArgs: JSON.stringify(toolCall.input),
+        };
+        history.push(toolResultMessage);
 
         if (onToolMessage) {
-          onToolMessage({
-            id: `think-${Date.now()}-${toolCall.id}`,
-            role: "tool",
-            content: args.thought,
-            toolCallId: toolCall.id,
-            toolName: "think",
-          });
+          onToolMessage(toolResultMessage);
         }
-        continue;
       }
-
-      // Check if this is the task_complete signal
-      if (toolCall.function.name === "task_complete") {
-        const args = JSON.parse(toolCall.function.arguments || "{}");
-        console.log("[Tool Phase] Task complete:", args.summary);
-        taskCompleted = true;
-        continue;
-      }
-
-      const args = JSON.parse(toolCall.function.arguments || "{}");
-      const result = await executeToolCall({
-        name: toolCall.function.name,
-        arguments: args,
-      });
-
-      // Store tool result in history
-      const toolResultMessage: Message = {
-        id: `tool-result-${Date.now()}-${toolCall.id}`,
-        role: "tool",
-        content: JSON.stringify(result.error || result.result),
-        toolCallId: toolCall.id,
-        toolName: toolCall.function.name,
-        toolArgs: toolCall.function.arguments,
-      };
-      history.push(toolResultMessage);
-
-      if (onToolMessage) {
-        onToolMessage(toolResultMessage);
-      }
-    }
-
-    // Exit loop if task_complete was called
-    if (taskCompleted) {
-      console.log("[Tool Phase] Exiting - task marked complete");
-      return;
-    }
-
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-
-  console.log("[Tool Phase] Max rounds reached");
+    },
+  });
 }
 
 // Streaming call for final response
 async function executeStream(handlers: StreamHandlers): Promise<void> {
-  const { client, config, abort } = State.get;
+  const { config, abort } = State.get;
 
-  const messages = await prepareMessages(config.systemPrompt);
+  const messages = await prepareMessages();
+  const model = createModel(config);
 
-  const response = await client.chat.completions.create(
-    {
-      messages,
-      model: config.model,
-      temperature: config.temperature,
-      max_completion_tokens: config.maxCompletionTokens,
-      frequency_penalty: config.frequencyPenalty,
-      presence_penalty: config.presencePenalty,
-      top_p: config.topP,
-      stream: true,
-      stream_options: { include_usage: true },
-    },
-    { signal: abort.signal },
-  );
+  console.log("[Stream phase]", messages);
+
+  const response = streamText({
+    model,
+    messages,
+    maxOutputTokens: config.maxCompletionTokens,
+    temperature: config.temperature,
+    frequencyPenalty: config.frequencyPenalty,
+    presencePenalty: config.presencePenalty,
+    topP: config.topP,
+    abortSignal: abort.signal,
+  });
 
   await handleStream(response, handlers);
 }
@@ -188,12 +172,11 @@ export async function createCompletion(
     const userMessage = history[history.length - 1].content;
     console.log("[Completion]: Received message:", userMessage);
 
-    // Phase 1: Tool execution
+    // Phase 1: Tool execution (if agent mode enabled)
     if (agentMode) {
       const enabledTools = getEnabledTools(config);
-      if (enabledTools.length > 0) {
+      if (Object.keys(enabledTools).length > 0) {
         await executeTools(handlers.onToolMessage);
-        console.log("[Completion] Tools complete");
       }
     }
 

@@ -1,5 +1,4 @@
-import OpenAI from "openai";
-import { Stream } from "openai/streaming";
+import { ImagePart, TextPart } from "ai";
 import * as vscode from "vscode";
 import { z } from "zod";
 
@@ -9,10 +8,6 @@ import { ConfigurationSchema } from "./schema";
 export type vscodeApi = {
   postMessage(message: unknown): void;
 };
-
-/* Open AI */
-export type OpenAIMessage = OpenAI.ChatCompletionMessageParam;
-export type OpenAIStream = Stream<OpenAI.ChatCompletionChunk>;
 
 /* Config */
 export type Configuration = z.infer<typeof ConfigurationSchema>;
@@ -31,6 +26,7 @@ export type Message = {
   role: "user" | "assistant" | "system" | "tool";
   content: string;
   hidden?: boolean;
+  files?: AttachedFile[];
   toolCallId?: string;
   toolName?: string;
   toolArgs?: string;
@@ -128,3 +124,5 @@ export type PostMessage = {
     payload: PostMessagePayloadMap[K];
   };
 }[PostMessageType];
+
+export type FileContentPart = TextPart | ImagePart;
