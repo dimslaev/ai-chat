@@ -1,9 +1,11 @@
-import { Webview } from "vscode";
+import { PostMessagePayloadMap, PostMessageType } from "./types";
 
-import { PostMessagePayloadMap, PostMessageType, vscodeApi } from "./types";
+interface PostMessageTarget {
+  postMessage(message: unknown): void;
+}
 
 export function postMessage<T extends PostMessageType>(
-  target: vscodeApi | Webview,
+  target: PostMessageTarget,
   type: T,
   payload?: PostMessagePayloadMap[T],
 ) {

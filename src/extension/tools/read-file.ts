@@ -1,17 +1,10 @@
 import { tool } from "ai";
-import * as path from "path";
 import * as vscode from "vscode";
 import { z } from "zod";
 
-import { isIgnoredPath, isSensitivePath } from "./safety";
+import { resolveWorkspacePath } from "@/extension/tools/utils";
 
-function resolveWorkspacePath(inputPath: string): string {
-  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  if (!workspaceRoot) throw new Error("No workspace folder open");
-  return path.isAbsolute(inputPath)
-    ? inputPath
-    : path.join(workspaceRoot, inputPath);
-}
+import { isIgnoredPath, isSensitivePath } from "./safety";
 
 const inputSchema = z.object({
   path: z

@@ -20,7 +20,7 @@ function toModelMessage(message: Message): ModelMessage {
           type: "tool-result",
           toolCallId: message.toolCallId,
           toolName: message.toolName || "",
-          output: { type: "text", value: message.content },
+          output: { type: "text", value: message.content || "" },
         },
       ],
     };
@@ -125,7 +125,7 @@ async function executeTools(
         const toolResultMessage: Message = {
           id: `tool-${Date.now()}-${toolCall.toolCallId}`,
           role: "tool",
-          content: JSON.stringify(toolResult?.output),
+          content: JSON.stringify(toolResult?.output ?? null),
           toolCallId: toolCall.toolCallId,
           toolName: toolCall.toolName,
           toolArgs: JSON.stringify(toolCall.input),
