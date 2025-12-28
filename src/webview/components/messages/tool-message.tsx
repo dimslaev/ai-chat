@@ -2,6 +2,7 @@ import { CaretRightIcon } from "@radix-ui/react-icons";
 import { Box, Flex, Text } from "@radix-ui/themes";
 import * as React from "react";
 
+import { MCP_TOOLS } from "@/lib/config";
 import { Message } from "@/lib/types";
 
 type ToolConfig = {
@@ -9,12 +10,9 @@ type ToolConfig = {
   argKey: string;
 };
 
-const TOOL_CONFIG: Record<string, ToolConfig> = {
-  read_file: { name: "read", argKey: "path" },
-  list_directory: { name: "list", argKey: "path" },
-  search_files: { name: "search", argKey: "query" },
-  think: { name: "thinking", argKey: "" },
-};
+const TOOL_CONFIG: Record<string, ToolConfig> = Object.fromEntries(
+  MCP_TOOLS.map((t) => [t.id, { name: t.shortName, argKey: t.argKey }]),
+);
 
 interface ToolMessageProps {
   message: Message;
@@ -62,7 +60,7 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ message }) => {
           size="1"
           color="gray"
           style={{
-            width: displayValue ? 42 : undefined,
+            width: displayValue ? 80 : undefined,
             flexShrink: 0,
           }}
         >

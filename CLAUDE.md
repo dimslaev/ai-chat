@@ -8,11 +8,24 @@ Privacy-first AI coding assistant with manual context control. File and line-ran
 
 **Backend**: `src/extension/` (Node.js)
 
-- `extension.ts` - Activation, command/listener registration
-- `webview.ts` - Message routing, lifecycle, file operations
-- `chat.ts` - OpenAI streaming, message preparation, file reading
-- `state.ts` - Global state (client, config, history, files, tokens)
-- `config.ts` - Load/save/validate configurations
+- `index.ts` - Activation, command/listener registration
+- `core/` - Core modules
+  - `config.ts` - Load/save/validate configurations
+  - `state.ts` - Global state (config, history, files, tokens)
+  - `providers.ts` - AI SDK provider creation (OpenAI, Mistral)
+- `services/` - Business logic
+  - `completion.ts` - AI SDK streaming, message preparation, tool execution
+  - `stream.ts` - Stream handling utilities
+  - `file-reader.ts` - File reading for context
+  - `file-writer.ts` - File writing operations
+- `handlers/` - Message & command handlers
+  - `messages.ts` - Webview message routing
+  - `commands.ts` - VSCode command registration
+- `mcp/` - Model Context Protocol integration
+  - `client.ts` - MCP client wrapper
+  - `manager.ts` - Multi-server lifecycle management
+  - `types.ts` - MCP type definitions
+- `webview/` - Webview provider setup
 
 **Frontend**: `src/webview/` (Browser iframe)
 
@@ -20,15 +33,31 @@ Privacy-first AI coding assistant with manual context control. File and line-ran
 - UI rendering, user interactions
 - Entry: `index.tsx`
 
+### AI SDK Integration
+
+Uses Vercel AI SDK (`ai` package) with provider packages:
+- `@ai-sdk/openai` - OpenAI-compatible APIs
+- `@ai-sdk/mistral` - Mistral AI
+- `@ai-sdk/mcp` - MCP tool integration
+
+Key functions: `streamText()` for responses, `generateText()` for tool execution loops.
+
+### MCP Tools
+
+When MCP server is configured, tools from the server replace built-in tools:
+- Tools filtered by `config.mcpEnabledTools` array
+- Manager handles connection lifecycle and reconnection
+- Works with vscode-mcp-server for VS Code integration
+
 ### Messaging
 
 Type-safe `postMessage` communication (`src/lib/types.ts`). Extension = source of truth, webview = stateless UI.
 
 **Key flows:**
 
-1. Send message → OpenAI completion → stream `appendChunk` → UI updates
+1. Send message → AI SDK completion → stream `appendChunk` → UI updates
 2. ⌘K⌘K → `activeFileChanged` → `attachFile` → extension state
-3. Save config → `saveConfigs` → VSCode global state → new OpenAI client
+3. Save config → `saveConfigs` → VSCode global state
 
 ### Store & Hooks
 

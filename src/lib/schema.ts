@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const MCPServerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  url: z.url(),
+  transport: z.enum(["http", "sse"]).default("http"),
+  enabled: z.boolean().default(true),
+});
+
 export const ConfigurationSchema = z
   .object({
     id: z.string(),
@@ -16,10 +24,9 @@ export const ConfigurationSchema = z
     frequencyPenalty: z.number().min(-2).max(2).default(0),
     presencePenalty: z.number().min(-2).max(2).default(0),
     topP: z.number().min(0).max(1).default(1),
-    toolReadFile: z.boolean().default(true),
-    toolListDirectory: z.boolean().default(true),
-    toolSearchFiles: z.boolean().default(true),
     toolMaxRounds: z.number().int().min(1).max(100).default(10),
+    mcpServers: z.array(MCPServerSchema).default([]),
+    mcpEnabledTools: z.array(z.string()).default([]),
   })
   .loose(); // Allow extra fields for forward compatibility
 

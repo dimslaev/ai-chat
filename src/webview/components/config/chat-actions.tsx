@@ -11,18 +11,30 @@ import { useChatStore } from "@/store/chat";
 
 export const ChatActions: React.FC = () => {
   const messages = useChatStore((state) => state.messages);
+  const configs = useChatStore((state) => state.configs);
   const { cleanup, saveChat, agentMode, toggleAgentMode } = useChatActions();
 
   const hasMessages = messages.length > 0;
+  const activeConfig = configs.find((c) => c.active);
+  const hasMcpServer = Boolean(activeConfig?.mcpServers?.[0]?.url);
 
   return (
     <Flex align="center" gap="2">
-      <Tooltip content={agentMode ? "Disable tools" : "Enable tools"}>
+      <Tooltip
+        content={
+          !hasMcpServer
+            ? "No MCP server configured"
+            : agentMode
+              ? "Disable tools"
+              : "Enable tools"
+        }
+      >
         <IconButton
           variant={agentMode ? "solid" : "soft"}
           color="gray"
           size="1"
           onClick={toggleAgentMode}
+          disabled={!hasMcpServer}
         >
           <LightningBoltIcon />
         </IconButton>

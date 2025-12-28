@@ -1,14 +1,25 @@
-import { generateText, ModelMessage, stepCountIs, streamText } from "ai";
+import { generateText, ModelMessage, stepCountIs, streamText, Tool } from "ai";
 
 import { createModel } from "@/extension/core/providers";
 import * as State from "@/extension/core/state";
+import { mcpManager } from "@/extension/mcp/manager";
 import { readFilesAsContent } from "@/extension/services/file-reader";
 import { handleStream, StreamHandlers } from "@/extension/services/stream";
-import { getEnabledTools } from "@/extension/tools";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { FileContentPart, Message } from "@/lib/types";
 
-export type CompletionHandlers = StreamHandlers;
+type AnyTool = Tool<any, any>;
+
+async function getTools(): Promise<Record<string, AnyTool>> {
+  if (mcpManager.hasConnectedServers()) {
+    const { config } = State.get;
+    const enabledTools = config.mcpEnabledTools;
+    const mcpTools = await mcpManager.getAllTools(enabledTools);
+    console.log("[Tools] Using MCP tools:", Object.keys(mcpTools));
+    return mcpTools;
+  }
+  return {};
+}
 
 function toModelMessage(message: Message): ModelMessage {
   // Tool result messages
@@ -84,7 +95,7 @@ async function executeTools(
   onToolMessage?: (message: Message) => void,
 ): Promise<void> {
   const { config, abort, history } = State.get;
-  const enabledTools = getEnabledTools(config);
+  const enabledTools = await getTools();
 
   if (Object.keys(enabledTools).length === 0) return;
 
@@ -164,7 +175,7 @@ async function executeStream(handlers: StreamHandlers): Promise<void> {
 }
 
 export async function createCompletion(
-  handlers: CompletionHandlers,
+  handlers: StreamHandlers,
 ): Promise<void> {
   try {
     const { config, agentMode, history } = State.get;
@@ -174,7 +185,7 @@ export async function createCompletion(
 
     // Phase 1: Tool execution (if agent mode enabled)
     if (agentMode) {
-      const enabledTools = getEnabledTools(config);
+      const enabledTools = await getTools();
       if (Object.keys(enabledTools).length > 0) {
         await executeTools(handlers.onToolMessage);
       }

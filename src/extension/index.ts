@@ -8,6 +8,7 @@ import {
   registerCommands,
   registerFileChangeListener,
 } from "@/extension/handlers/commands";
+import { mcpManager } from "@/extension/mcp/manager";
 import { setup as setupWebview } from "@/extension/webview/provider";
 
 async function init(ctx: vscode.ExtensionContext): Promise<void> {
@@ -16,6 +17,12 @@ async function init(ctx: vscode.ExtensionContext): Promise<void> {
 
   try {
     await Config.initialize();
+
+    const config = State.get.config;
+    if (config.mcpServers?.length) {
+      await mcpManager.initialize(config.mcpServers);
+    }
+
     registerWebviewProvider(ctx);
     registerFileChangeListener(ctx);
     registerCommands(ctx);
@@ -34,4 +41,8 @@ function registerWebviewProvider(ctx: vscode.ExtensionContext): void {
 
 export function activate(context: vscode.ExtensionContext): void {
   init(context);
+}
+
+export async function deactivate(): Promise<void> {
+  await mcpManager.dispose();
 }
