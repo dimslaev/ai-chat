@@ -22,7 +22,7 @@ Attach opened files in editor or specific line ranges to chat. No automatic code
 
 #### ▸ Agent mode with MCP tools
 
-Connect to [vscode-mcp-server](https://github.com/anthropics/vscode-mcp-server) for tool access: file read/write, terminal execution, codebase search. Configure which tools are enabled per provider/model config.
+Connect to vscode-mcp-server and check the ⚡︎ button to enable tools. Configure which tools are enabled per provider/model config.
 
 **Tools will never read your env vars or sensitive files (see `mcp/safety.ts`).**
 
