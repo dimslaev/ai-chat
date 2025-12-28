@@ -16,33 +16,33 @@ https://github.com/user-attachments/assets/7ce375f6-2a12-4ea7-8d45-ffef16cd7804
 
 ## Features
 
-### Manual context control
+#### ▸ Manual context control
 
-Select code in your editor to attach specific lines (works with multiple ranges as well). No automatic codebase scanning - you decide exactly what the AI sees.
+Attach opened files in editor or specific line ranges to chat. No automatic codebase scanning - you decide exactly what the AI sees.
 
-### Agent mode with MCP tools
+#### ▸ Agent mode with MCP tools
 
 Connect to [vscode-mcp-server](https://github.com/anthropics/vscode-mcp-server) for tool access: file read/write, terminal execution, codebase search. Configure which tools are enabled per provider/model config.
 
 **Tools will never read your env vars or sensitive files (see `mcp/safety.ts`).**
 
-### Multiple model configs
+#### ▸ Multiple model configs
 
 Set up profiles with different models, system prompts, temperatures, and enabled tools.
 
-### Image and PDF attachments
+#### ▸ Image and PDF attachments
 
 Images sent via vision API. PDFs extracted as text. Attach any file type as context.
 
-### Export chat to markdown
+#### ▸ Export chat to markdown
 
 Save conversations as formatted markdown files for documentation or sharing.
 
-### Token usage tracking
+#### ▸ Token usage tracking
 
 Monitor prompt and completion tokens in real-time.
 
-## Keyboard shortcuts
+#### ▸ Keyboard shortcuts
 
 | Shortcut      | Action                                      |
 | ------------- | ------------------------------------------- |
