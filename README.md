@@ -1,20 +1,14 @@
 # VS Code AI Chat
 
-**[📦 Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Dimslaev.ai-chat-vscode)**
+**[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Dimslaev.ai-chat-vscode)**
 
-No telemetry, no database, no third parties - completely private AI coding assistant.
+Privacy-first AI coding assistant. No telemetry, no database, no third parties - all data stays local.
 
-```
-You know how most AI assistants just... gesticulate wildly ...try to do everything? They're scanning your entire codebase, making suggestions you didn't ask for, reading large files again and again.
+Two modes for different workflows:
 
-This thing? It's the opposite.
+- **Chat mode**: You control the context. Select specific lines, attach files, get focused responses without the AI scanning your entire codebase.
 
-You explicitly tell it "hey, look at lines 23-45 of utils.ts and lines 100-120 of api.ts" and that's ALL it sees. No agent mode going rogue, no "let me refactor your entire project," just you building the exact context you need.
-
-And because of that, it generates one focused response real quick instead of spinning up tokens like it's mining crypto.
-
-It's for when you're working on private repos and you need AI help but you also need to, you know, stay in control.
-```
+- **Agent mode**: Enable MCP tools via [vscode-mcp-server](https://github.com/anthropics/vscode-mcp-server) for file operations, terminal commands, and codebase search. The AI can read, write, and execute - with safety filters for sensitive files.
 
 ## Demo
 
@@ -22,28 +16,36 @@ https://github.com/user-attachments/assets/7ce375f6-2a12-4ea7-8d45-ffef16cd7804
 
 ## Features
 
-#### Attach files and line ranges to chat
+### Manual context control
 
-Select code directly in your editor with `CMD + K + K` to add precise context to your prompts without copying/pasting
+Select code in your editor to attach specific lines (works with multiple ranges as well). No automatic codebase scanning - you decide exactly what the AI sees.
 
-#### Attach images and PDFs
+### Agent mode with MCP tools
 
-Images: Sent via OpenAI's vision API (some models may not support this)
+Connect to [vscode-mcp-server](https://github.com/anthropics/vscode-mcp-server) for tool access: file read/write, terminal execution, codebase search. Configure which tools are enabled per provider/model config.
 
-PDFs: Text extracted via `pdfreader` and sent as plain text
+**Tools will never read your env vars or sensitive files (see `mcp/safety.ts`).**
 
-#### Create multiple model configurations
+### Multiple model configs
 
-Set up different profiles with custom models, system prompts, and temperatures (e.g., creative writing with high temp, strict code review with detailed instructions) and switch between them with `CMD + K + O`
+Set up profiles with different models, system prompts, temperatures, and enabled tools.
 
-#### Export chat to markdown
+### Image and PDF attachments
 
-Save entire conversations as formatted markdown files for documentation, sharing, or archival
+Images sent via vision API. PDFs extracted as text. Attach any file type as context.
 
-#### Keyboard shortcuts
+### Export chat to markdown
 
-Navigate and control everything without touching your mouse - toggle attachments, switch configs, and focus input seamlessly
+Save conversations as formatted markdown files for documentation or sharing.
 
-#### Token usage tracking
+### Token usage tracking
 
-Monitor prompt and completion tokens in real-time to stay aware of your consumption
+Monitor prompt and completion tokens in real-time.
+
+## Keyboard shortcuts
+
+| Shortcut      | Action                                      |
+| ------------- | ------------------------------------------- |
+| `CMD + K + K` | Toggle current file/selection as attachment |
+| `CMD + K + O` | Switch model configuration                  |
+| `CMD + K + I` | Focus chat input                            |
