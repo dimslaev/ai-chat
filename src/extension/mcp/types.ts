@@ -1,3 +1,6 @@
+// MCP type definitions: server config, status, and client instance
+import { createMCPClient } from "@ai-sdk/mcp";
+
 export interface MCPServerConfig {
   id: string;
   name: string;
@@ -13,3 +16,5 @@ export interface MCPServerStatus {
   error?: string;
   toolCount: number;
 }
+
+export type MCPClientInstance = Awaited<ReturnType<typeof createMCPClient>>;

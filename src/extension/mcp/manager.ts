@@ -1,43 +1,20 @@
-import { Tool } from "ai";
-
+import { MCPClient } from "@/extension/mcp/client";
+import { isSensitivePath } from "@/extension/mcp/safety";
+import { MCPServerConfig, MCPServerStatus } from "@/extension/mcp/types";
+import { AnyTool } from "@/extension/types";
 import { MCP_PATH_TOOLS } from "@/lib/config";
 
-import { MCPClient } from "./client";
-import { isSensitivePath } from "./safety";
-import { MCPServerConfig, MCPServerStatus } from "./types";
-
-type AnyTool = Tool<any, any>;
-
-function wrapToolWithSafety(name: string, tool: AnyTool): AnyTool {
-  // Only wrap tools that have path arguments
-  if (!MCP_PATH_TOOLS.includes(name) || !tool.execute) {
-    return tool;
-  }
-
-  const originalExecute = tool.execute;
-
-  return {
-    ...tool,
-    execute: async (
-      args: { path?: string; [key: string]: unknown },
-      options: Parameters<typeof originalExecute>[1],
-    ) => {
-      // Check for sensitive paths
-      if (args.path && isSensitivePath(args.path)) {
-        console.warn(`[MCP Safety] Blocked access to sensitive file: ${args.path}`);
-        return `Error: Access denied. "${args.path}" is a sensitive file and cannot be accessed.`;
-      }
-
-      return originalExecute(args, options);
-    },
-  };
-}
+/**
+ * Multi-server MCP lifecycle
+ * init, reconnect, tool aggregation, cleanup
+ */
 
 class MCPManager {
-  private clients: Map<string, MCPClient> = new Map();
-  private reconnectTimers: Map<string, NodeJS.Timeout> = new Map();
+  #clients: Map<string, MCPClient> = new Map();
+  #reconnectTimers: Map<string, NodeJS.Timeout> = new Map();
 
-  async initialize(configs: MCPServerConfig[] = []): Promise<void> {
+  // Initializes and connects to all enabled MCP servers
+  async init(configs: MCPServerConfig[] = []): Promise<void> {
     const enabledConfigs = configs.filter((c) => c.enabled !== false);
 
     if (enabledConfigs.length === 0) {
@@ -57,57 +34,42 @@ class MCPManager {
     console.log(`[MCP] Connected: ${connected}, Failed: ${failed}`);
   }
 
+  // Creates client and connects to a server (schedules reconnect on failure)
   async addServer(config: MCPServerConfig): Promise<void> {
     await this.removeServer(config.id);
 
     const client = new MCPClient(config);
-    this.clients.set(config.id, client);
+    this.#clients.set(config.id, client);
 
     try {
       await client.connect();
     } catch (error) {
       console.error(`[MCP] Failed to connect to ${config.name}:`, error);
-      this.scheduleReconnect(config);
+      this.#scheduleReconnect(config);
       throw error;
     }
   }
 
+  // Disconnects and removes a server, cancels pending reconnect
   async removeServer(serverId: string): Promise<void> {
-    const timer = this.reconnectTimers.get(serverId);
+    const timer = this.#reconnectTimers.get(serverId);
     if (timer) {
       clearTimeout(timer);
-      this.reconnectTimers.delete(serverId);
+      this.#reconnectTimers.delete(serverId);
     }
 
-    const client = this.clients.get(serverId);
+    const client = this.#clients.get(serverId);
     if (client) {
       await client.disconnect();
-      this.clients.delete(serverId);
+      this.#clients.delete(serverId);
     }
   }
 
-  private scheduleReconnect(config: MCPServerConfig, delay = 30000): void {
-    const timer = setTimeout(async () => {
-      console.log(`[MCP] Attempting reconnect to ${config.name}`);
-      const client = this.clients.get(config.id);
-
-      if (client && !client.isConnected()) {
-        try {
-          await client.connect();
-          console.log(`[MCP] Reconnected to ${config.name}`);
-        } catch {
-          this.scheduleReconnect(config, Math.min(delay * 2, 300000));
-        }
-      }
-    }, delay);
-
-    this.reconnectTimers.set(config.id, timer);
-  }
-
+  // Collects tools from all servers, filters by enabled list, wraps with safety
   async getAllTools(enabledTools?: string[]): Promise<Record<string, AnyTool>> {
     const allTools: Record<string, AnyTool> = {};
 
-    for (const client of this.clients.values()) {
+    for (const client of this.#clients.values()) {
       if (client.isConnected()) {
         try {
           const tools = await client.getTools();
@@ -132,14 +94,20 @@ class MCPManager {
     // Wrap tools with safety checks
     const safeTools: Record<string, AnyTool> = {};
     for (const [name, tool] of Object.entries(tools)) {
-      safeTools[name] = wrapToolWithSafety(name, tool);
+      safeTools[name] = this.#wrapToolWithSafety(name, tool);
     }
 
     return safeTools;
   }
 
+  // Returns connection status for all servers
+  getServerStatuses(): MCPServerStatus[] {
+    return Array.from(this.#clients.values()).map((c) => c.getStatus());
+  }
+
+  // Checks if at least one server is connected
   hasConnectedServers(): boolean {
-    for (const client of this.clients.values()) {
+    for (const client of this.#clients.values()) {
       if (client.isConnected()) {
         return true;
       }
@@ -147,23 +115,67 @@ class MCPManager {
     return false;
   }
 
-  getServerStatuses(): MCPServerStatus[] {
-    return Array.from(this.clients.values()).map((c) => c.getStatus());
-  }
-
+  // Cleans up all connections and timers
   async dispose(): Promise<void> {
-    for (const timer of this.reconnectTimers.values()) {
+    for (const timer of this.#reconnectTimers.values()) {
       clearTimeout(timer);
     }
-    this.reconnectTimers.clear();
+    this.#reconnectTimers.clear();
 
-    const disconnectPromises = Array.from(this.clients.values()).map((client) =>
-      client.disconnect(),
+    const disconnectPromises = Array.from(this.#clients.values()).map(
+      (client) => client.disconnect(),
     );
     await Promise.allSettled(disconnectPromises);
-    this.clients.clear();
+    this.#clients.clear();
 
     console.log("[MCP] Disposed all connections");
+  }
+
+  // Schedules reconnection attempt with exponential backoff
+  #scheduleReconnect(config: MCPServerConfig, delay = 30000): void {
+    const timer = setTimeout(async () => {
+      console.log(`[MCP] Attempting reconnect to ${config.name}`);
+      const client = this.#clients.get(config.id);
+
+      if (client && !client.isConnected()) {
+        try {
+          await client.connect();
+          console.log(`[MCP] Reconnected to ${config.name}`);
+        } catch {
+          this.#scheduleReconnect(config, Math.min(delay * 2, 300000));
+        }
+      }
+    }, delay);
+
+    this.#reconnectTimers.set(config.id, timer);
+  }
+
+  // Wraps path-based tools to block access to sensitive files
+  #wrapToolWithSafety(name: string, tool: AnyTool): AnyTool {
+    // Only wrap tools that have path arguments
+    if (!MCP_PATH_TOOLS.includes(name) || !tool.execute) {
+      return tool;
+    }
+
+    const originalExecute = tool.execute;
+
+    return {
+      ...tool,
+      execute: async (
+        args: { path?: string; [key: string]: unknown },
+        options: Parameters<typeof originalExecute>[1],
+      ) => {
+        // Check for sensitive paths
+        if (args.path && isSensitivePath(args.path)) {
+          console.warn(
+            `[MCP Safety] Blocked access to sensitive file: ${args.path}`,
+          );
+          return `Error: Access denied. "${args.path}" is a sensitive file and cannot be accessed.`;
+        }
+
+        return originalExecute(args, options);
+      },
+    };
   }
 }
 

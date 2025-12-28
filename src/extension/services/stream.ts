@@ -1,43 +1,17 @@
-import * as State from "@/extension/core/state";
+import { State } from "@/extension/core/state";
+import { StreamHandlers, StreamResult } from "@/extension/services/types";
 import { Message } from "@/lib/types";
 
-export type StreamHandlers = {
-  onStart: () => void;
-  onChunk: (content: string) => void;
-  onEnd: () => void;
-  onError: (error: unknown) => void;
-  onToolMessage?: (message: Message) => void;
-  onTokenUsage?: (usage: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
-  }) => void;
-};
-
-function finalizeResponse(reply: string, history: Message[]): void {
-  if (reply.trim()) {
-    history.push({
-      id: Date.now().toString(),
-      role: "assistant",
-      content: reply,
-    });
-  }
-}
-
-type StreamResult = {
-  textStream: AsyncIterable<string>;
-  usage: PromiseLike<{
-    inputTokens: number | undefined;
-    outputTokens: number | undefined;
-    totalTokens: number | undefined;
-  }>;
-};
+/**
+ * Stream response handling
+ * chunks, token usage, and history finalization
+ */
 
 export async function handleStream(
   streamResult: StreamResult,
   handlers: StreamHandlers,
 ): Promise<void> {
-  const { history, abort } = State.get;
+  const { history, abort } = State;
   let reply = "";
 
   handlers.onStart();
@@ -70,5 +44,15 @@ export async function handleStream(
     if (!abort.signal.aborted) {
       handlers.onError(error);
     }
+  }
+}
+
+function finalizeResponse(reply: string, history: Message[]): void {
+  if (reply.trim()) {
+    history.push({
+      id: Date.now().toString(),
+      role: "assistant",
+      content: reply,
+    });
   }
 }

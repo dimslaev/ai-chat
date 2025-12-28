@@ -1,19 +1,25 @@
 import { createMCPClient } from "@ai-sdk/mcp";
-import { Tool } from "ai";
 
-import { MCPServerConfig, MCPServerStatus } from "./types";
+import {
+  MCPClientInstance,
+  MCPServerConfig,
+  MCPServerStatus,
+} from "@/extension/mcp/types";
+import { AnyTool } from "@/extension/types";
 
-type MCPClientInstance = Awaited<ReturnType<typeof createMCPClient>>;
-type AnyTool = Tool<any, any>;
+/**
+ * MCP client wrapper
+ * connection lifecycle and tool retrieval for one server
+ */
 
 export class MCPClient {
-  private client: MCPClientInstance | null = null;
-  private config: MCPServerConfig;
-  private status: MCPServerStatus;
+  #client: MCPClientInstance | null = null;
+  #config: MCPServerConfig;
+  #status: MCPServerStatus;
 
   constructor(config: MCPServerConfig) {
-    this.config = config;
-    this.status = {
+    this.#config = config;
+    this.#status = {
       id: config.id,
       name: config.name,
       connected: false,
@@ -23,28 +29,28 @@ export class MCPClient {
 
   async connect(): Promise<void> {
     try {
-      this.client = await createMCPClient({
+      this.#client = await createMCPClient({
         transport: {
-          type: this.config.transport ?? "http",
-          url: this.config.url,
+          type: this.#config.transport ?? "http",
+          url: this.#config.url,
         },
       });
 
-      const tools = await this.client.tools();
-      this.status = {
-        id: this.config.id,
-        name: this.config.name,
+      const tools = await this.#client.tools();
+      this.#status = {
+        id: this.#config.id,
+        name: this.#config.name,
         connected: true,
         toolCount: Object.keys(tools).length,
       };
 
       console.log(
-        `[MCP] Connected to ${this.config.name} (${this.status.toolCount} tools)`,
+        `[MCP] Connected to ${this.#config.name} (${this.#status.toolCount} tools)`,
       );
     } catch (error) {
-      this.status = {
-        id: this.config.id,
-        name: this.config.name,
+      this.#status = {
+        id: this.#config.id,
+        name: this.#config.name,
         connected: false,
         error: error instanceof Error ? error.message : "Connection failed",
         toolCount: 0,
@@ -54,26 +60,26 @@ export class MCPClient {
   }
 
   async disconnect(): Promise<void> {
-    if (this.client) {
+    if (this.#client) {
       try {
-        await this.client.close();
+        await this.#client.close();
       } catch (error) {
-        console.error(`[MCP] Error closing ${this.config.name}:`, error);
+        console.error(`[MCP] Error closing ${this.#config.name}:`, error);
       }
-      this.client = null;
-      this.status.connected = false;
+      this.#client = null;
+      this.#status.connected = false;
     }
   }
 
   async getTools(): Promise<Record<string, AnyTool>> {
-    if (!this.client || !this.status.connected) {
+    if (!this.#client || !this.#status.connected) {
       return {};
     }
     try {
-      return await this.client.tools();
+      return await this.#client.tools();
     } catch (error) {
       console.error(
-        `[MCP] Failed to get tools from ${this.config.name}:`,
+        `[MCP] Failed to get tools from ${this.#config.name}:`,
         error,
       );
       return {};
@@ -81,10 +87,10 @@ export class MCPClient {
   }
 
   getStatus(): MCPServerStatus {
-    return { ...this.status };
+    return { ...this.#status };
   }
 
   isConnected(): boolean {
-    return this.status.connected;
+    return this.#status.connected;
   }
 }

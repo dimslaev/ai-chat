@@ -1,3 +1,8 @@
+/**
+ * File path security
+ * block sensitive files and ignored directories
+ */
+
 // Patterns for sensitive files that should never be read
 const SENSITIVE_PATTERNS = [
   /\.env($|\.)/i, // .env, .env.local, .env.production, etc.

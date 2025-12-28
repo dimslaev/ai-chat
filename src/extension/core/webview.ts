@@ -1,11 +1,16 @@
 import * as vscode from "vscode";
 
-import * as State from "@/extension/core/state";
-import { handleMessage } from "@/extension/handlers/messages";
+import { State } from "@/extension/core/state";
+import { Messages } from "@/extension/handlers/messages";
+
+/**
+ * Webview panel setup
+ * HTML generation and message listener binding
+ */
 
 export function setup(webviewView: vscode.WebviewView): void {
   const webview = webviewView.webview;
-  const context = State.get.context;
+  const context = State.context;
 
   webview.options = {
     enableScripts: true,
@@ -15,12 +20,12 @@ export function setup(webviewView: vscode.WebviewView): void {
   webview.html = getHtml(webview, context);
 
   webview.onDidReceiveMessage((data) => {
-    handleMessage(data);
+    Messages.handle(data);
   });
 
   webviewView.onDidDispose(
     () => {
-      State.get.abort.abort();
+      State.abort.abort();
     },
     null,
     context.subscriptions,
