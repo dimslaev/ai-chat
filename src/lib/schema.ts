@@ -11,14 +11,14 @@ export const MCPServerSchema = z.object({
 export const ConfigurationSchema = z
   .object({
     id: z.string(),
-    name: z.string(),
+    name: z.string().min(1, "Name is required"),
     active: z.boolean(),
     apiKey: z.string(),
-    baseUrl: z.string(),
-    model: z.string(),
+    baseUrl: z.url().min(1, "Base URL is required"),
+    model: z.string().min(1, "Model is required"),
     maxCompletionTokens: z.number().int().positive(),
     temperature: z.number().min(0).max(2),
-    historyLimit: z.number().int().min(2).max(20),
+    historyLimit: z.number().int().min(2).max(100),
     systemPrompt: z.string(),
     // New fields with defaults for backward compatibility
     frequencyPenalty: z.number().min(-2).max(2).default(0),

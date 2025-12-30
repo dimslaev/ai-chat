@@ -31,13 +31,31 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
     updateField,
     toConfig,
     isValid,
+    validationErrors,
     selectedTemplate,
     applyTemplate,
     templateInfoUrl,
   } = useConfigForm(editingConfig);
 
+  const [showErrors, setShowErrors] = React.useState(false);
+
+  // Reset showErrors when dialog closes or form becomes valid
+  React.useEffect(() => {
+    if (!open || isValid) {
+      setShowErrors(false);
+    }
+  }, [open, isValid]);
+
   const handleAction = (action: (config: Configuration) => void) => () => {
     action(toConfig());
+  };
+
+  const handleSave = () => {
+    if (!isValid) {
+      setShowErrors(true);
+      return;
+    }
+    onSave(toConfig());
   };
 
   return (
@@ -88,6 +106,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           onDelete={editingConfig ? handleAction(onDelete) : undefined}
           onDuplicate={editingConfig ? handleAction(onDuplicate) : undefined}
           isValid={isValid}
+          validationErrors={showErrors ? validationErrors : []}
           selectedTemplate={selectedTemplate}
           onTemplateChange={applyTemplate}
           templateInfoUrl={templateInfoUrl}
@@ -101,7 +120,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
             borderTop: "1px solid var(--gray-6)",
           }}
         >
-          <Button onClick={handleAction(onSave)} disabled={!isValid}>
+          <Button onClick={handleSave}>
             {editingConfig ? "Update" : "Add"}
           </Button>
         </Flex>

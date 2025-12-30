@@ -1,6 +1,10 @@
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import {
+  ExclamationTriangleIcon,
+  InfoCircledIcon,
+} from "@radix-ui/react-icons";
 import {
   Button,
+  Callout,
   Checkbox,
   Flex,
   Link,
@@ -46,6 +50,7 @@ interface ConfigFormProps {
   onDelete?: () => void;
   onDuplicate?: () => void;
   isValid?: boolean;
+  validationErrors?: string[];
   selectedTemplate?: string;
   onTemplateChange?: (templateId: string) => void;
   templateInfoUrl?: string;
@@ -60,6 +65,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
   onDelete,
   onDuplicate,
   isValid = true,
+  validationErrors = [],
   selectedTemplate = "blank",
   onTemplateChange,
   templateInfoUrl,
@@ -91,6 +97,19 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             </Select.Content>
           </Select.Root>
         </FormField>
+      )}
+
+      {validationErrors.length > 0 && (
+        <Callout.Root color="red" size="1">
+          <Callout.Icon>
+            <ExclamationTriangleIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            {validationErrors.map((error, i) => (
+              <div key={i}>{error}</div>
+            ))}
+          </Callout.Text>
+        </Callout.Root>
       )}
 
       <FormField label="Name">
@@ -309,7 +328,12 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
       {isEditing && (
         <>
           <Separator size="4" mt="2" mb="3" style={{ flexShrink: 0 }} />
-          <Flex direction="column" gap="5">
+
+          <Text size="2" mb="1" weight="bold">
+            Config options
+          </Text>
+
+          <Flex direction="column" gap="4">
             {onDuplicate && (
               <Flex gap="4" align="center" wrap="wrap">
                 <Button
@@ -317,9 +341,9 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
                   color="gray"
                   onClick={onDuplicate}
                   disabled={!isValid}
-                  style={{ width: "fit-content" }}
+                  style={{ width: 80 }}
                 >
-                  Duplicate Config
+                  Duplicate
                 </Button>
                 <Text size="2" color="gray">
                   Create a copy of this configuration
@@ -334,9 +358,9 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
                   color="gray"
                   onClick={onExport}
                   disabled={!isValid}
-                  style={{ width: "fit-content" }}
+                  style={{ width: 80 }}
                 >
-                  Export Config
+                  Export
                 </Button>
                 <Text size="2" color="gray">
                   Export this configuration as a JSON file
@@ -350,9 +374,9 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
                   variant="surface"
                   color="gray"
                   onClick={onDelete}
-                  style={{ width: "fit-content" }}
+                  style={{ width: 80 }}
                 >
-                  Delete Config
+                  Delete
                 </Button>
                 <Text size="2" color="gray">
                   Permanently delete this configuration

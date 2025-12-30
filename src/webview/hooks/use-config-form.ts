@@ -97,10 +97,17 @@ export function useConfigForm(editingConfig: Configuration | null) {
   };
 
   // Validation using Zod schema
-  const isValid = React.useMemo(() => {
+  const validationResult = React.useMemo(() => {
     const config = toConfig();
     const result = ConfigurationSchema.safeParse(config);
-    return result.success;
+    if (result.success) {
+      return { isValid: true, errors: [] as string[] };
+    }
+    const errors = result.error.issues.map((issue) => {
+      const field = issue.path.join(".");
+      return `${field}: ${issue.message}`;
+    });
+    return { isValid: false, errors };
   }, [formData]);
 
   return {
@@ -108,7 +115,8 @@ export function useConfigForm(editingConfig: Configuration | null) {
     field,
     updateField,
     toConfig,
-    isValid,
+    isValid: validationResult.isValid,
+    validationErrors: validationResult.errors,
     selectedTemplate,
     applyTemplate,
     templateInfoUrl,
