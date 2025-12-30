@@ -1,6 +1,7 @@
 import { State } from "@/extension/core/state";
 import { DEFAULT_CONFIG } from "@/lib/config";
 import { Configuration } from "@/lib/types";
+import { postMessage } from "@/lib/utils";
 
 /**
  * Configuration loading, saving, and validation
@@ -75,6 +76,8 @@ class ConfigManager {
 
       const activeConfig = configs.find((config) => config.active)!;
       State.setConfig(activeConfig);
+      State.setAgentMode(false);
+      postMessage(State.webview, "setAgentMode", false);
 
       console.log("Configurations saved successfully");
     } catch (error) {
