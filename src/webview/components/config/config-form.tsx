@@ -44,6 +44,7 @@ interface ConfigFormProps {
   isEditing?: boolean;
   onExport?: () => void;
   onDelete?: () => void;
+  onDuplicate?: () => void;
   isValid?: boolean;
   selectedTemplate?: string;
   onTemplateChange?: (templateId: string) => void;
@@ -57,6 +58,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
   isEditing = false,
   onExport,
   onDelete,
+  onDuplicate,
   isValid = true,
   selectedTemplate = "blank",
   onTemplateChange,
@@ -308,6 +310,23 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
         <>
           <Separator size="4" mt="2" mb="3" style={{ flexShrink: 0 }} />
           <Flex direction="column" gap="5">
+            {onDuplicate && (
+              <Flex gap="4" align="center" wrap="wrap">
+                <Button
+                  variant="surface"
+                  color="gray"
+                  onClick={onDuplicate}
+                  disabled={!isValid}
+                  style={{ width: "fit-content" }}
+                >
+                  Duplicate Config
+                </Button>
+                <Text size="2" color="gray">
+                  Create a copy of this configuration
+                </Text>
+              </Flex>
+            )}
+
             {onExport && (
               <Flex gap="4" align="center" wrap="wrap">
                 <Button

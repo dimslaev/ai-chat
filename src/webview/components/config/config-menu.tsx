@@ -100,6 +100,18 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
       exportConfig(config);
     };
 
+    const handleDuplicate = (config: Configuration) => {
+      const duplicatedConfig: Configuration = {
+        ...config,
+        id: Date.now().toString(),
+        name: `${config.name}-copy`,
+        active: false,
+      };
+      createConfig(duplicatedConfig);
+      setDialogOpen(false);
+      setEditingConfig(null);
+    };
+
     const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
@@ -196,6 +208,7 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
           onSave={handleSave}
           onExport={handleExport}
           onDelete={handleDeleteConfig}
+          onDuplicate={handleDuplicate}
         />
 
         <DeleteConfigDialog

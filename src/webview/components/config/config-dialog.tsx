@@ -13,6 +13,7 @@ interface ConfigDialogProps {
   onSave: (config: Configuration) => void;
   onExport: (config: Configuration) => void;
   onDelete: (config: Configuration) => void;
+  onDuplicate: (config: Configuration) => void;
 }
 
 export const ConfigDialog: React.FC<ConfigDialogProps> = ({
@@ -22,6 +23,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
   onSave,
   onExport,
   onDelete,
+  onDuplicate,
 }) => {
   const {
     formData,
@@ -84,6 +86,7 @@ export const ConfigDialog: React.FC<ConfigDialogProps> = ({
           isEditing={!!editingConfig}
           onExport={editingConfig ? handleAction(onExport) : undefined}
           onDelete={editingConfig ? handleAction(onDelete) : undefined}
+          onDuplicate={editingConfig ? handleAction(onDuplicate) : undefined}
           isValid={isValid}
           selectedTemplate={selectedTemplate}
           onTemplateChange={applyTemplate}
