@@ -5,6 +5,7 @@ import {
   AttachedFile,
   Configuration,
   Message,
+  Plan,
   TokenUsageRaw,
 } from "@/lib/types";
 
@@ -28,6 +29,8 @@ class StateManager {
     completionTokens: 0,
     totalTokens: 0,
   };
+  #plan: Plan | null = null;
+  #planResolver: ((approved: boolean) => void) | null = null;
 
   get context(): vscode.ExtensionContext {
     return this.#context;
@@ -69,6 +72,10 @@ class StateManager {
     return this.#tokenUsage;
   }
 
+  get plan(): Plan | null {
+    return this.#plan;
+  }
+
   setContext(ctx: vscode.ExtensionContext): void {
     this.#context = ctx;
   }
@@ -99,6 +106,10 @@ class StateManager {
 
   setInputValue(value: string): void {
     this.#inputValue = value;
+  }
+
+  setPlan(plan: Plan | null): void {
+    this.#plan = plan;
   }
 
   resetAbort(): void {
@@ -141,6 +152,27 @@ class StateManager {
     } else {
       this.#files.push(file);
     }
+  }
+
+  awaitPlanApproval(): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.#planResolver = resolve;
+    });
+  }
+
+  resolvePlanApproval(approved: boolean): void {
+    if (this.#planResolver) {
+      this.#planResolver(approved);
+      this.#planResolver = null;
+    }
+  }
+
+  clearPlan(): void {
+    if (this.#planResolver) {
+      this.#planResolver(false);
+      this.#planResolver = null;
+    }
+    this.#plan = null;
   }
 }
 

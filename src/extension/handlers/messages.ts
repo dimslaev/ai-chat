@@ -63,6 +63,14 @@ class MessageHandler {
         case "setAgentMode":
           State.setAgentMode(data.payload);
           break;
+        case "approvePlan":
+          State.resolvePlanApproval(true);
+          break;
+        case "rejectPlan":
+          State.resolvePlanApproval(false);
+          State.abort.abort();
+          State.resetAbort();
+          break;
         default:
           console.warn(`Unknown message type: ${data.type}`);
       }
@@ -81,6 +89,11 @@ class MessageHandler {
 
   // Formats error and sends to webview
   handleError(err: unknown): void {
+    // Ignore abort triggered by user
+    if (err instanceof Error && err.name === "AbortError") {
+      return;
+    }
+
     let message = "An unknown error occurred";
     let code = "";
 
@@ -112,7 +125,7 @@ class MessageHandler {
       };
     }
 
-    postMessage(State.webview, "setState", {
+    this.post("setState", {
       history: State.history,
       attachedFiles: State.files,
       suggestedFile,
@@ -123,6 +136,8 @@ class MessageHandler {
 
   // Processes user message and triggers AI completion
   async #handleUserMessage(payload: Message): Promise<void> {
+    State.clearPlan();
+
     const message: Message = {
       ...payload,
       files: State.files.length > 0 ? [...State.files] : undefined,
@@ -141,6 +156,7 @@ class MessageHandler {
         State.updateTokenUsage(usage);
         this.post("tokenUsage", State.tokenUsage);
       },
+      onSetPlan: (plan) => this.post("setPlan", plan),
     });
   }
 
@@ -149,6 +165,8 @@ class MessageHandler {
     id: string;
     content: string;
   }): Promise<void> {
+    State.clearPlan();
+
     const messageIndex = State.history.findIndex(
       (msg: Message) => msg.id === payload.id,
     );
@@ -174,6 +192,7 @@ class MessageHandler {
         State.updateTokenUsage(usage);
         this.post("tokenUsage", State.tokenUsage);
       },
+      onSetPlan: (plan) => this.post("setPlan", plan),
     });
   }
 
@@ -189,14 +208,17 @@ class MessageHandler {
     State.removeFile(payload.fileUri.path);
   }
 
-  // Aborts ongoing completion stream
+  // Aborts ongoing completion
   #stopStream(): void {
     State.abort.abort();
-    postMessage(State.webview, "endAssistantMessage");
+    State.clearPlan();
+    this.post("endAssistantMessage");
   }
 
-  // Resets conversation state (history, files, tokens)
+  // Resets conversation state (history, files, tokens, plan)
   #cleanup(): void {
+    State.abort.abort();
+    State.clearPlan();
     State.setHistory([]);
     State.setFiles([]);
     State.setInputValue("");

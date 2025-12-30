@@ -1,5 +1,5 @@
 // Type definitions for streaming handlers and results
-import { Message } from "@/lib/types";
+import { Message, Plan } from "@/lib/types";
 
 export type StreamHandlers = {
   onStart: () => void;
@@ -12,6 +12,7 @@ export type StreamHandlers = {
     completion_tokens?: number;
     total_tokens?: number;
   }) => void;
+  onSetPlan?: (plan: Plan | null) => void;
 };
 
 export type StreamResult = {

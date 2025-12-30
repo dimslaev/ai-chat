@@ -21,11 +21,13 @@ export const useChatActions = () => {
   const clearChat = useChatStore((state) => state.clearChat);
   const agentMode = useChatStore((state) => state.agentMode);
   const setAgentMode = useChatStore((state) => state.setAgentMode);
+  const setPlan = useChatStore((state) => state.setPlan);
 
   const submitMessage = useCallback(
     (content: string) => {
       if (!content.trim() || isStreaming || !vscode) return;
 
+      setPlan(null);
       setIsStreaming(true);
 
       const newMessage: Message = {
@@ -37,26 +39,28 @@ export const useChatActions = () => {
       addMessage(newMessage);
       postMessage(vscode, "sendMessage", newMessage);
     },
-    [vscode, isStreaming, setIsStreaming, addMessage],
+    [vscode, isStreaming, setIsStreaming, addMessage, setPlan],
   );
 
   const editMessage = useCallback(
     (id: string, content: string) => {
       if (!content.trim() || isStreaming || !vscode) return;
 
+      setPlan(null);
       setIsStreaming(true);
       updateMessage(id, content);
       postMessage(vscode, "editMessage", { id, content: content.trim() });
     },
-    [vscode, isStreaming, setIsStreaming, updateMessage],
+    [vscode, isStreaming, setIsStreaming, updateMessage, setPlan],
   );
 
   const stopStream = useCallback(() => {
     if (!vscode) return;
 
+    setPlan(null);
     postMessage(vscode, "stopStream");
     setIsStreaming(false);
-  }, [vscode, setIsStreaming]);
+  }, [vscode, setIsStreaming, setPlan]);
 
   const attachFile = useCallback(() => {
     if (!suggestedFile || !vscode) return;

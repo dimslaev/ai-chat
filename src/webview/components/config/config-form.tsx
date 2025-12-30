@@ -209,17 +209,6 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({
             Tools ({formData.mcpEnabledTools?.length || 0}/{MCP_TOOLS.length})
           </summary>
           <Flex direction="column" gap="3" mt="3">
-            <Flex direction="row" gap="2" align="center">
-              <TextField.Root
-                type="number"
-                min="1"
-                {...field("toolMaxRounds")}
-                style={{ width: 40 }}
-              />
-              <Text as="label" size="1" color="gray">
-                max rounds
-              </Text>
-            </Flex>
             <Flex
               gap="2"
               wrap="wrap"

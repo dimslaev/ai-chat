@@ -6,6 +6,7 @@ import {
   AttachedFile,
   Configuration,
   Message,
+  Plan,
   TokenUsage,
   vscodeApi,
 } from "@/lib/types";
@@ -22,6 +23,7 @@ export interface ChatStore {
   tokenUsage: TokenUsage;
   inputValue: string;
   agentMode: boolean;
+  plan: Plan | null;
 
   // Pure setters
   setVscode: (vscode: vscodeApi) => void;
@@ -34,6 +36,7 @@ export interface ChatStore {
   setTokenUsage: (usage: TokenUsage) => void;
   setInputValue: (value: string) => void;
   setAgentMode: (enabled: boolean) => void;
+  setPlan: (plan: Plan | null) => void;
 
   // Simple state operations (no side effects)
   addMessage: (message: Message) => void;
@@ -69,6 +72,7 @@ export const useChatStore = create<ChatStore>()(
     },
     inputValue: "",
     agentMode: false,
+    plan: null,
 
     // Pure setters
     setVscode: (vscode) => set({ vscode }),
@@ -81,6 +85,7 @@ export const useChatStore = create<ChatStore>()(
     setTokenUsage: (tokenUsage) => set({ tokenUsage }),
     setInputValue: (inputValue) => set({ inputValue }),
     setAgentMode: (agentMode) => set({ agentMode }),
+    setPlan: (plan) => set({ plan }),
 
     // Simple state operations
     addMessage: (message) =>
@@ -132,6 +137,7 @@ export const useChatStore = create<ChatStore>()(
           completionTokens: 0,
           totalTokens: 0,
         },
+        plan: null,
       }),
 
     restoreState: (state) =>

@@ -16,6 +16,7 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
   const inputValue = useChatStore((state) => state.inputValue);
   const setInputValue = useChatStore((state) => state.setInputValue);
   const setApiError = useChatStore((state) => state.setApiError);
+  const plan = useChatStore((state) => state.plan);
 
   const { submitMessage, stopStream } = useChatActions();
 
@@ -81,7 +82,11 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
           }
           color={isStreaming ? "blue" : "gray"}
         >
-          {isStreaming ? <StopIcon /> : <PaperPlaneIcon />}
+          {isStreaming && plan?.status !== "awaiting_approval" ? (
+            <StopIcon />
+          ) : (
+            <PaperPlaneIcon />
+          )}
         </IconButton>
       </Flex>
     </Flex>
