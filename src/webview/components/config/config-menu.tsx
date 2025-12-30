@@ -80,6 +80,8 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
       deleteConfig(configToDelete.id);
       setDeleteConfirmOpen(false);
       setConfigToDelete(null);
+      setDialogOpen(false);
+      setEditingConfig(null);
     };
 
     const handleSave = (finalFormData: Configuration) => {
