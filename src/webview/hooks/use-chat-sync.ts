@@ -17,6 +17,7 @@ export const useChatSync = () => {
   const setConfigs = useChatStore((state) => state.setConfigs);
   const setTokenUsage = useChatStore((state) => state.setTokenUsage);
   const setAgentMode = useChatStore((state) => state.setAgentMode);
+  const setPlan = useChatStore((state) => state.setPlan);
   const addMessage = useChatStore((state) => state.addMessage);
   const appendToLastMessage = useChatStore(
     (state) => state.appendToLastMessage,
@@ -81,6 +82,10 @@ export const useChatSync = () => {
           setAgentMode(payload);
           break;
 
+        case "setPlan":
+          setPlan(payload);
+          break;
+
         case "toggleSuggestedFile": {
           const currentSuggestedFile = useChatStore.getState().suggestedFile;
           const currentAttachedFiles = useChatStore.getState().attachedFiles;
@@ -120,6 +125,7 @@ export const useChatSync = () => {
     setConfigs,
     setTokenUsage,
     setAgentMode,
+    setPlan,
     addMessage,
     appendToLastMessage,
     restoreState,

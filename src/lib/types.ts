@@ -83,7 +83,10 @@ export type PostMessageType =
   | "saveChat"
   | "setAgentMode"
   | "setInputValue"
-  | "tokenUsage";
+  | "tokenUsage"
+  | "setPlan"
+  | "approvePlan"
+  | "rejectPlan";
 
 export type PostMessagePayloadMap = {
   getState: undefined;
@@ -116,6 +119,9 @@ export type PostMessagePayloadMap = {
   toggleSuggestedFile: undefined;
   focusInput: undefined;
   openConfigMenu: undefined;
+  setPlan: Plan | null;
+  approvePlan: undefined;
+  rejectPlan: undefined;
 };
 
 export type PostMessage = {
@@ -126,3 +132,23 @@ export type PostMessage = {
 }[PostMessageType];
 
 export type FileContentPart = TextPart | ImagePart;
+
+/* Plan */
+
+export type PlanTask = {
+  id: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed";
+};
+
+export type Plan = {
+  id: string;
+  messageId?: string;
+  tasks: PlanTask[];
+  status:
+    | "awaiting_approval"
+    | "approved"
+    | "rejected"
+    | "in_progress"
+    | "completed";
+};

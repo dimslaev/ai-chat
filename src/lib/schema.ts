@@ -24,7 +24,6 @@ export const ConfigurationSchema = z
     frequencyPenalty: z.number().min(-2).max(2).default(0),
     presencePenalty: z.number().min(-2).max(2).default(0),
     topP: z.number().min(0).max(1).default(1),
-    toolMaxRounds: z.number().int().min(1).max(100).default(10),
     mcpServers: z.array(MCPServerSchema).default([]),
     mcpEnabledTools: z.array(z.string()).default([]),
   })

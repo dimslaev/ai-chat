@@ -6,6 +6,7 @@ import { mcpManager } from "@/extension/mcp/manager";
 import { FileReader } from "@/extension/services/file-reader";
 import { handleStream } from "@/extension/services/stream";
 import { StreamHandlers } from "@/extension/services/types";
+import { createPlanTool, updatePlanTool } from "@/extension/tools/plan";
 import { AnyTool } from "@/extension/types";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { FileContentPart, Message } from "@/lib/types";
@@ -26,7 +27,16 @@ class CompletionService {
 
       if (agentMode && mcpManager.hasConnectedServers()) {
         const enabledTools = State.config.mcpEnabledTools;
-        const tools = await mcpManager.getAllTools(enabledTools);
+        const mcpTools = await mcpManager.getAllTools(enabledTools);
+
+        // Merge MCP tools with built-in plan tools
+        const onSetPlan = handlers.onSetPlan || (() => {});
+        const tools: Record<string, AnyTool> = {
+          ...mcpTools,
+          create_plan: createPlanTool(onSetPlan),
+          update_plan: updatePlanTool(onSetPlan),
+        };
+
         if (Object.keys(tools).length > 0) {
           await this.#executeTools(tools, handlers.onToolMessage);
         }
@@ -44,6 +54,15 @@ class CompletionService {
     const { history, config } = State;
     const systemPrompt = config.systemPrompt || SYSTEM_PROMPT;
 
+    if (history[history.length - 1].role === "tool") {
+      history.push({
+        id: `user-message-${Date.now()}`,
+        role: "user",
+        content:
+          "Read the tool results and generate a response based on the information you have.",
+      });
+    }
+
     const conversationMessages = await Promise.all(
       history.map((msg) => this.#toModelMessageWithFiles(msg)),
     );
@@ -60,17 +79,21 @@ class CompletionService {
 
     const messages = await this.prepareMessages();
     const model = createModel(config);
+    const stepDelayMs = 1000;
 
     await generateText({
       model,
       messages,
       tools,
-      stopWhen: stepCountIs(config.toolMaxRounds || 10),
+      stopWhen: stepCountIs(100),
       maxOutputTokens: config.maxCompletionTokens,
       temperature: config.temperature,
       abortSignal: abort.signal,
-      onStepFinish: ({ toolCalls, toolResults }) => {
+      onStepFinish: async ({ toolCalls, toolResults }) => {
         if (!toolCalls || toolCalls.length === 0) return;
+
+        // Avoid hitting API rate limits
+        await new Promise((resolve) => setTimeout(resolve, stepDelayMs));
 
         const assistantMessage: Message = {
           id: `assistant-tools-${Date.now()}`,
@@ -113,16 +136,11 @@ class CompletionService {
     const messages = await this.prepareMessages();
     const model = createModel(config);
 
-    console.log("[Completion] Streaming response");
+    console.log("[Completion] Streaming response", messages);
 
     const response = streamText({
       model,
       messages,
-      maxOutputTokens: config.maxCompletionTokens,
-      temperature: config.temperature,
-      frequencyPenalty: config.frequencyPenalty,
-      presencePenalty: config.presencePenalty,
-      topP: config.topP,
       abortSignal: abort.signal,
     });
 

@@ -88,7 +88,6 @@ export const DEFAULT_CONFIG: Configuration = {
   frequencyPenalty: 0,
   presencePenalty: 0,
   topP: 1,
-  toolMaxRounds: 10,
   mcpServers: [],
   mcpEnabledTools: MCP_TOOLS.map((t) => t.id),
 };

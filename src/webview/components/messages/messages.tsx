@@ -3,6 +3,7 @@ import { Box, Callout, Flex, IconButton, Spinner } from "@radix-ui/themes";
 import * as React from "react";
 
 import { Message } from "@/components/messages/message";
+import { PlanCard } from "@/components/plan/plan-card";
 import { Message as MessageType } from "@/lib/types";
 import { waitFrames } from "@/lib/utils";
 import { useChatStore } from "@/store/chat";
@@ -11,6 +12,7 @@ export const Messages: React.FC = () => {
   const messages = useChatStore((state) => state.messages);
   const isStreaming = useChatStore((state) => state.isStreaming);
   const apiError = useChatStore((state) => state.apiError);
+  const plan = useChatStore((state) => state.plan);
 
   const messagesRef = React.useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = React.useState(false);
@@ -94,13 +96,20 @@ export const Messages: React.FC = () => {
         {messages
           .filter((message: MessageType) => !message.hidden)
           .map((message: MessageType, index: number, visibleMessages) => (
-            <Message
-              key={message.id}
-              message={message}
-              isStreaming={isStreaming}
-              isLast={index === visibleMessages.length - 1}
-              isReady={isReady}
-            />
+            <React.Fragment key={message.id}>
+              <Message
+                message={message}
+                isStreaming={isStreaming}
+                isLast={index === visibleMessages.length - 1}
+                isReady={isReady}
+              />
+              {plan?.status !== "rejected" &&
+                plan?.messageId === message.id && (
+                  <Box mb="3" className="chat-message-unmargin">
+                    <PlanCard plan={plan} />
+                  </Box>
+                )}
+            </React.Fragment>
           ))}
 
         {apiError && (
@@ -118,13 +127,15 @@ export const Messages: React.FC = () => {
           </div>
         )}
 
-        {isStreaming && messages[messages.length - 1].role !== "assistant" && (
-          <div className="chat-message-unmargin">
-            <Flex justify="center" p="3">
-              <Spinner size="2" />
-            </Flex>
-          </div>
-        )}
+        {isStreaming &&
+          messages[messages.length - 1].role !== "assistant" &&
+          plan?.status !== "awaiting_approval" && (
+            <div className="chat-message-unmargin">
+              <Flex justify="center" p="3">
+                <Spinner size="2" />
+              </Flex>
+            </div>
+          )}
       </Flex>
 
       {showScrollButton && isReady && (
