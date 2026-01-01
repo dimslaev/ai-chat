@@ -89,6 +89,7 @@ class EditorHandler {
             suggestedFile: file,
             configs: State.configs,
             inputValue: State.inputValue,
+            plan: State.plan,
           });
         }
       }),

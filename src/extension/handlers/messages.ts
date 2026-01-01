@@ -131,6 +131,7 @@ class MessageHandler {
       suggestedFile,
       configs: State.configs,
       inputValue: State.inputValue,
+      plan: State.plan,
     });
   }
 

@@ -60,6 +60,7 @@ class CompletionService {
         role: "user",
         content:
           "Read the tool results and generate a response based on the information you have.",
+        hidden: true,
       });
     }
 
@@ -99,6 +100,7 @@ class CompletionService {
           id: `assistant-tools-${Date.now()}`,
           role: "assistant",
           content: "",
+          hidden: true,
           toolCalls: toolCalls.map((tc) => ({
             id: tc.toolCallId,
             name: tc.toolName,
@@ -110,6 +112,9 @@ class CompletionService {
         for (let i = 0; i < toolCalls.length; i++) {
           const toolCall = toolCalls[i];
           const toolResult = toolResults[i];
+          const isPlanTool =
+            toolCall.toolName === "create_plan" ||
+            toolCall.toolName === "update_plan";
 
           const toolResultMessage: Message = {
             id: `tool-${Date.now()}-${toolCall.toolCallId}`,
@@ -118,10 +123,11 @@ class CompletionService {
             toolCallId: toolCall.toolCallId,
             toolName: toolCall.toolName,
             toolArgs: JSON.stringify(toolCall.input),
+            hidden: isPlanTool,
           };
           history.push(toolResultMessage);
 
-          if (onToolMessage) {
+          if (onToolMessage && !isPlanTool) {
             onToolMessage(toolResultMessage);
           }
         }

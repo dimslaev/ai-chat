@@ -96,6 +96,7 @@ export type PostMessagePayloadMap = {
     suggestedFile: AttachedFile | null;
     inputValue?: string;
     configs: Configuration[];
+    plan: Plan | null;
   };
   sendMessage: Message;
   editMessage: { id: string; content: string };

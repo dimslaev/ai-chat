@@ -48,6 +48,9 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
     [onSubmit],
   );
 
+  const isStreamingAndNotWaiting =
+    isStreaming && plan?.status !== "awaiting_approval";
+
   return (
     <Flex direction="row" gap="2" px="3" py="3" align="end">
       <Flex
@@ -80,13 +83,9 @@ export const Input: React.FC<InputProps> = React.memo(({ inputRef }) => {
           disabled={
             isStreaming ? false : !inputValue.trim() || !isModelConfigured
           }
-          color={isStreaming ? "blue" : "gray"}
+          color={isStreamingAndNotWaiting ? "blue" : "gray"}
         >
-          {isStreaming && plan?.status !== "awaiting_approval" ? (
-            <StopIcon />
-          ) : (
-            <PaperPlaneIcon />
-          )}
+          {isStreamingAndNotWaiting ? <StopIcon /> : <PaperPlaneIcon />}
         </IconButton>
       </Flex>
     </Flex>

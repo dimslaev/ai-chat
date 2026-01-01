@@ -52,6 +52,7 @@ export interface ChatStore {
     suggestedFile: AttachedFile | null;
     configs: Configuration[];
     inputValue?: string;
+    plan: Plan | null;
   }) => void;
 }
 
@@ -148,6 +149,7 @@ export const useChatStore = create<ChatStore>()(
         configs: state.configs,
         inputValue: state.inputValue || "",
         apiError: null,
+        plan: state.plan,
       }),
   })),
 );
