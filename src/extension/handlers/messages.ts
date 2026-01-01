@@ -213,7 +213,6 @@ class MessageHandler {
   #stopStream(): void {
     State.abort.abort();
     State.clearPlan();
-    this.post("endAssistantMessage");
   }
 
   // Resets conversation state (history, files, tokens, plan)

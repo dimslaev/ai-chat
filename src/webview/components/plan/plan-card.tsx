@@ -27,11 +27,13 @@ interface PlanCardProps {
 export const PlanCard: React.FC<PlanCardProps> = ({ plan }) => {
   const vscode = useChatStore((state) => state.vscode);
   const setPlan = useChatStore((state) => state.setPlan);
+  const setIsStreaming = useChatStore((state) => state.setIsStreaming);
   const isAwaitingApproval = plan.status === "awaiting_approval";
 
   const handleApprove = () => {
     if (vscode) {
       postMessage(vscode, "approvePlan");
+      setPlan({ ...plan, status: "approved" });
     }
   };
 
@@ -39,6 +41,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({ plan }) => {
     if (vscode) {
       postMessage(vscode, "rejectPlan");
       setPlan(null);
+      setIsStreaming(false);
     }
   };
 
