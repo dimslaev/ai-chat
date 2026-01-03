@@ -26,6 +26,7 @@ export const ConfigurationSchema = z
     topP: z.number().min(0).max(1).default(1),
     mcpServers: z.array(MCPServerSchema).default([]),
     mcpEnabledTools: z.array(z.string()).default([]),
+    stepDelay: z.number().int().min(0).default(1000),
   })
   .loose(); // Allow extra fields for forward compatibility
 

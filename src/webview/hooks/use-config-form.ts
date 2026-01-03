@@ -19,6 +19,7 @@ function serializeConfig(config: Configuration): FormData {
     frequencyPenalty: String(config.frequencyPenalty),
     presencePenalty: String(config.presencePenalty),
     topP: String(config.topP),
+    stepDelay: String(config.stepDelay),
   };
 }
 
@@ -29,6 +30,7 @@ function deserializeFormData(formData: FormData): Configuration {
   const frequencyPenalty = parseFloat(String(formData.frequencyPenalty));
   const presencePenalty = parseFloat(String(formData.presencePenalty));
   const topP = parseFloat(String(formData.topP));
+  const stepDelay = parseInt(String(formData.stepDelay));
 
   return {
     ...formData,
@@ -38,6 +40,7 @@ function deserializeFormData(formData: FormData): Configuration {
     frequencyPenalty: isNaN(frequencyPenalty) ? 0 : frequencyPenalty,
     presencePenalty: isNaN(presencePenalty) ? 0 : presencePenalty,
     topP: isNaN(topP) ? 1 : topP,
+    stepDelay: isNaN(stepDelay) ? 1000 : stepDelay,
   };
 }
 
@@ -93,7 +96,6 @@ export function useConfigForm(editingConfig: Configuration | null) {
     return deserializeFormData(formData);
   };
 
-  // Validation using Zod schema
   const validationResult = React.useMemo(() => {
     const config = toConfig();
     const result = ConfigurationSchema.safeParse(config);

@@ -80,7 +80,7 @@ class CompletionService {
 
     const messages = await this.prepareMessages();
     const model = createModel(config);
-    const stepDelayMs = 1000;
+    const stepDelayMs = config.stepDelay ?? 1000;
 
     await generateText({
       model,

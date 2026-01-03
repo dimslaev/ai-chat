@@ -1,3 +1,4 @@
+import { SYSTEM_PROMPT } from "./prompts";
 import { Configuration } from "./types";
 
 export const MCP_TOOLS = [
@@ -84,10 +85,11 @@ export const DEFAULT_CONFIG: Configuration = {
   maxCompletionTokens: 8000,
   temperature: 0.1,
   historyLimit: 10,
-  systemPrompt: "",
+  systemPrompt: SYSTEM_PROMPT,
   frequencyPenalty: 0,
   presencePenalty: 0,
   topP: 1,
   mcpServers: [],
   mcpEnabledTools: MCP_TOOLS.map((t) => t.id),
+  stepDelay: 1000,
 };
