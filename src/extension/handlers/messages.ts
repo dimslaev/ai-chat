@@ -120,7 +120,7 @@ class MessageHandler {
       const selections = Editor.getEditorSelection(activeTextEditor);
       suggestedFile = {
         name: getFileName(activeTextEditor.document.uri.path),
-        fileUri: activeTextEditor.document.uri,
+        filePath: activeTextEditor.document.uri.fsPath,
         selections,
       };
     }
@@ -199,14 +199,14 @@ class MessageHandler {
 
   // Adds file to message context
   #attachFile(payload: AttachedFile): void {
-    const { fileUri, selections } = payload;
-    const fileName = getFileName(fileUri.path);
-    State.addFile({ name: fileName, fileUri, selections });
+    const { filePath, selections } = payload;
+    const fileName = getFileName(filePath);
+    State.addFile({ name: fileName, filePath, selections });
   }
 
   // Removes file from message context
   #removeAttachedFile(payload: AttachedFile): void {
-    State.removeFile(payload.fileUri.path);
+    State.removeFile(payload.filePath);
   }
 
   // Aborts ongoing completion

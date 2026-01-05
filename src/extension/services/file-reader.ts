@@ -25,7 +25,8 @@ class FileReaderService {
   }
 
   async #readFile(file: AttachedFile): Promise<FileContentPart[]> {
-    const data = await vscode.workspace.fs.readFile(file.fileUri);
+    const uri = vscode.Uri.file(file.filePath);
+    const data = await vscode.workspace.fs.readFile(uri);
 
     if (isImageFile(file.name)) {
       return this.#readImage(file.name, data);

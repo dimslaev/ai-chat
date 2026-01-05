@@ -30,7 +30,7 @@ export const Context: React.FC = React.memo(() => {
       <Flex direction="row" align="center" flexGrow="1" wrap="wrap" gap="2">
         {attachedFiles.map((file: AttachedFile) => (
           <FileButton
-            key={file.fileUri.path}
+            key={file.filePath}
             file={file}
             variant="solid"
             icon={<Cross2Icon style={{ flexShrink: 0 }} />}
@@ -40,8 +40,7 @@ export const Context: React.FC = React.memo(() => {
 
         {suggestedFile &&
           !attachedFiles.some(
-            (file: AttachedFile) =>
-              file.fileUri.path === suggestedFile.fileUri.path,
+            (file: AttachedFile) => file.filePath === suggestedFile.filePath,
           ) && (
             <FileButton
               file={suggestedFile}

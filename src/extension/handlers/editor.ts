@@ -66,7 +66,7 @@ class EditorHandler {
           const selections = this.getEditorSelection(editor);
           file = {
             name: fileName,
-            fileUri: editor.document.uri,
+            filePath: editor.document.uri.fsPath,
             selections,
           };
         } else {
@@ -74,7 +74,7 @@ class EditorHandler {
           if (uri) {
             file = {
               name: getFileName(uri.path),
-              fileUri: uri,
+              filePath: uri.fsPath,
               selections: undefined,
             };
           }
@@ -131,7 +131,7 @@ class EditorHandler {
     return undefined;
   }
 
-  // Sends active file info (name, uri, selections) to webview
+  // Sends active file info (name, path, selections) to webview
   #postActiveFileChanged(
     editor: vscode.TextEditor | undefined,
     uri?: vscode.Uri,
@@ -141,13 +141,13 @@ class EditorHandler {
       const selections = this.getEditorSelection(editor);
       postMessage(State.webview, "activeFileChanged", {
         name: fileName,
-        fileUri: editor.document.uri,
+        filePath: editor.document.uri.fsPath,
         selections,
       });
     } else if (uri) {
       postMessage(State.webview, "activeFileChanged", {
         name: getFileName(uri.path),
-        fileUri: uri,
+        filePath: uri.fsPath,
         selections: undefined,
       });
     }

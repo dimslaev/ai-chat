@@ -123,7 +123,7 @@ export const useChatStore = create<ChatStore>()(
     removeAttachedFile: (fileToRemove) =>
       set((state) => ({
         attachedFiles: state.attachedFiles.filter(
-          (file) => file.fileUri.path !== fileToRemove.fileUri.path,
+          (file) => file.filePath !== fileToRemove.filePath,
         ),
       })),
 

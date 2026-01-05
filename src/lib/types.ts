@@ -1,5 +1,4 @@
 import { ImagePart, TextPart } from "ai";
-import * as vscode from "vscode";
 import { z } from "zod";
 
 import { ConfigurationSchema } from "./schema";
@@ -7,6 +6,8 @@ import { ConfigurationSchema } from "./schema";
 /* VSCode */
 export type vscodeApi = {
   postMessage(message: unknown): void;
+  getState<T = unknown>(): T | undefined;
+  setState<T>(state: T): void;
 };
 
 /* Config */
@@ -35,7 +36,7 @@ export type Message = {
 
 export type AttachedFile = {
   name: string;
-  fileUri: vscode.Uri;
+  filePath: string;
   selections?: Array<{
     start: number;
     end: number;

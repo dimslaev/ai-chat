@@ -131,13 +131,13 @@ class StateManager {
   }
 
   addFile(file: AttachedFile): void {
-    if (!this.#files.some((f) => f.fileUri.path === file.fileUri.path)) {
+    if (!this.#files.some((f) => f.filePath === file.filePath)) {
       this.#files.push(file);
     }
   }
 
   removeFile(filePath: string): void {
-    const index = this.#files.findIndex((f) => f.fileUri.path === filePath);
+    const index = this.#files.findIndex((f) => f.filePath === filePath);
     if (index !== -1) {
       this.#files.splice(index, 1);
     }
@@ -145,7 +145,7 @@ class StateManager {
 
   toggleFile(file: AttachedFile): void {
     const existingIndex = this.#files.findIndex(
-      (f) => f.fileUri.path === file.fileUri.path,
+      (f) => f.filePath === file.filePath,
     );
     if (existingIndex !== -1) {
       this.#files.splice(existingIndex, 1);

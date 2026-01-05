@@ -92,13 +92,12 @@ export const useChatSync = () => {
 
           if (currentSuggestedFile) {
             const isAttached = currentAttachedFiles.some(
-              (file) => file.fileUri.path === currentSuggestedFile.fileUri.path,
+              (file) => file.filePath === currentSuggestedFile.filePath,
             );
 
             if (isAttached) {
               const fileToRemove = currentAttachedFiles.find(
-                (file) =>
-                  file.fileUri.path === currentSuggestedFile.fileUri.path,
+                (file) => file.filePath === currentSuggestedFile.filePath,
               );
               if (fileToRemove) {
                 removeAttachedFile(fileToRemove);
