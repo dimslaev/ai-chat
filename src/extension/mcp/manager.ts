@@ -1,5 +1,5 @@
 import { MCPClient } from "@/extension/mcp/client";
-import { isSensitivePath } from "@/extension/mcp/safety";
+import { isSensitivePath, isWorkspacePath } from "@/extension/mcp/safety";
 import { MCPServerConfig, MCPServerStatus } from "@/extension/mcp/types";
 import { AnyTool } from "@/extension/types";
 import { MCP_PATH_TOOLS } from "@/lib/config";
@@ -152,10 +152,7 @@ class MCPManager {
 
   // Wraps path-based tools to block access to sensitive files
   #wrapToolWithSafety(name: string, tool: AnyTool): AnyTool {
-    // Only wrap tools that have path arguments
-    if (!MCP_PATH_TOOLS.includes(name) || !tool.execute) {
-      return tool;
-    }
+    if (!MCP_PATH_TOOLS.includes(name) || !tool.execute) return tool;
 
     const originalExecute = tool.execute;
 
@@ -165,14 +162,12 @@ class MCPManager {
         args: { path?: string; [key: string]: unknown },
         options: Parameters<typeof originalExecute>[1],
       ) => {
-        // Check for sensitive paths
-        if (args.path && isSensitivePath(args.path)) {
-          console.warn(
-            `[MCP Safety] Blocked access to sensitive file: ${args.path}`,
-          );
-          return `Error: Access denied. "${args.path}" is a sensitive file and cannot be accessed.`;
+        if (
+          args.path &&
+          (!isWorkspacePath(args.path) || isSensitivePath(args.path))
+        ) {
+          return `Error: Access denied for "${args.path}"`;
         }
-
         return originalExecute(args, options);
       },
     };

@@ -1,6 +1,9 @@
+import * as path from "path";
+import * as vscode from "vscode";
+
 /**
  * File path security
- * block sensitive files and ignored directories
+ * block sensitive files, ignored directories, and paths outside workspace
  */
 
 // Patterns for sensitive files that should never be read
@@ -62,4 +65,24 @@ export function filterEntries(
     if (type === "file" && isSensitivePath(name)) return false;
     return true;
   });
+}
+
+export function isWorkspacePath(filePath: string): boolean {
+  const folders = vscode.workspace.workspaceFolders;
+  if (!folders?.length) return false;
+
+  // absolute paths
+  if (path.isAbsolute(filePath)) {
+    const roots = folders.map((f) => f.uri.fsPath);
+    return roots.some((root) => {
+      const normalized = path.normalize(root);
+      return (
+        filePath === normalized || filePath.startsWith(normalized + path.sep)
+      );
+    });
+  }
+
+  // relative paths via ../
+  const normalized = path.normalize(filePath);
+  return !normalized.startsWith("..") && !path.isAbsolute(normalized);
 }
