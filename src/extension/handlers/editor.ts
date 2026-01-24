@@ -42,9 +42,7 @@ class EditorHandler {
     const selections = editor.selections
       .filter(
         (selection) =>
-          !selection.isEmpty &&
-          (selection.start.line !== selection.end.line ||
-            selection.end.character - selection.start.character > 0),
+          !selection.isEmpty && selection.start.line !== selection.end.line,
       )
       .map((selection) => ({
         start: selection.start.line,
