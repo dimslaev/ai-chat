@@ -88,6 +88,16 @@ export const useChatConfig = () => {
     [configs, saveConfigs],
   );
 
+  const reorderConfigs = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const reordered = [...configs];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      saveConfigs(reordered);
+    },
+    [configs, saveConfigs],
+  );
+
   const exportConfig = useCallback(
     (config: Configuration) => {
       if (!vscode) return;
@@ -107,5 +117,6 @@ export const useChatConfig = () => {
     updateConfig,
     importConfig,
     exportConfig,
+    reorderConfigs,
   };
 };

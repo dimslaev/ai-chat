@@ -37,7 +37,51 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
       updateConfig,
       importConfig,
       exportConfig,
+      reorderConfigs,
     } = useChatConfig();
+
+    const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(
+      null,
+    );
+    const [dragPosition, setDragPosition] = React.useState<
+      "above" | "below" | null
+    >(null);
+
+    const handleDragStart = (index: number) => {
+      setDragIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      setDragOverIndex(index);
+
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      setDragPosition(e.clientY < midY ? "above" : "below");
+    };
+
+    const handleDragEnd = () => {
+      if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
+        const toIndex =
+          dragPosition === "below" && dragOverIndex > dragIndex
+            ? dragOverIndex
+            : dragPosition === "above" && dragOverIndex < dragIndex
+              ? dragOverIndex
+              : dragPosition === "below"
+                ? dragOverIndex + 1
+                : dragOverIndex;
+
+        const adjustedTo = toIndex > dragIndex ? toIndex - 1 : toIndex;
+        if (adjustedTo !== dragIndex) {
+          reorderConfigs(dragIndex, adjustedTo);
+        }
+      }
+      setDragIndex(null);
+      setDragOverIndex(null);
+      setDragPosition(null);
+    };
 
     React.useImperativeHandle(ref, () => ({
       openDropdown: () => setDropdownOpen(true),
@@ -166,12 +210,20 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
               onCloseAutoFocus={(e) => e.preventDefault()}
               style={{ width: 180 }}
             >
-              {configs.map((config) => (
+              {configs.map((config, index) => (
                 <ConfigMenuItem
                   key={config.id}
                   config={config}
+                  index={index}
                   onSelect={handleConfigChange}
                   onEdit={handleEditConfig}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                  isDragOver={dragOverIndex === index}
+                  dragPosition={
+                    dragOverIndex === index ? dragPosition : null
+                  }
                 />
               ))}
               <DropdownMenu.Separator />
