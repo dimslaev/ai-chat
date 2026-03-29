@@ -1,4 +1,4 @@
-import { Button } from "@radix-ui/themes";
+import { Button, Tooltip } from "@radix-ui/themes";
 import * as React from "react";
 
 import { TextEllipsis } from "@/components/ui/text-ellipsis";
@@ -6,6 +6,7 @@ import { AttachedFile } from "@/lib/types";
 
 interface FileButtonProps {
   file: AttachedFile;
+  selection?: { start: number; end: number };
   variant?: "solid" | "soft";
   icon: React.ReactNode;
   onClick: () => void;
@@ -13,39 +14,48 @@ interface FileButtonProps {
 
 export const FileButton: React.FC<FileButtonProps> = ({
   file,
+  selection,
   variant = "solid",
   icon,
   onClick,
 }) => {
-  const { fileName, rangeText } = React.useMemo(() => {
-    if (!file.selections || file.selections.length === 0) {
-      return { fileName: file.name, rangeText: null };
+  const textRef = React.useRef<HTMLSpanElement>(null);
+  const [isTruncated, setIsTruncated] = React.useState(false);
+
+  const rangeText = selection
+    ? `${selection.start + 1}-${selection.end + 1}`
+    : null;
+
+  const label = rangeText ? `${file.name} ${rangeText}` : file.name;
+
+  React.useEffect(() => {
+    const el = textRef.current;
+    if (el) {
+      setIsTruncated(el.scrollWidth > el.clientWidth);
     }
+  });
 
-    const firstRange = `${file.selections[0].start + 1}-${
-      file.selections[0].end + 1
-    }`;
-    const hasMore = file.selections.length > 2;
-    const rangeDisplay = hasMore
-      ? `${firstRange}+`
-      : file.selections
-          .map((sel) => `${sel.start + 1}-${sel.end + 1}`)
-          .join(",");
-
-    return { fileName: file.name, rangeText: rangeDisplay };
-  }, [file.name, file.selections]);
-
-  return (
+  const button = (
     <Button
       variant={variant}
       color="gray"
       size="1"
       onClick={onClick}
-      style={{ justifyItems: "flex-start", maxWidth: "200px" }}
+      style={{
+        justifyItems: "flex-start",
+        minWidth: "80px",
+        maxWidth: "calc(50% - 4px)",
+      }}
     >
       {icon}
-      <TextEllipsis>{fileName}</TextEllipsis>
+      <TextEllipsis ref={textRef}>{file.name}</TextEllipsis>
       {rangeText && <span style={{ flexShrink: 0 }}>{rangeText}</span>}
     </Button>
   );
+
+  if (isTruncated) {
+    return <Tooltip content={label}>{button}</Tooltip>;
+  }
+
+  return button;
 };

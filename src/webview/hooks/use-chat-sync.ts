@@ -25,6 +25,9 @@ export const useChatSync = () => {
   const restoreState = useChatStore((state) => state.restoreState);
   const addAttachedFile = useChatStore((state) => state.addAttachedFile);
   const removeAttachedFile = useChatStore((state) => state.removeAttachedFile);
+  const updateFileSelections = useChatStore(
+    (state) => state.updateFileSelections,
+  );
 
   useEffect(() => {
     if (!vscode) return;
@@ -61,9 +64,18 @@ export const useChatSync = () => {
           addMessage(payload);
           break;
 
-        case "activeFileChanged":
+        case "activeFileChanged": {
           setSuggestedFile(payload);
+          const attached = useChatStore
+            .getState()
+            .attachedFiles.find(
+              (file) => file.filePath === payload.filePath,
+            );
+          if (attached) {
+            updateFileSelections(payload);
+          }
           break;
+        }
 
         case "apiError":
           setApiError(payload);
@@ -130,6 +142,7 @@ export const useChatSync = () => {
     restoreState,
     addAttachedFile,
     removeAttachedFile,
+    updateFileSelections,
   ]);
 
   useEffect(() => {

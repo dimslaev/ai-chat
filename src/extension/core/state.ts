@@ -136,10 +136,23 @@ class StateManager {
     }
   }
 
-  removeFile(filePath: string): void {
-    const index = this.#files.findIndex((f) => f.filePath === filePath);
-    if (index !== -1) {
-      this.#files.splice(index, 1);
+  removeFile(file: AttachedFile): void {
+    if (file.selections && file.selections.length > 0) {
+      const selToRemove = file.selections[0];
+      const existing = this.#files.find((f) => f.filePath === file.filePath);
+      if (!existing) return;
+      existing.selections = existing.selections?.filter(
+        (s) => s.start !== selToRemove.start || s.end !== selToRemove.end,
+      );
+      if (!existing.selections || existing.selections.length === 0) {
+        const index = this.#files.indexOf(existing);
+        this.#files.splice(index, 1);
+      }
+    } else {
+      const index = this.#files.findIndex((f) => f.filePath === file.filePath);
+      if (index !== -1) {
+        this.#files.splice(index, 1);
+      }
     }
   }
 

@@ -40,6 +40,7 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
       reorderConfigs,
     } = useChatConfig();
 
+    const isDragging = React.useRef(false);
     const [dragIndex, setDragIndex] = React.useState<number | null>(null);
     const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(
       null,
@@ -49,6 +50,7 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
     >(null);
 
     const handleDragStart = (index: number) => {
+      isDragging.current = true;
       setDragIndex(index);
     };
 
@@ -78,6 +80,7 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
           reorderConfigs(dragIndex, adjustedTo);
         }
       }
+      isDragging.current = false;
       setDragIndex(null);
       setDragOverIndex(null);
       setDragPosition(null);
@@ -194,7 +197,10 @@ export const ConfigMenu = React.forwardRef<ConfigMenuRef, ConfigMenuProps>(
             Add config
           </Button>
         ) : (
-          <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
+          <DropdownMenu.Root open={dropdownOpen} onOpenChange={(open) => {
+              if (!open && isDragging.current) return;
+              setDropdownOpen(open);
+            }}>
             <DropdownMenu.Trigger>
               <Button variant="soft" color="gray" size="1">
                 <CaretDownIcon />

@@ -44,6 +44,7 @@ export interface ChatStore {
   updateMessage: (id: string, content: string) => void;
   addAttachedFile: (file: AttachedFile) => void;
   removeAttachedFile: (file: AttachedFile) => void;
+  updateFileSelections: (file: AttachedFile) => void;
   clearChat: () => void;
 
   restoreState: (state: {
@@ -121,9 +122,37 @@ export const useChatStore = create<ChatStore>()(
       set((state) => ({ attachedFiles: [...state.attachedFiles, file] })),
 
     removeAttachedFile: (fileToRemove) =>
+      set((state) => {
+        if (fileToRemove.selections && fileToRemove.selections.length > 0) {
+          const selToRemove = fileToRemove.selections[0];
+          return {
+            attachedFiles: state.attachedFiles
+              .map((file) => {
+                if (file.filePath !== fileToRemove.filePath) return file;
+                const remaining = file.selections?.filter(
+                  (s) =>
+                    s.start !== selToRemove.start ||
+                    s.end !== selToRemove.end,
+                );
+                if (!remaining || remaining.length === 0) return null;
+                return { ...file, selections: remaining };
+              })
+              .filter(Boolean) as AttachedFile[],
+          };
+        }
+        return {
+          attachedFiles: state.attachedFiles.filter(
+            (file) => file.filePath !== fileToRemove.filePath,
+          ),
+        };
+      }),
+
+    updateFileSelections: (file) =>
       set((state) => ({
-        attachedFiles: state.attachedFiles.filter(
-          (file) => file.filePath !== fileToRemove.filePath,
+        attachedFiles: state.attachedFiles.map((f) =>
+          f.filePath === file.filePath
+            ? { ...f, selections: file.selections }
+            : f,
         ),
       })),
 

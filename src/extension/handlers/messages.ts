@@ -206,7 +206,30 @@ class MessageHandler {
 
   // Removes file from message context
   #removeAttachedFile(payload: AttachedFile): void {
-    State.removeFile(payload.filePath);
+    State.removeFile(payload);
+    this.#removeEditorSelection(payload);
+  }
+
+  #removeEditorSelection(file: AttachedFile): void {
+    if (!file.selections || file.selections.length === 0) return;
+    const selToRemove = file.selections[0];
+
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.document.uri.fsPath !== file.filePath) return;
+
+    const remaining = editor.selections.filter((sel) => {
+      const start = sel.start.line;
+      const end = sel.end.line;
+      return start !== selToRemove.start || end !== selToRemove.end;
+    });
+
+    if (remaining.length > 0) {
+      editor.selections = remaining;
+    } else {
+      // Can't have zero selections — collapse to cursor at start of removed selection
+      const pos = new vscode.Position(selToRemove.start, 0);
+      editor.selections = [new vscode.Selection(pos, pos)];
+    }
   }
 
   // Aborts ongoing completion

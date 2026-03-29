@@ -137,9 +137,17 @@ class EditorHandler {
     if (editor) {
       const fileName = getFileName(editor.document.uri.path);
       const selections = this.getEditorSelection(editor);
+      const filePath = editor.document.uri.fsPath;
+
+      // Update selections on already-attached file
+      const existing = State.files.find((f) => f.filePath === filePath);
+      if (existing) {
+        existing.selections = selections;
+      }
+
       postMessage(State.webview, "activeFileChanged", {
         name: fileName,
-        filePath: editor.document.uri.fsPath,
+        filePath,
         selections,
       });
     } else if (uri) {
