@@ -6,6 +6,7 @@ import TextareaAutosize from "react-textarea-autosize";
 
 import { Markdown } from "@/components/messages/markdown";
 import { ToolMessage } from "@/components/messages/tool-message";
+import { CopyButton } from "@/components/ui/copy-button";
 import { useChatActions } from "@/hooks/use-chat-actions";
 import { Message as MessageType } from "@/lib/types";
 import { useChatStore } from "@/store/chat";
@@ -107,6 +108,20 @@ export const Message: React.FC<MessageProps> = ({
           >
             <Pencil1Icon />
           </IconButton>
+        )}
+
+        {message.role === "assistant" && (
+          <div
+            className="action-button"
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              visibility: isStreaming ? "hidden" : "visible",
+              marginRight: "var(--space-2)",
+            }}
+          >
+            <CopyButton text={message.content} />
+          </div>
         )}
       </Box>
     </div>

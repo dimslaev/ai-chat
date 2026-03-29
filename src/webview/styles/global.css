@@ -92,6 +92,10 @@ li code,
   right: 7px;
 }
 
+.chat-message-assistant:not(:hover) .action-button {
+  visibility: hidden !important;
+}
+
 .chat-message > p {
   margin: 0 0 16px;
 }

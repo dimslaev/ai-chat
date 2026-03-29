@@ -2,13 +2,15 @@ import { CheckIcon, CopyIcon } from "@radix-ui/react-icons";
 import { IconButton } from "@radix-ui/themes";
 import * as React from "react";
 
-export const CopyButton: React.FC<{ elRef: React.RefObject<HTMLElement> }> = ({
-  elRef,
-}) => {
+export const CopyButton: React.FC<{
+  elRef?: React.RefObject<HTMLElement>;
+  text?: string;
+}> = ({ elRef, text }) => {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(elRef.current?.textContent ?? "");
+    const content = text ?? elRef?.current?.textContent ?? "";
+    navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
