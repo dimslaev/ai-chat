@@ -66,13 +66,15 @@ export const useChatSync = () => {
 
         case "activeFileChanged": {
           setSuggestedFile(payload);
-          const attached = useChatStore
-            .getState()
-            .attachedFiles.find(
-              (file) => file.filePath === payload.filePath,
-            );
-          if (attached) {
-            updateFileSelections(payload);
+          if (payload.selections?.length) {
+            const attached = useChatStore
+              .getState()
+              .attachedFiles.find(
+                (file) => file.filePath === payload.filePath,
+              );
+            if (attached) {
+              updateFileSelections(payload);
+            }
           }
           break;
         }
